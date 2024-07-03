@@ -1,0 +1,6 @@
+﻿services:
+  choicepie:
+    image: choicepie
+    build:
+      context: .
+      dockerfile: ChoicePie/Dockerfile
