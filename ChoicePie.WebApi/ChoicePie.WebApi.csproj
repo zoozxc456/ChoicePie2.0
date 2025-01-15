@@ -18,4 +18,11 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\ChoicePie.Auth\ChoicePie.Auth.csproj" />
+      <ProjectReference Include="..\ChoicePie.Common\ChoicePie.Common.csproj" />
+      <ProjectReference Include="..\ChoicePie.Core\ChoicePie.Core.csproj" />
+      <ProjectReference Include="..\ChoicePie.Infrastructure\ChoicePie.Infrastructure.csproj" />
+    </ItemGroup>
+
 </Project>

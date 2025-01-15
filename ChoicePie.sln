@@ -1,11 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChoicePie", "ChoicePie\ChoicePie.csproj", "{A33D75AC-6B18-45A1-9DED-B983495E1C0B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChoicePie.WebApi", "ChoicePie.WebApi\ChoicePie.WebApi.csproj", "{A33D75AC-6B18-45A1-9DED-B983495E1C0B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2339E665-C603-4A68-8344-BD962102A432}"
 	ProjectSection(SolutionItems) = preProject
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChoicePie.Core", "ChoicePie.Core\ChoicePie.Core.csproj", "{812AA3C4-B531-423E-9D94-C3D0342D11A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChoicePie.Infrastructure", "ChoicePie.Infrastructure\ChoicePie.Infrastructure.csproj", "{B9A8B5FD-017C-4272-A90B-C5E6DFB42E44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChoicePie.Common", "ChoicePie.Common\ChoicePie.Common.csproj", "{5518A0F7-2397-45A1-B21F-3902C5896BC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChoicePie.Auth", "ChoicePie.Auth\ChoicePie.Auth.csproj", "{53547402-36B5-44BA-8609-CC9CFBC64527}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,5 +25,21 @@ Global
 		{A33D75AC-6B18-45A1-9DED-B983495E1C0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A33D75AC-6B18-45A1-9DED-B983495E1C0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A33D75AC-6B18-45A1-9DED-B983495E1C0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{812AA3C4-B531-423E-9D94-C3D0342D11A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{812AA3C4-B531-423E-9D94-C3D0342D11A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{812AA3C4-B531-423E-9D94-C3D0342D11A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{812AA3C4-B531-423E-9D94-C3D0342D11A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9A8B5FD-017C-4272-A90B-C5E6DFB42E44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9A8B5FD-017C-4272-A90B-C5E6DFB42E44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9A8B5FD-017C-4272-A90B-C5E6DFB42E44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9A8B5FD-017C-4272-A90B-C5E6DFB42E44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5518A0F7-2397-45A1-B21F-3902C5896BC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5518A0F7-2397-45A1-B21F-3902C5896BC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5518A0F7-2397-45A1-B21F-3902C5896BC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5518A0F7-2397-45A1-B21F-3902C5896BC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53547402-36B5-44BA-8609-CC9CFBC64527}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53547402-36B5-44BA-8609-CC9CFBC64527}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53547402-36B5-44BA-8609-CC9CFBC64527}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53547402-36B5-44BA-8609-CC9CFBC64527}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
