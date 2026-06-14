@@ -6,53 +6,53 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: 'primary',   // 對應 @theme 裡定義的 --color-primary-*
-      neutral: 'zinc',
+      primary: 'primary', // 對應 @theme 裡定義的 --color-primary-*
+      neutral: 'zinc'
     },
 
     /* ── 全域圓角覆蓋 ── */
     button: {
       defaultVariants: {
-        color: 'primary',
-      },
+        color: 'primary'
+      }
     },
 
     /* ── Input 風格 ── */
     input: {
       defaultVariants: {
         color: 'primary',
-        variant: 'outline',
-      },
+        variant: 'outline'
+      }
     },
 
     /* ── Modal / Slideover ── */
     modal: {
       slots: {
         overlay: 'bg-black/50',
-        content: 'rounded-[20px] shadow-xl',
-      },
+        content: 'rounded-[20px] shadow-xl'
+      }
     },
 
     /* ── Card ── */
     card: {
       slots: {
-        root: 'bg-white border border-[var(--cp-border)] rounded-[var(--cp-radius-lg)] shadow-[var(--cp-shadow-md)]',
-      },
+        root: 'bg-white border border-[var(--cp-border)] rounded-[var(--cp-radius-lg)] shadow-[var(--cp-shadow-md)]'
+      }
     },
 
     /* ── Badge ── */
     badge: {
       defaultVariants: {
         color: 'primary',
-        variant: 'soft',
-      },
+        variant: 'soft'
+      }
     },
 
     /* ── Toast 通知 ── */
     toast: {
       defaultVariants: {
-        color: 'primary',
-      },
-    },
-  },
+        color: 'primary'
+      }
+    }
+  }
 })

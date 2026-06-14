@@ -1,9 +1,10 @@
 <template>
-  <UApp>
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-  </UApp>
+  <div
+    class="min-h-screen"
+    style="background: var(--cp-secondary); color: white;"
+  >
+    <slot />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -11,7 +12,7 @@
 
 <script lang="ts">
 export default {
-  name: 'App'
+  name: 'BigScreenLayout'
 }
 </script>
 

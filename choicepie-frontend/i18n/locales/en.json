@@ -1,0 +1,329 @@
+{
+  "nav": {
+    "join": "Join Game",
+    "createGame": "Create Game",
+    "history": "History",
+    "howToUse": "How to Use",
+    "about": "About",
+    "login": "Sign In / Sign Up",
+    "logout": "Sign Out"
+  },
+  "join": {
+    "title": "Join Game",
+    "subtitle": "No account needed — just enter a nickname",
+    "roomCode": "Room Code",
+    "roomCodePlaceholder": "A3F7K2",
+    "nickname": "Your Nickname",
+    "nicknamePlaceholder": "Enter nickname (2–12 chars)",
+    "submit": "Join Game →",
+    "roomNotFound": "Room not found. Please check the room code.",
+    "validation": {
+      "roomCodeLength": "Room code must be exactly 6 characters",
+      "nicknameMin": "Nickname must be at least 2 characters",
+      "nicknameMax": "Nickname cannot exceed 12 characters"
+    },
+    "steps": {
+      "title": "How to Join",
+      "step1Title": "Scan QR Code",
+      "step1Desc": "Or manually enter the 6-character room code",
+      "step2Title": "Enter Nickname",
+      "step2Desc": "2–12 characters, no account required",
+      "step3Title": "Wait to Start",
+      "step3Desc": "Game begins automatically when the host starts"
+    }
+  },
+  "room": {
+    "waiting": {
+      "title": "Game Starting Soon",
+      "subtitle": "Waiting for the host to start",
+      "yourNickname": "Your Nickname",
+      "roomCode": "Room Code",
+      "playerCount": "{count} players joined",
+      "waitingHost": "Waiting for host to start..."
+    },
+    "question": {
+      "questionOf": "Question {current} / {total}",
+      "answered": "Answer submitted, waiting for result..."
+    },
+    "result": {
+      "correct": "Correct!",
+      "wrong": "Wrong!",
+      "points": "+{points} pts",
+      "explanation": "💡 Explanation",
+      "currentRank": "Current Rank",
+      "rank": "#{rank}",
+      "waitingNext": "Waiting for next question..."
+    },
+    "ended": {
+      "title": "Game Over!",
+      "yourResult": "Your Result",
+      "playAgain": "Play Again"
+    }
+  },
+  "host": {
+    "waiting": {
+      "title": "Waiting for Players",
+      "subtitle": "Ask players to scan the QR Code or enter the room code",
+      "bigscreen": "🖥️ Project Screen",
+      "roomCode": "Room Code",
+      "joinedPlayers": "Players Joined",
+      "playerCount": "{count} players",
+      "noPlayers": "Waiting for players to join...",
+      "startGame": "▶ Start Game ({count} players)",
+      "waitMore": "Wait a moment, more players are joining",
+      "scanToJoin": "Scan to Join"
+    },
+    "playing": {
+      "questionOf": "Question {current} / {total}",
+      "answerProgress": "Answer Progress",
+      "skipQuestion": "Skip Question",
+      "pause": "Pause",
+      "liveRank": "Live Rankings"
+    },
+    "ended": {
+      "title": "🏆 Game Over!",
+      "finalRank": "Final Rankings",
+      "hostAgain": "Host Another Game"
+    }
+  },
+  "bigscreen": {
+    "waiting": {
+      "scanQR": "Scan QR Code to Join",
+      "orEnterCode": "Or enter the room code",
+      "joinUrl": "choicepie.app/join",
+      "playerCount": "{count} players joined"
+    },
+    "playing": {
+      "questionOf": "Question {current} / {total}",
+      "answeredOf": "{answered} / {total} answered"
+    },
+    "ended": {
+      "title": "🏆 Final Rankings",
+      "rankSuffix": ""
+    }
+  },
+  "login": {
+    "title": "Welcome",
+    "subtitle": "Make learning fun with games",
+    "googleLogin": "Sign in with Google",
+    "orDivider": "or",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "loginBtn": "Sign In",
+    "guestHint": "Just here to play?",
+    "noLoginNeeded": "No sign-in needed →",
+    "loginError": "Incorrect email or password. Please try again.",
+    "validation": {
+      "emailInvalid": "Please enter a valid email address",
+      "passwordMin": "Password must be at least 6 characters"
+    },
+    "hostBenefits": {
+      "title": "As a host you can",
+      "aiGenerate": "Paste content and let AI generate questions",
+      "createRoom": "Create a game room and invite players",
+      "viewHistory": "View historical game data",
+      "reuseLibrary": "Reuse your existing quiz library"
+    }
+  },
+  "library": {
+    "searchPlaceholder": "Search quizzes...",
+    "featured": "🔥 Featured",
+    "latest": "🆕 Latest"
+  },
+  "libraryDetail": {
+    "knowledgePack": "Quiz Pack",
+    "questions": "{count} questions",
+    "challenges": "{count} plays",
+    "passRate": "Avg. pass rate {rate}%",
+    "passRateBadge": "Pass rate {rate}%",
+    "bookmark": "♥ Save",
+    "share": "📤 Share",
+    "useForGame": "⚡ Use in Game",
+    "questionTable": {
+      "index": "#",
+      "question": "Question",
+      "passRate": "Pass Rate",
+      "timeLimit": "Time",
+      "singleChoice": "Single choice · 4 options",
+      "timeApprox": "~20s"
+    },
+    "comments": {
+      "title": "💬 Comments",
+      "placeholder": "Write your thoughts...",
+      "daysAgo": "{days} days ago"
+    },
+    "creator": {
+      "title": "About the Creator",
+      "verified": "Verified Creator",
+      "quizCount": "Quizzes",
+      "challengeCount": "Total Plays",
+      "follow": "Follow Creator"
+    },
+    "related": "You might also like",
+    "modal": {
+      "title": "Start a Game with This Quiz",
+      "subtitle": "A room code and QR Code will be generated immediately",
+      "settings": "Game Settings",
+      "allQuestions": "Use all questions",
+      "allQuestionsValue": "All questions",
+      "timeLimit": "Time per question",
+      "timeLimitValue": "20 seconds",
+      "joinMethod": "How players join",
+      "joinMethodValue": "QR Code or room code, no account needed",
+      "createRoom": "▶ Create Room Now",
+      "cancel": "Cancel"
+    }
+  },
+  "signIn": {
+    "title": "Create Account",
+    "subtitle": "Become a Host and start building interactive games",
+    "googleRegister": "Sign up with Google",
+    "orDivider": "or fill in the form",
+    "namePlaceholder": "Your name (2+ characters)",
+    "emailPlaceholder": "your{'@'}email.com",
+    "passwordPlaceholder": "At least 8 characters",
+    "confirmPasswordPlaceholder": "Enter password again",
+    "submitBtn": "Create Account",
+    "haveAccount": "Already have an account?",
+    "loginLink": "Sign in",
+    "registerError": "This email may already be in use",
+    "passwordMismatch": "Passwords do not match",
+    "strength": {
+      "tooShort": "Too short",
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "validation": {
+      "nameMin": "Name must be at least 2 characters",
+      "emailInvalid": "Please enter a valid email address",
+      "passwordMin": "Password must be at least 8 characters",
+      "confirmPasswordMatch": "Passwords do not match"
+    },
+    "fields": {
+      "name": "Nickname",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password"
+    }
+  },
+  "about": {
+    "hero": {
+      "title": "About ChoicePie",
+      "desc": "We believe knowledge sharing shouldn't be a cold, one-way lecture. ChoicePie turns every tech talk into a game."
+    },
+    "mission": {
+      "label": "MISSION",
+      "text": "Make the last 5 minutes of every tech talk the most exciting moment of the room."
+    },
+    "story": {
+      "title": "Why ChoicePie?",
+      "p1": "Have you ever attended a tech talk where the speaker spent 45 minutes sharing great content, only to end with \"Any questions?\" — followed by three seconds of silence and everyone leaving?",
+      "p2": "That knowledge probably stayed on the slides, never truly absorbed.",
+      "p3": "ChoicePie was born from this pain point. We bring the \"Testing Effect\" from academic research into tech communities — converting content into questions improves retention by 50% compared to re-reading.",
+      "p4": "More importantly, competitive Q&A adds excitement, turning those 5 minutes into the most engaging moment of the event."
+    },
+    "values": {
+      "title": "Our Principles",
+      "fast": { "title": "Fast", "desc": "Generate questions in 30 seconds, set up in 2 minutes — no prep needed." },
+      "fun": { "title": "Fun", "desc": "Timed answers and live rankings make learning feel like a competition." },
+      "effective": { "title": "Effective", "desc": "The Testing Effect ensures knowledge truly sticks, not just sitting on slides." }
+    },
+    "stats": {
+      "title": "Current Status",
+      "stage": { "value": "MVP", "label": "Development Stage" },
+      "timeline": { "value": "2 months", "label": "Target Launch" },
+      "team": { "value": "1", "label": "Core Developer" }
+    },
+    "cta": {
+      "title": "Ready to try it?",
+      "subtitle": "Give it a shot at your next tech talk",
+      "createGame": "✨ Create Game",
+      "howToUse": "How to Use"
+    }
+  },
+  "howToUse": {
+    "title": "How to Use ChoicePie",
+    "subtitle": "From questions to answers in under 5 minutes",
+    "roles": {
+      "host": "🎮 I'm the Host",
+      "player": "📱 I'm a Player"
+    },
+    "hostSteps": [
+      { "title": "Paste Your Content", "desc": "Paste your tech article, notes, or YouTube link. Supports plain text and URLs, up to 5,000 characters." },
+      { "title": "AI Generates Questions", "desc": "Choose question count (3 / 5 / 10) and difficulty. AI generates multiple-choice questions in 30 seconds. Preview and edit freely." },
+      { "title": "Create a Game Room", "desc": "Confirm questions and click 'Create Room'. A 6-digit room code and QR Code are instantly generated — project them for players to scan." },
+      { "title": "Start the Game", "desc": "Once players join, click 'Start Game'. Monitor live answer progress and skip or pause questions as needed." }
+    ],
+    "hostStepIcons": ["📝", "✨", "🚪", "🏁"],
+    "playerSteps": [
+      { "title": "Scan QR Code", "desc": "Scan the QR Code projected by the host, or go to choicepie.app/join and enter the 6-digit room code." },
+      { "title": "Enter Nickname", "desc": "Enter a 2–12 character nickname — no account needed. You'll see the waiting screen and other players after joining." },
+      { "title": "Answer Fast", "desc": "You have 20 seconds per question. The faster you answer correctly, the more points you earn. See the answer and your rank after each question." },
+      { "title": "Final Rankings", "desc": "After all questions, the full leaderboard is revealed with your total score and rank." }
+    ],
+    "playerStepIcons": ["📷", "✏️", "⚡", "🏆"],
+    "hostCta": "✨ Create Game Now",
+    "playerCta": "Join Game →",
+    "scoring": {
+      "title": "⚡ Scoring System",
+      "footer": "Wrong answers earn 0 pts · 20 seconds per question",
+      "unit": "pts",
+      "rules": [
+        { "time": "0 – 3 sec", "points": 1000 },
+        { "time": "3 – 6 sec", "points": 800 },
+        { "time": "6 – 10 sec", "points": 600 },
+        { "time": "10+ sec", "points": 400 }
+      ]
+    },
+    "faq": {
+      "title": "FAQ",
+      "items": [
+        { "q": "Do players need an account?", "a": "No. Players only need a nickname to join — no registration required. Only the Host needs to sign in to create a game." },
+        { "q": "How many players can join a room?", "a": "The current MVP supports up to 30 simultaneous players, enough for most tech talks. The limit will increase in future versions." },
+        { "q": "How good is the AI-generated content?", "a": "The AI generates questions highly relevant to your content, with knowledge explanations included. You can preview and edit every question before creating the room." },
+        { "q": "How long is a room code valid?", "a": "A room is valid for 24 hours after creation. After the game ends it becomes read-only (questions and rankings visible), then clears after 48 hours." },
+        { "q": "Can I reuse the same quiz?", "a": "Yes. Hosts can find previously created quizzes in their history and reopen a room with them." }
+      ]
+    }
+  },
+  "hostNew": {
+    "title": "Create New Game",
+    "subtitle": "Paste any learning content and let AI generate questions",
+    "step1": {
+      "inputLabel": "Paste text or URL",
+      "placeholder": "e.g. https://dev.to/article/...\nOr paste your notes or article directly (at least 30 characters)",
+      "urlHint": "🔗 The system will automatically extract page content",
+      "charCount": "{count} / 5000 chars",
+      "minCharsHint": "Please enter at least 30 characters",
+      "questionCountLabel": "Questions",
+      "questionCountUnit": "",
+      "difficultyLabel": "Difficulty",
+      "difficulty": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "expert": "Expert"
+      },
+      "generateBtn": "✨ Generate Questions ({count} · {difficulty})",
+      "generatingBtn": "✨ AI is generating, please wait..."
+    },
+    "step2": {
+      "back": "← Regenerate",
+      "editHint": "Click a question to expand and edit",
+      "questionLabel": "Question",
+      "optionsLabel": "Options (click ○ to set correct answer)",
+      "explanationLabel": "Explanation",
+      "readyTitle": "Ready?",
+      "readySubtitle": "A QR Code will be generated after creating the room for players to scan",
+      "questionCount": "questions",
+      "createRoomBtn": "🚀 Create Game Room"
+    }
+  },
+  "common": {
+    "players": "{count} players",
+    "rank": "#{rank}",
+    "score": "{score} pts",
+    "you": "(you)",
+    "loading": "Loading..."
+  }
+}

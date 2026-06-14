@@ -2,8 +2,11 @@ import { createConfigForNuxt } from '@nuxt/eslint-config/flat'
 
 export default createConfigForNuxt({
   features: {
-    stylistic: false,
-  },
+    stylistic: {
+      commaDangle: 'never',
+      braceStyle: '1tbs'
+    }
+  }
 }).append({
   rules: {
     // Vue
@@ -15,6 +18,6 @@ export default createConfigForNuxt({
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
 
     // Common
-    'no-console': ['warn', { allow: ['warn', 'error'] }],
-  },
+    'no-console': ['warn', { allow: ['warn', 'error'] }]
+  }
 })

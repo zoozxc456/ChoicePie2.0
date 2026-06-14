@@ -1,17 +1,16 @@
 <template>
-  <UApp>
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-  </UApp>
+  <div />
 </template>
 
 <script setup lang="ts">
+definePageMeta({ layout: 'default' })
+
+await navigateTo('/join', { replace: true })
 </script>
 
 <script lang="ts">
 export default {
-  name: 'App'
+  name: 'IndexPage'
 }
 </script>
 
