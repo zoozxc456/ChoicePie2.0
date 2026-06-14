@@ -1,0 +1,225 @@
+/**
+ * ChoicePie Design System — v1.0
+ * Nuxt4 + Nuxt UI v3 + Tailwind CSS v4
+ *
+ * 使用方式：
+ *   在 nuxt.config.ts 的 css 陣列加入 '~/assets/css/design-tokens.css'
+ */
+
+@theme {
+  /* Primary — ChoicePie Orange */
+  --color-primary-50:  #fff8f0;
+  --color-primary-100: #feedd8;
+  --color-primary-200: #fdd8a8;
+  --color-primary-300: #fbbf71;
+  --color-primary-400: #f9a53e;
+  --color-primary-500: #f8931d; /* ← Brand 主色 */
+  --color-primary-600: #e07f12;
+  --color-primary-700: #b86510;
+  --color-primary-800: #924e10;
+  --color-primary-900: #774011;
+  --color-primary-950: #401e07;
+
+  /* Secondary — Dark Slate */
+  --color-secondary-50:  #f7f8fa;
+  --color-secondary-100: #edf0f4;
+  --color-secondary-200: #d5dce8;
+  --color-secondary-300: #b0bdd1;
+  --color-secondary-400: #8597b4;
+  --color-secondary-500: #64789a;
+  --color-secondary-600: #4e5e7e;
+  --color-secondary-700: #3d4c66;
+  --color-secondary-800: #2d3748; /* ← Brand 深色 */
+  --color-secondary-900: #1a202c;
+  --color-secondary-950: #0d1017;
+
+  /* 字體堆疊 */
+  --font-sans: 'Inter', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, -apple-system, sans-serif;
+}
+
+:root {
+  /* == 品牌主色 == */
+  --cp-primary:          #f8931d;
+  --cp-primary-hover:    #e07f12;
+  --cp-primary-light:    #fff3e0;
+  --cp-primary-border:   #fdd8a8;
+
+  /* == 深色輔色 == */
+  --cp-secondary:        #2d3748;
+  --cp-secondary-hover:  #1a202c;
+
+  /* == 語意色 == */
+  --cp-success:          #4caf50;
+  --cp-success-bg:       #e8f5e9;
+  --cp-success-border:   #a5d6a7;
+
+  --cp-danger:           #e53e3e;
+  --cp-danger-bg:        #ffebee;
+  --cp-danger-border:    #ef9a9a;
+
+  --cp-warning:          #dd6b20;
+  --cp-warning-bg:       #fff3e0;
+
+  --cp-info:             #3182ce;
+  --cp-info-bg:          #ebf8ff;
+
+  --cp-disabled:         #e2e8f0;
+  --cp-disabled-text:    #a0aec0;
+
+  /* == 背景 / 表面 == */
+  --cp-bg:               #fbfaf7; /* 全站暖白底 */
+  --cp-surface:          #ffffff;
+  --cp-surface-muted:    #f5f3ef;
+  --cp-border:           #e8e5df;
+
+  /* == 文字 == */
+  --cp-text-primary:     #1a1a1a;
+  --cp-text-secondary:   #626262;
+  --cp-text-muted:       #a0aec0;
+  --cp-text-inverse:     #ffffff;
+
+  /* == 圓角 == */
+  --cp-radius-sm:    6px;
+  --cp-radius-md:    10px;
+  --cp-radius-lg:    16px;
+  --cp-radius-xl:    20px;
+  --cp-radius-full:  9999px;
+
+  /* == 陰影 == */
+  --cp-shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.08);
+  --cp-shadow-md:  0 4px 16px rgba(0, 0, 0, 0.08);
+  --cp-shadow-lg:  0 8px 32px rgba(0, 0, 0, 0.10);
+  --cp-shadow-xl:  0 16px 48px rgba(0, 0, 0, 0.14);
+
+  /* == 間距基準 == */
+  --cp-space-1:  4px;
+  --cp-space-2:  8px;
+  --cp-space-3:  12px;
+  --cp-space-4:  16px;
+  --cp-space-5:  20px;
+  --cp-space-6:  24px;
+  --cp-space-8:  32px;
+  --cp-space-10: 40px;
+  --cp-space-12: 48px;
+
+  /* == 動畫時長 == */
+  --cp-duration-fast:   100ms;
+  --cp-duration-normal: 200ms;
+  --cp-duration-slow:   350ms;
+
+  /* == 遊戲專用 Token == */
+  --cp-game-timer-color:        var(--cp-primary);
+  --cp-game-timer-urgent:       var(--cp-danger);   /* 最後 5 秒變色 */
+  --cp-game-correct:            var(--cp-success);
+  --cp-game-wrong:              var(--cp-danger);
+  --cp-game-rank-gold:          #f8931d;
+  --cp-game-rank-silver:        #3182ce;
+  --cp-game-rank-bronze:        #dd6b20;
+  --cp-game-score-font-size:    2.5rem;
+}
+
+
+html {
+  font-family: var(--font-sans);
+  background-color: var(--cp-bg);
+  color: var(--cp-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 禁用純黑純白（設計規範：除特定卡片表面外） */
+/* 透過 token 使用色彩，不直接寫 #000 / #fff */
+
+/* 題目與解析文字禁用細體 */
+.quiz-text,
+.explanation-text {
+  font-weight: 500 !important;
+}
+
+/* 房間碼大字 */
+.room-code {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--cp-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 計分大字 */
+.score-display {
+  font-size: var(--cp-game-score-font-size);
+  font-weight: 800;
+  color: var(--cp-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 計時條（Host 大螢幕 & Player 手機） */
+.timer-bar {
+  height: 6px;
+  border-radius: var(--cp-radius-full);
+  background: var(--cp-game-timer-color);
+  transition: width linear, background-color var(--cp-duration-fast);
+}
+.timer-bar.urgent {
+  background: var(--cp-game-timer-urgent);
+  animation: timer-pulse 0.5s ease-in-out infinite alternate;
+}
+@keyframes timer-pulse {
+  from { opacity: 1; }
+  to   { opacity: 0.6; }
+}
+
+/* 答題選項 */
+.option-card {
+  border: 1.5px solid var(--cp-border);
+  border-radius: var(--cp-radius-lg);
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: all var(--cp-duration-normal);
+  background: var(--cp-surface);
+}
+.option-card:hover {
+  border-color: var(--cp-primary);
+  background: var(--cp-primary-light);
+}
+.option-card.correct {
+  border-color: var(--cp-success);
+  background: var(--cp-success-bg);
+  color: #1b5e20;
+}
+.option-card.wrong {
+  border-color: var(--cp-danger);
+  background: var(--cp-danger-bg);
+  color: #b71c1c;
+}
+.option-card.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* 玩家 Chip（等待室） */
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: var(--cp-radius-full);
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.player-chip .online-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cp-success);
+}
+
+/* 頒獎台名次光暈 */
+.rank-1 { box-shadow: 0 0 24px rgba(248, 147, 29, 0.5); }
+.rank-2 { box-shadow: 0 0 24px rgba(49, 130, 206, 0.5); }
+.rank-3 { box-shadow: 0 0 24px rgba(221, 107, 32, 0.4); }
+
+/* Confetti 全場答對觸發點 (搭配 canvas-confetti 套件) */
+.confetti-trigger { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
