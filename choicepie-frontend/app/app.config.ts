@@ -7,7 +7,12 @@ export default defineAppConfig({
   ui: {
     colors: {
       primary: 'primary', // 對應 @theme 裡定義的 --color-primary-*
-      neutral: 'zinc'
+      secondary: 'secondary', // 對應 --color-secondary-*
+      success: 'success', // 對應 --color-success-*（cp-success）
+      warning: 'warning', // 對應 --color-warning-*（cp-warning）
+      error: 'error', // 對應 --color-error-*（cp-danger）
+      info: 'info', // 對應 --color-info-*（cp-info）
+      neutral: 'neutral' // 對應 --color-neutral-*（cp-text / cp-border 灰階）
     },
 
     /* ── 全域圓角覆蓋 ── */
@@ -29,14 +34,14 @@ export default defineAppConfig({
     modal: {
       slots: {
         overlay: 'bg-black/50',
-        content: 'rounded-[20px] shadow-xl'
+        content: 'rounded-cp-xl shadow-xl'
       }
     },
 
     /* ── Card ── */
     card: {
       slots: {
-        root: 'bg-white border border-[var(--cp-border)] rounded-[var(--cp-radius-lg)] shadow-[var(--cp-shadow-md)]'
+        root: 'bg-white border border-neutral-200 rounded-cp-lg shadow-cp-md'
       }
     },
 

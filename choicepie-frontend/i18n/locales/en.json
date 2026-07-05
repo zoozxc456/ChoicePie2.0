@@ -12,10 +12,10 @@
     "title": "Join Game",
     "subtitle": "No account needed — just enter a nickname",
     "roomCode": "Room Code",
-    "roomCodePlaceholder": "A3F7K2",
+    "roomCodePlaceholder": "Room code (6 chars)",
     "nickname": "Your Nickname",
     "nicknamePlaceholder": "Enter nickname (2–12 chars)",
-    "submit": "Join Game →",
+    "submit": "Join Game",
     "roomNotFound": "Room not found. Please check the room code.",
     "validation": {
       "roomCodeLength": "Room code must be exactly 6 characters",

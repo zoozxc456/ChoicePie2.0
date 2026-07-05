@@ -12,10 +12,10 @@
     "title": "加入遊戲",
     "subtitle": "不需要帳號，輸入暱稱即可",
     "roomCode": "房間碼",
-    "roomCodePlaceholder": "A3F7K2",
+    "roomCodePlaceholder": "房間碼（6 碼）",
     "nickname": "你的暱稱",
     "nicknamePlaceholder": "輸入暱稱（2～12 字）",
-    "submit": "加入遊戲 →",
+    "submit": "加入遊戲",
     "roomNotFound": "找不到此房間，請確認房間碼是否正確",
     "validation": {
       "roomCodeLength": "房間碼必須為 6 位",
