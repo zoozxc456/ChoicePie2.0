@@ -24,6 +24,9 @@ export default defineAppConfig({
 
     /* ── Input 風格 ── */
     input: {
+      slots: {
+        base: 'rounded-xl'
+      },
       defaultVariants: {
         color: 'primary',
         variant: 'outline'
