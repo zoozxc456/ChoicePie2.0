@@ -7,74 +7,7 @@
 
     <!-- ─── QUESTION ─── -->
     <template v-else-if="gameStore.phase === 'question'">
-      <!-- Progress + Timer -->
-      <div class="flex items-center justify-between mb-3">
-        <span
-          class="text-sm font-semibold"
-          style="color: var(--cp-text-secondary);"
-        >
-          {{ t('room.question.questionOf', { current: (gameStore.currentQuestion?.index ?? 0) + 1, total: gameStore.currentQuestion?.total }) }}
-        </span>
-        <span
-          class="text-2xl font-black tabular-nums w-14 text-right"
-          :style="`color: ${gameStore.isTimerUrgent ? 'var(--cp-danger)' : 'var(--cp-primary)'};`"
-        >
-          {{ gameStore.timeLeft }}
-        </span>
-      </div>
-
-      <!-- Timer bar -->
-      <div
-        class="rounded-full overflow-hidden mb-5"
-        style="height: 6px; background: var(--cp-surface-muted);"
-      >
-        <div
-          class="h-full rounded-full"
-          :class="{ 'animate-pulse': gameStore.isTimerUrgent }"
-          :style="`
-            width: ${gameStore.timerPercent}%;
-            background: ${gameStore.isTimerUrgent ? 'var(--cp-danger)' : 'var(--cp-primary)'};
-            transition: width 1s linear;
-          `"
-        />
-      </div>
-
-      <!-- Question -->
-      <p class="text-base font-semibold leading-relaxed mb-5 quiz-text">
-        {{ gameStore.currentQuestion?.text }}
-      </p>
-
-      <!-- Options -->
-      <div class="flex flex-col gap-3">
-        <button
-          v-for="(opt, i) in gameStore.currentQuestion?.options"
-          :key="i"
-          class="flex items-center gap-3 p-4 rounded-2xl text-left transition-all w-full option-card"
-          :style="optionStyle(i)"
-          :disabled="gameStore.selectedAnswerIndex !== null"
-          @click="handleAnswer(i)"
-        >
-          <span
-            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-            style="background: var(--cp-surface-muted);"
-          >
-            {{ optionLetters[i] }}
-          </span>
-          <span
-            class="text-sm font-medium"
-            :style="optionTextStyle(i)"
-          >{{ opt }}</span>
-        </button>
-      </div>
-
-      <!-- Answered state -->
-      <div
-        v-if="gameStore.selectedAnswerIndex !== null && gameStore.correctAnswerIndex === null"
-        class="text-center mt-5 text-sm font-semibold"
-        style="color: var(--cp-text-secondary);"
-      >
-        {{ t('room.question.answered') }}
-      </div>
+      <GamingRoom :code="code" />
     </template>
 
     <!-- ─── RESULT ─── -->
@@ -239,6 +172,7 @@
 
 <script setup lang="ts">
 import WaitingRoom from '~/components/gameRoom/WaitingRoom.vue'
+import GamingRoom from '~/components/gameRoom/GamingRoom.vue'
 
 definePageMeta({ layout: 'default' })
 
@@ -270,42 +204,19 @@ onMounted(async () => {
       totalQuestions: 5,
       hostConnectionId: 'host'
     })
+
+    // 刻板用假題目，之後接上真實 API 後移除
+    gameStore.setQuestion({
+      index: 0,
+      total: 5,
+      text: '台灣最高的山是哪一座？',
+      options: ['玉山', '雪山', '合歡山', '阿里山'],
+      timeLimit: 20
+    })
   }
 })
 
-const handleAnswer = async (index: number) => {
-  if (gameStore.selectedAnswerIndex !== null) return
-  gameStore.selectAnswer(index)
-  await gameRoom.submitAnswer(code.value, index)
-}
 
-const optionLetters = ['A', 'B', 'C', 'D']
-
-const optionStyle = (index: number): string => {
-  const selected = gameStore.selectedAnswerIndex
-  const correct = gameStore.correctAnswerIndex
-  const phase = gameStore.phase
-
-  if (phase === 'result' || (selected !== null && correct !== null)) {
-    if (index === correct) return 'border-color: var(--cp-success); background: var(--cp-success-bg);'
-    if (index === selected && index !== correct) return 'border-color: var(--cp-danger); background: var(--cp-danger-bg);'
-    return 'opacity: 0.5; border-color: var(--cp-border);'
-  }
-
-  if (selected === index) return 'border-color: var(--cp-primary); background: var(--cp-primary-light);'
-
-  return 'border-color: var(--cp-border);'
-}
-
-const optionTextStyle = (index: number): string => {
-  const selected = gameStore.selectedAnswerIndex
-  const correct = gameStore.correctAnswerIndex
-  const phase = gameStore.phase
-
-  if ((phase === 'result' || correct !== null) && index === correct) return 'color: #2e7d32; font-weight: 700;'
-  if (selected === index && index !== correct) return 'color: var(--cp-danger);'
-  return 'color: var(--cp-text-primary);'
-}
 
 onUnmounted(() => gameRoom.disconnect())
 </script>
