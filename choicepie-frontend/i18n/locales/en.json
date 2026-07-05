@@ -126,15 +126,28 @@
   "library": {
     "searchPlaceholder": "Search quizzes...",
     "featured": "🔥 Featured",
-    "latest": "🆕 Latest"
+    "latest": "🆕 Latest",
+    "noResults": "No matching quizzes found",
+    "aiBanner": {
+      "title": "✨ No quiz ready? Let AI generate one in seconds",
+      "subtitle": "Paste text or a URL and AI will create a 4-choice quiz for you",
+      "cta": "Start generating →"
+    },
+    "card": {
+      "questions": "{count} questions"
+    }
   },
   "libraryDetail": {
+    "backToLibrary": "Back to Library",
     "knowledgePack": "Quiz Pack",
+    "creatorLine": "By {name}",
+    "questionList": "Question List",
     "questions": "{count} questions",
     "challenges": "{count} plays",
     "passRate": "Avg. pass rate {rate}%",
     "passRateBadge": "Pass rate {rate}%",
     "bookmark": "♥ Save",
+    "favorited": "♥ Saved",
     "share": "📤 Share",
     "useForGame": "⚡ Use in Game",
     "questionTable": {
@@ -146,16 +159,19 @@
       "timeApprox": "~20s"
     },
     "comments": {
-      "title": "💬 Comments",
+      "title": "💬 Comments ({count})",
       "placeholder": "Write your thoughts...",
-      "daysAgo": "{days} days ago"
+      "submit": "Post",
+      "daysAgo": "{days} days ago",
+      "justNow": "Just now"
     },
     "creator": {
       "title": "About the Creator",
       "verified": "Verified Creator",
       "quizCount": "Quizzes",
       "challengeCount": "Total Plays",
-      "follow": "Follow Creator"
+      "follow": "Follow Creator",
+      "following": "Following"
     },
     "related": "You might also like",
     "modal": {
