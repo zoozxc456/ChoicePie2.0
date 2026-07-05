@@ -1,11 +1,21 @@
 <template>
-  <div />
+  <div>
+    <ChoicePieHeader transparent />
+    <HeroSection />
+    <PlayingInstruction />
+    <ProductHighlights />
+    <HomeFooter />
+  </div>
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'default' })
+import ChoicePieHeader from '~/components/common/ChoicePieHeader.vue'
+import HeroSection from '~/components/home/HeroSection.vue'
+import PlayingInstruction from '~/components/home/PlayingInstruction.vue'
+import ProductHighlights from '~/components/home/ProductHighlights.vue'
+import HomeFooter from '~/components/home/HomeFooter.vue'
 
-await navigateTo('/join', { replace: true })
+definePageMeta({ layout: 'default' })
 </script>
 
 <script lang="ts">
@@ -14,5 +24,4 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-</style>
+<style scoped lang="scss"></style>
