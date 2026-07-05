@@ -103,8 +103,7 @@
     }
   },
   "login": {
-    "title": "Welcome",
-    "subtitle": "Make learning fun with games",
+    "title": "Sign in to ChoicePie",
     "googleLogin": "Sign in with Google",
     "orDivider": "or",
     "emailPlaceholder": "Email",
@@ -112,17 +111,16 @@
     "loginBtn": "Sign In",
     "guestHint": "Just here to play?",
     "noLoginNeeded": "No sign-in needed →",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Sign up",
     "loginError": "Incorrect email or password. Please try again.",
     "validation": {
       "emailInvalid": "Please enter a valid email address",
       "passwordMin": "Password must be at least 6 characters"
     },
     "hostBenefits": {
-      "title": "As a host you can",
-      "aiGenerate": "Paste content and let AI generate questions",
-      "createRoom": "Create a game room and invite players",
-      "viewHistory": "View historical game data",
-      "reuseLibrary": "Reuse your existing quiz library"
+      "title": "🎮 Want to host a game?",
+      "desc": "Sign in to build your own quiz library, auto-generate questions with AI, and track your game history."
     }
   },
   "library": {
@@ -176,13 +174,12 @@
   },
   "signIn": {
     "title": "Create Account",
-    "subtitle": "Become a Host and start building interactive games",
     "googleRegister": "Sign up with Google",
-    "orDivider": "or fill in the form",
-    "namePlaceholder": "Your name (2+ characters)",
-    "emailPlaceholder": "your{'@'}email.com",
-    "passwordPlaceholder": "At least 8 characters",
-    "confirmPasswordPlaceholder": "Enter password again",
+    "orDivider": "or",
+    "namePlaceholder": "Nickname (2+ characters)",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password (8+ characters)",
+    "confirmPasswordPlaceholder": "Confirm password",
     "submitBtn": "Create Account",
     "haveAccount": "Already have an account?",
     "loginLink": "Sign in",
@@ -199,12 +196,6 @@
       "emailInvalid": "Please enter a valid email address",
       "passwordMin": "Password must be at least 8 characters",
       "confirmPasswordMatch": "Passwords do not match"
-    },
-    "fields": {
-      "name": "Nickname",
-      "email": "Email",
-      "password": "Password",
-      "confirmPassword": "Confirm Password"
     }
   },
   "about": {

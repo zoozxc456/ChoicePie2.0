@@ -103,8 +103,7 @@
     }
   },
   "login": {
-    "title": "歡迎使用",
-    "subtitle": "用遊戲讓知識動起來",
+    "title": "登入 ChoicePie",
     "googleLogin": "使用 Google 登入",
     "orDivider": "或",
     "emailPlaceholder": "Email",
@@ -112,17 +111,16 @@
     "loginBtn": "登入",
     "guestHint": "只是要加入遊戲？",
     "noLoginNeeded": "不需要登入 →",
+    "noAccount": "還沒有帳號？",
+    "registerLink": "註冊",
     "loginError": "帳號或密碼錯誤，請再試一次",
     "validation": {
       "emailInvalid": "請輸入有效的 Email",
       "passwordMin": "密碼至少需要 6 個字元"
     },
     "hostBenefits": {
-      "title": "HOST 登入後可以",
-      "aiGenerate": "貼上內容讓 AI 自動出題",
-      "createRoom": "建立遊戲房間並邀請玩家",
-      "viewHistory": "查看歷史遊戲數據",
-      "reuseLibrary": "重複使用已建立的題庫"
+      "title": "🎮 想主持遊戲？",
+      "desc": "登入後即可建立自己的題庫、AI 自動出題，並追蹤每一場遊戲的成績紀錄。"
     }
   },
   "library": {
@@ -176,15 +174,14 @@
   },
   "signIn": {
     "title": "建立帳號",
-    "subtitle": "成為 Host，開始建立互動遊戲",
     "googleRegister": "使用 Google 快速註冊",
-    "orDivider": "或填寫表單",
-    "namePlaceholder": "你的名字（2 字以上）",
-    "emailPlaceholder": "your{'@'}email.com",
-    "passwordPlaceholder": "至少 8 個字元",
-    "confirmPasswordPlaceholder": "再輸入一次密碼",
+    "orDivider": "或",
+    "namePlaceholder": "暱稱（2 字以上）",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "密碼（8 字以上）",
+    "confirmPasswordPlaceholder": "確認密碼",
     "submitBtn": "建立帳號",
-    "haveAccount": "已經有帳號了？",
+    "haveAccount": "已有帳號？",
     "loginLink": "直接登入",
     "registerError": "此 Email 可能已被使用",
     "passwordMismatch": "密碼不一致",
@@ -199,12 +196,6 @@
       "emailInvalid": "請輸入有效的 Email",
       "passwordMin": "密碼至少需要 8 個字元",
       "confirmPasswordMatch": "密碼不一致"
-    },
-    "fields": {
-      "name": "暱稱",
-      "email": "Email",
-      "password": "密碼",
-      "confirmPassword": "確認密碼"
     }
   },
   "about": {
