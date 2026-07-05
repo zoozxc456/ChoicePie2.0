@@ -126,15 +126,28 @@
   "library": {
     "searchPlaceholder": "搜尋題庫...",
     "featured": "🔥 精選題庫",
-    "latest": "🆕 最新上架"
+    "latest": "🆕 最新上架",
+    "noResults": "找不到符合的題庫",
+    "aiBanner": {
+      "title": "✨ 沒有現成題庫？讓 AI 幫你在幾秒內出題",
+      "subtitle": "貼上文字或網址，AI 自動生成 4 選 1 問答遊戲",
+      "cta": "開始出題 →"
+    },
+    "card": {
+      "questions": "{count} 道題"
+    }
   },
   "libraryDetail": {
+    "backToLibrary": "返回題庫",
     "knowledgePack": "知識包",
+    "creatorLine": "{name} 出題",
+    "questionList": "題目列表",
     "questions": "{count} 道題",
     "challenges": "{count} 人挑戰",
     "passRate": "平均答對率 {rate}%",
     "passRateBadge": "答對率 {rate}%",
     "bookmark": "♥ 收藏",
+    "favorited": "♥ 已收藏",
     "share": "📤 分享",
     "useForGame": "⚡ 用於遊戲",
     "questionTable": {
@@ -146,16 +159,19 @@
       "timeApprox": "~20s"
     },
     "comments": {
-      "title": "💬 評論",
+      "title": "💬 評論（{count}）",
       "placeholder": "寫下你的想法...",
-      "daysAgo": "{days} 天前"
+      "submit": "送出",
+      "daysAgo": "{days} 天前",
+      "justNow": "剛剛"
     },
     "creator": {
       "title": "關於創作者",
       "verified": "認證創作者",
       "quizCount": "題庫",
       "challengeCount": "挑戰次數",
-      "follow": "關注創作者"
+      "follow": "關注創作者",
+      "following": "已關注"
     },
     "related": "你可能也喜歡",
     "modal": {
