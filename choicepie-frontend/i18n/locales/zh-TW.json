@@ -57,7 +57,7 @@
     "ended": {
       "title": "遊戲結束！",
       "yourResult": "你的成績",
-      "playAgain": "再玩一場"
+      "exit": "離開遊戲"
     }
   },
   "host": {

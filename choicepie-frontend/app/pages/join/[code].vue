@@ -1,57 +1,15 @@
 <template>
   <div class="max-w-md mx-auto px-4 py-6">
-    <!-- ─── WAITING ─── -->
-    <template v-if="gameStore.phase === 'waiting'">
-      <WaitingRoom :code="code" />
-    </template>
-
-    <!-- ─── QUESTION ─── -->
-    <template v-else-if="gameStore.phase === 'question'">
-      <GamingRoom :code="code" />
-    </template>
-
-    <!-- ─── RESULT ─── -->
-    <template v-else-if="gameStore.phase === 'result'">
-      <QuizResult />
-    </template>
-
-    <!-- ─── ENDED ─── -->
-    <template v-else-if="gameStore.phase === 'ended'">
-      <div class="text-center mb-6">
-        <div class="text-5xl mb-3">
-          🏆
-        </div>
-        <h1 class="text-2xl font-bold mb-1">
-          {{ t('room.ended.title') }}
-        </h1>
-      </div>
-
-      <!-- My result -->
-      <div class="rounded-2xl p-5 mb-5 text-center bg-primary-50 border-2 border-primary-200">
-        <p class="text-xs font-semibold mb-1 text-primary-500">
-          {{ t('room.ended.yourResult') }}
-        </p>
-        <p class="text-4xl font-black mb-1 text-primary-500">
-          {{ t('room.result.rank', { rank: gameStore.myRank }) }}
-        </p>
-        <p class="text-xl font-bold text-secondary-800">
-          {{ gameStore.myScore.toLocaleString() }}
-        </p>
-      </div>
-
-      <div class="mb-4">
-        <RankingList />
-      </div>
-
-      <UButton
-        block
-        size="lg"
-        variant="outline"
-        @click="$router.push('/join')"
-      >
-        {{ t('room.ended.playAgain') }}
-      </UButton>
-    </template>
+    <WaitingRoom
+      v-if="gameStore.phase === 'waiting'"
+      :code="code"
+    />
+    <GamingRoom
+      v-else-if="gameStore.phase === 'question'"
+      :code="code"
+    />
+    <QuizResult v-else-if="gameStore.phase === 'result'" />
+    <GameEnded v-else-if="gameStore.phase === 'ended'" />
   </div>
 </template>
 
@@ -59,11 +17,10 @@
 import WaitingRoom from '~/components/gameRoom/WaitingRoom.vue'
 import GamingRoom from '~/components/gameRoom/GamingRoom.vue'
 import QuizResult from '~/components/gameRoom/result/QuizResult.vue'
-import RankingList from '~/components/gameRoom/result/RankingList.vue'
+import GameEnded from '~/components/gameRoom/GameEnded.vue'
 
 definePageMeta({ layout: 'default' })
 
-const { t } = useI18n()
 const route = useRoute()
 const code = computed(() => (route.params.code as string).toUpperCase())
 
@@ -117,6 +74,13 @@ onMounted(async () => {
         { rank: 3, nickname: 'Player3', score: 400 }
       ]
     })
+
+    // 刻板用假最終排名，之後接上真實 API 後移除
+    gameStore.endGame([
+      { rank: 1, nickname: 'Player1', score: 4200 },
+      { rank: 2, nickname: 'Player2', score: 3150 },
+      { rank: 3, nickname: 'Player3', score: 2600 }
+    ])
   }
 })
 
