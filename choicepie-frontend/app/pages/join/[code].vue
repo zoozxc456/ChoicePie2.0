@@ -2,88 +2,7 @@
   <div class="max-w-md mx-auto px-4 py-6">
     <!-- ─── WAITING ─── -->
     <template v-if="gameStore.phase === 'waiting'">
-      <div class="text-center mb-6">
-        <div class="text-5xl mb-3">
-          🥧
-        </div>
-        <h1 class="text-xl font-bold mb-1">
-          {{ t('room.waiting.title') }}
-        </h1>
-        <p
-          class="text-sm"
-          style="color: var(--cp-text-secondary);"
-        >
-          {{ t('room.waiting.subtitle') }}
-        </p>
-      </div>
-
-      <div
-        class="rounded-2xl p-5 bg-white mb-4"
-        style="border: 1px solid var(--cp-border);"
-      >
-        <div class="text-center mb-4">
-          <p
-            class="text-xs font-semibold mb-1"
-            style="color: var(--cp-text-muted);"
-          >
-            {{ t('room.waiting.yourNickname') }}
-          </p>
-          <p
-            class="text-2xl font-bold"
-            style="color: var(--cp-primary);"
-          >
-            {{ gameStore.myNickname }}
-          </p>
-        </div>
-        <div class="text-center mb-4">
-          <p
-            class="text-xs font-semibold mb-1"
-            style="color: var(--cp-text-muted);"
-          >
-            {{ t('room.waiting.roomCode') }}
-          </p>
-          <p
-            class="text-xl font-bold tracking-widest"
-            style="color: var(--cp-secondary);"
-          >
-            {{ code }}
-          </p>
-        </div>
-
-        <!-- Player list -->
-        <p
-          class="text-xs font-semibold mb-2"
-          style="color: var(--cp-text-muted);"
-        >
-          {{ t('room.waiting.playerCount', { count: gameStore.playerCount }) }}
-        </p>
-        <div class="flex flex-wrap gap-2">
-          <div
-            v-for="player in gameStore.players"
-            :key="player.connectionId"
-            class="player-chip"
-            :style="player.nickname === gameStore.myNickname
-              ? 'background: var(--cp-primary-light); border-color: var(--cp-primary-border);'
-              : ''"
-          >
-            <div class="online-dot" />
-            <span :style="player.nickname === gameStore.myNickname ? 'color: var(--cp-primary); font-weight: 600;' : ''">
-              {{ player.nickname }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div
-        class="flex items-center justify-center gap-2 text-sm"
-        style="color: var(--cp-text-muted);"
-      >
-        <UIcon
-          name="i-lucide-loader-2"
-          class="animate-spin"
-        />
-        {{ t('room.waiting.waitingHost') }}
-      </div>
+      <WaitingRoom :code="code" />
     </template>
 
     <!-- ─── QUESTION ─── -->
@@ -319,6 +238,8 @@
 </template>
 
 <script setup lang="ts">
+import WaitingRoom from '~/components/gameRoom/WaitingRoom.vue'
+
 definePageMeta({ layout: 'default' })
 
 const { t } = useI18n()
@@ -329,8 +250,26 @@ const gameStore = useGameStore()
 const gameRoom = useGameRoom()
 
 onMounted(async () => {
-  if (!gameStore.myNickname) {
-    await navigateTo(`/join?code=${code.value}`)
+  // if (!gameStore.myNickname) {
+  //   await navigateTo(`/join?code=${code.value}`)
+  // }
+
+  // 刻板用假資料，之後接上真實 API 後移除
+  if (gameStore.phase === 'idle') {
+    gameStore.setMyNickname('Player1')
+    gameStore.setRoom({
+      roomCode: code.value,
+      quizTitle: 'Mock Quiz',
+      status: 'waiting',
+      players: [
+        { connectionId: '1', nickname: 'Player1', score: 0, rank: 0, hasAnswered: false },
+        { connectionId: '2', nickname: 'Player2', score: 0, rank: 0, hasAnswered: false },
+        { connectionId: '3', nickname: 'Player3', score: 0, rank: 0, hasAnswered: false }
+      ],
+      currentQuestionIndex: 0,
+      totalQuestions: 5,
+      hostConnectionId: 'host'
+    })
   }
 })
 

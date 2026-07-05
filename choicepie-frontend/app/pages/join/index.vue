@@ -130,7 +130,7 @@ const handleJoin = async () => {
   isJoining.value = true
   error.value = ''
   try {
-    await gameRoom.joinRoom(joinState.roomCode.toUpperCase(), joinState.nickname.trim())
+    // await gameRoom.joinRoom(joinState.roomCode.toUpperCase(), joinState.nickname.trim())
     await navigateTo(`/join/${joinState.roomCode.toUpperCase()}`)
   } catch {
     error.value = t('join.roomNotFound')
