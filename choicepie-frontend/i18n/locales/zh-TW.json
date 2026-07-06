@@ -61,6 +61,24 @@
     }
   },
   "host": {
+    "questionEditor": {
+      "untitled": "（尚未輸入題目）",
+      "complete": "已完成",
+      "incomplete": "未完成",
+      "questionLabel": "題目",
+      "questionPlaceholder": "輸入題目...",
+      "optionsLabel": "選項（點擊 ○ 設為正確答案）",
+      "optionPlaceholder": "選項...",
+      "explanationLabel": "解析",
+      "explanationPlaceholder": "解析（選填）..."
+    },
+    "previewModal": {
+      "title": "確認題目內容",
+      "subtitle": "請再次確認題目與答案，建立後將產生房間碼",
+      "quizTitleLabel": "題庫名稱",
+      "confirm": "🚀 確認並建立遊戲房間",
+      "cancel": "返回編輯"
+    },
     "waiting": {
       "title": "等待玩家加入",
       "subtitle": "讓玩家掃描 QR Code 或輸入房間碼",
@@ -295,34 +313,59 @@
     }
   },
   "hostNew": {
-    "title": "建立新遊戲",
-    "subtitle": "貼上任何學習內容，AI 幫你出題",
-    "step1": {
-      "inputLabel": "貼上文字或網址（URL）",
-      "placeholder": "例如：https://dev.to/article/...\n或直接貼上你的讀書筆記、技術文章段落（至少 30 字）",
+    "backToChoice": "返回出題方式",
+    "choice": {
+      "title": "選擇出題方式",
+      "subtitle": "手動輸入題目，或讓 AI 幫你自動生成",
+      "manual": {
+        "title": "手動出題",
+        "desc": "自行輸入題目、選項與正確答案，完全掌控內容",
+        "cta": "開始編輯 →"
+      },
+      "ai": {
+        "title": "AI 協助出題",
+        "desc": "貼上文字或網址，AI 幾秒內自動生成題目",
+        "quotaAvailable": "今日尚有 1 次額度",
+        "quotaUsed": "今日額度已用完",
+        "cta": "開始出題 →",
+        "ctaLocked": "額度已用完"
+      }
+    },
+    "manual": {
+      "title": "✍️ 手動出題",
+      "titleLabel": "題庫名稱",
+      "titlePlaceholder": "例如：新人教育訓練 Q&A",
+      "titleRequired": "請輸入題庫名稱",
+      "addQuestion": "新增題目",
+      "readyTitle": "準備好了？",
+      "readySubtitle": "確認題目後即可建立遊戲房間",
+      "questionCount": "{count} 題",
+      "createRoomBtn": "🚀 建立遊戲房間"
+    },
+    "ai": {
+      "title": "✨ AI 出題",
+      "locked": {
+        "title": "今日 AI 出題次數已用完",
+        "desc": "AI 協助出題每天限用 1 次，今日額度已使用完畢。\n明天再回來試試，或現在手動出題。",
+        "switchToManual": "✍️ 改為手動出題"
+      },
+      "contentPlaceholder": "貼上一段文字、簡報重點，或直接貼網址連結...",
       "urlHint": "🔗 系統將自動擷取頁面內容",
       "charCount": "{count} / 5000 字",
       "minCharsHint": "請輸入至少 30 字",
       "questionCountLabel": "題數",
-      "questionCountUnit": "題",
+      "questionCountUnit": "{count} 題",
       "difficultyLabel": "難易度",
       "difficulty": {
         "beginner": "入門",
-        "intermediate": "中階",
-        "expert": "進階"
+        "intermediate": "進階",
+        "expert": "專家"
       },
-      "generateBtn": "✨ AI 出題（{count} 題 · {difficulty}）",
-      "generatingBtn": "✨ AI 出題中，請稍候..."
-    },
-    "step2": {
-      "back": "← 重新出題",
-      "editHint": "點擊題目可展開編輯",
-      "questionLabel": "題目",
-      "optionsLabel": "選項（點擊 ○ 設為正確答案）",
-      "explanationLabel": "解析",
+      "generateBtn": "✨ 開始生成題目",
+      "generatingBtn": "✨ AI 出題中，請稍候...",
       "readyTitle": "準備好了？",
-      "readySubtitle": "建立房間後會產生 QR Code，讓玩家掃碼加入",
-      "questionCount": "道題",
+      "readySubtitle": "確認題目後即可建立遊戲房間",
+      "questionCount": "{count} 題",
       "createRoomBtn": "🚀 建立遊戲房間"
     }
   },

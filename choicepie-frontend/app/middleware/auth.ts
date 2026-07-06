@@ -1,7 +1,14 @@
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware(() => {
   const auth = useAuthStore()
 
-  if (to.path.startsWith('/host') && !auth.isLoggedIn) {
-    return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`)
+  // 暫時用假使用者，之後接上真實 API 後移除
+  if (!auth.isLoggedIn) {
+    auth.setUser({
+      id: 'mock-user-1',
+      email: 'mingyu@example.com',
+      name: 'Mingyu',
+      isVerified: true,
+      createdAt: '2026-01-01T00:00:00.000Z'
+    })
   }
 })
