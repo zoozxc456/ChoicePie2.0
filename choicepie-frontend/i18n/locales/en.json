@@ -61,6 +61,24 @@
     }
   },
   "host": {
+    "questionEditor": {
+      "untitled": "(No question text yet)",
+      "complete": "Complete",
+      "incomplete": "Incomplete",
+      "questionLabel": "Question",
+      "questionPlaceholder": "Enter question...",
+      "optionsLabel": "Options (click ○ to set correct answer)",
+      "optionPlaceholder": "Option...",
+      "explanationLabel": "Explanation",
+      "explanationPlaceholder": "Explanation (optional)..."
+    },
+    "previewModal": {
+      "title": "Confirm Quiz Content",
+      "subtitle": "Double-check your questions and answers — a room code will be created next",
+      "quizTitleLabel": "Quiz Title",
+      "confirm": "🚀 Confirm & Create Game Room",
+      "cancel": "Back to Edit"
+    },
     "waiting": {
       "title": "Waiting for Players",
       "subtitle": "Ask players to scan the QR Code or enter the room code",
@@ -295,34 +313,59 @@
     }
   },
   "hostNew": {
-    "title": "Create New Game",
-    "subtitle": "Paste any learning content and let AI generate questions",
-    "step1": {
-      "inputLabel": "Paste text or URL",
-      "placeholder": "e.g. https://dev.to/article/...\nOr paste your notes or article directly (at least 30 characters)",
+    "backToChoice": "Back to quiz method",
+    "choice": {
+      "title": "Choose how to create your quiz",
+      "subtitle": "Write questions yourself, or let AI generate them for you",
+      "manual": {
+        "title": "Manual",
+        "desc": "Write your own questions, options, and answers — full control over content",
+        "cta": "Start editing →"
+      },
+      "ai": {
+        "title": "AI Assisted",
+        "desc": "Paste text or a URL and AI will generate questions in seconds",
+        "quotaAvailable": "1 use left today",
+        "quotaUsed": "Daily quota used",
+        "cta": "Start generating →",
+        "ctaLocked": "Quota used"
+      }
+    },
+    "manual": {
+      "title": "✍️ Manual Quiz",
+      "titleLabel": "Quiz title",
+      "titlePlaceholder": "e.g. New Hire Onboarding Q&A",
+      "titleRequired": "Please enter a quiz title",
+      "addQuestion": "Add Question",
+      "readyTitle": "Ready?",
+      "readySubtitle": "Confirm your questions, then create the game room",
+      "questionCount": "{count} questions",
+      "createRoomBtn": "🚀 Create Game Room"
+    },
+    "ai": {
+      "title": "✨ AI Quiz",
+      "locked": {
+        "title": "Daily AI quota used",
+        "desc": "AI-assisted quiz generation is limited to 1 use per day. Today's quota is used up.\nCome back tomorrow, or create a quiz manually now.",
+        "switchToManual": "✍️ Switch to manual"
+      },
+      "contentPlaceholder": "Paste text, presentation notes, or a URL...",
       "urlHint": "🔗 The system will automatically extract page content",
       "charCount": "{count} / 5000 chars",
       "minCharsHint": "Please enter at least 30 characters",
       "questionCountLabel": "Questions",
-      "questionCountUnit": "",
+      "questionCountUnit": "{count}",
       "difficultyLabel": "Difficulty",
       "difficulty": {
         "beginner": "Beginner",
         "intermediate": "Intermediate",
         "expert": "Expert"
       },
-      "generateBtn": "✨ Generate Questions ({count} · {difficulty})",
-      "generatingBtn": "✨ AI is generating, please wait..."
-    },
-    "step2": {
-      "back": "← Regenerate",
-      "editHint": "Click a question to expand and edit",
-      "questionLabel": "Question",
-      "optionsLabel": "Options (click ○ to set correct answer)",
-      "explanationLabel": "Explanation",
+      "generateBtn": "✨ Start Generating",
+      "generatingBtn": "✨ AI is generating, please wait...",
       "readyTitle": "Ready?",
-      "readySubtitle": "A QR Code will be generated after creating the room for players to scan",
-      "questionCount": "questions",
+      "readySubtitle": "Confirm your questions, then create the game room",
+      "questionCount": "{count} questions",
       "createRoomBtn": "🚀 Create Game Room"
     }
   },

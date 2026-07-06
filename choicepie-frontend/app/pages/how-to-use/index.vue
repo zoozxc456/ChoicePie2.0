@@ -66,7 +66,7 @@
       </div>
 
       <div class="text-center">
-        <NuxtLink to="/host/new">
+        <NuxtLink to="/library/new">
           <UButton
             size="lg"
             color="primary"

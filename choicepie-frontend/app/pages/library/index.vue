@@ -2,7 +2,7 @@
   <div class="max-w-7xl mx-auto px-6 py-8">
     <!-- AI Banner -->
     <NuxtLink
-      to="/host/new"
+      to="/library/new"
       class="cursor-pointer bg-linear-to-br from-[#1a1a2e] to-secondary-800 rounded-2xl px-6 py-5 mb-6 flex items-center justify-between gap-4 flex-wrap"
     >
       <div>

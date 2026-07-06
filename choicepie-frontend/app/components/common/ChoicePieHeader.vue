@@ -66,7 +66,7 @@
               class="my-1"
             >
             <NuxtLink
-              to="/host/new"
+              to="/library/new"
               class="dropdown-item"
               @click="closeMenu"
             >✨ {{ t('nav.createGame') }}</NuxtLink>
@@ -94,7 +94,7 @@
               @click="closeMenu"
             >👤 {{ t('nav.login') }}</NuxtLink>
             <NuxtLink
-              to="/host/new"
+              to="/library/new"
               class="dropdown-item"
               @click="closeMenu"
             >✨ {{ t('nav.createGame') }}</NuxtLink>

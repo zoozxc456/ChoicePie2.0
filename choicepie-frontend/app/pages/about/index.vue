@@ -125,7 +125,7 @@
         {{ t('about.cta.subtitle') }}
       </p>
       <div class="flex justify-center gap-3">
-        <NuxtLink to="/host/new">
+        <NuxtLink to="/library/new">
           <UButton
             size="lg"
             color="primary"

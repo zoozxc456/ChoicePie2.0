@@ -357,7 +357,7 @@
         block
         size="lg"
         color="primary"
-        @click="$router.push('/host/new')"
+        @click="$router.push('/library/new')"
       >
         {{ t('host.ended.hostAgain') }}
       </UButton>
