@@ -67,9 +67,21 @@
         </nav>
       </div>
 
-      <p class="mt-8 text-center text-xs text-white/30">
-        © {{ currentYear }} ChoicePie. All rights reserved.
-      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/30">
+        <span>© {{ currentYear }} ChoicePie. All rights reserved.</span>
+        <NuxtLink
+          to="/terms"
+          class="hover:text-white/60"
+        >
+          服務條款
+        </NuxtLink>
+        <NuxtLink
+          to="/privacy"
+          class="hover:text-white/60"
+        >
+          隱私權政策
+        </NuxtLink>
+      </div>
     </div>
   </div>
 </template>

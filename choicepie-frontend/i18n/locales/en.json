@@ -389,6 +389,93 @@
       "createRoomBtn": "🚀 Create Game Room"
     }
   },
+  "terms": {
+    "title": "Terms of Service",
+    "updatedAt": "Last updated: {date}",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "body": "By using ChoicePie, you agree to these Terms of Service. If you do not agree, please do not use the service."
+      },
+      "accounts": {
+        "title": "2. Accounts",
+        "body": "Creating a game requires an account; joining a game does not. You are responsible for keeping your login credentials secure and for all activity under your account."
+      },
+      "content": {
+        "title": "3. User Content",
+        "body": "Quizzes you upload or create (including AI-generated questions) remain yours, but you grant ChoicePie a license to store, process, and display that content in order to provide the service."
+      },
+      "conduct": {
+        "title": "4. Acceptable Use",
+        "body": "Do not use the service to post illegal, infringing, harassing, or malicious content. ChoicePie reserves the right to remove violating content or terminate accounts."
+      },
+      "termination": {
+        "title": "5. Termination",
+        "body": "We may suspend or terminate your account for violating these terms. You may also stop using the service at any time."
+      },
+      "disclaimer": {
+        "title": "6. Disclaimer",
+        "body": "The service is currently in MVP development and is provided \"as is\" without guarantee of uninterrupted or error-free operation. We do not guarantee the accuracy of AI-generated content."
+      },
+      "changes": {
+        "title": "7. Changes to These Terms",
+        "body": "We may update these terms from time to time; material changes will be announced on the site. Continued use of the service constitutes acceptance of the updated terms."
+      },
+      "contact": {
+        "title": "8. Contact Us",
+        "body": "If you have any questions about these terms, please reach out to us via the About page."
+      }
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "updatedAt": "Last updated: {date}",
+    "sections": {
+      "collection": {
+        "title": "1. What We Collect",
+        "body": "When you register, we collect your name and email (or basic profile info via Google sign-in). Players joining a game only need a nickname and do not need to register."
+      },
+      "usage": {
+        "title": "2. How We Use Your Data",
+        "body": "We use this data to provide account login, store the quizzes you create, and operate game rooms. We do not use your data for purposes unrelated to the service."
+      },
+      "sharing": {
+        "title": "3. Data Sharing",
+        "body": "We do not sell your personal data. We only share necessary information with third parties when required by law or necessary to provide the service (e.g. authentication providers)."
+      },
+      "cookies": {
+        "title": "4. Cookies & Tracking",
+        "body": "We use essential cookies to maintain login sessions and game room connections. We do not use them for cross-site advertising tracking."
+      },
+      "retention": {
+        "title": "5. Data Retention",
+        "body": "Your account data is retained until you delete your account. Temporary game room data (such as answer history) is cleared some time after the game ends."
+      },
+      "rights": {
+        "title": "6. Your Rights",
+        "body": "You may request to view, correct, or delete your personal data at any time by contacting us via the About page."
+      },
+      "changes": {
+        "title": "7. Changes to This Policy",
+        "body": "We may update this policy from time to time; material changes will be announced on the site."
+      },
+      "contact": {
+        "title": "8. Contact Us",
+        "body": "If you have any questions about this policy, please reach out to us via the About page."
+      }
+    }
+  },
+  "error": {
+    "notFound": {
+      "title": "Page Not Found",
+      "desc": "The page you're looking for may have moved or doesn't exist. Head back home and see what's cooking!"
+    },
+    "generic": {
+      "title": "Something Went Wrong",
+      "desc": "We hit a snag on our end. Please try again in a moment."
+    },
+    "backHome": "🏠 Back Home"
+  },
   "common": {
     "players": "{count} players",
     "rank": "#{rank}",
