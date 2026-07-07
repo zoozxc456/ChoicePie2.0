@@ -154,11 +154,16 @@
                 {{ podium.entry?.score.toLocaleString() }}
               </p>
               <div
-                class="podium-bar rounded-t-xl w-20 flex items-end justify-center pb-2 text-white font-black text-base"
-                :class="podium.meta.colorClass"
-                :style="{ '--podium-height': podium.meta.height, 'animationDelay': `${podium.order * 140 + 120}ms` }"
+                class="w-20 flex items-end justify-center"
+                :style="{ height: podium.meta.height }"
               >
-                {{ podium.meta.place }}
+                <div
+                  class="podium-bar rounded-t-xl w-20 h-full flex items-end justify-center pb-2 text-white font-black text-base"
+                  :class="[podium.meta.colorClass, barsMounted ? 'podium-bar--grown' : '']"
+                  :style="{ transitionDelay: `${podium.order * 140 + 120}ms` }"
+                >
+                  {{ podium.meta.place }}
+                </div>
               </div>
             </div>
           </div>
@@ -181,8 +186,11 @@
           >
             <div
               class="rank-row__bar absolute inset-y-0 left-0"
-              :class="rankBarClass(entry.rank)"
-              :style="{ '--bar-width': `${scorePercent(entry.score)}%`, 'animationDelay': `${i * 45 + 200}ms` }"
+              :class="[rankBarClass(entry.rank), barsMounted ? 'rank-row__bar--grown' : '']"
+              :style="{
+                width: `${scorePercent(entry.score)}%`,
+                transitionDelay: `${i * 45 + 200}ms`
+              }"
             />
             <span
               class="relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
@@ -223,6 +231,18 @@ const isHost = computed(() => !!hostedGame.value)
 const game = computed(() => hostedGame.value ?? playedGame.value)
 
 const isMe = (nickname?: string) => !isHost.value && nickname === '你'
+
+// 頒獎台/排名條狀圖的動態高度、寬度無法用 CSS @keyframes 動畫（custom property 不會被插值），
+// 改用掛載後切換內聯樣式搭配 CSS transition 觸發進場動畫。
+// 巢狀兩層 rAF 確保瀏覽器先畫出 0 的初始狀態，避免與掛載同一幀導致 transition 被跳過
+const barsMounted = ref(false)
+onMounted(() => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      barsMounted.value = true
+    })
+  })
+})
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString(locale.value === 'en' ? 'en-US' : 'zh-TW', {
@@ -278,12 +298,16 @@ export default {
   animation: podium-pop 480ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-@keyframes bar-grow {
-  from { height: 0; }
-}
+// 用 transform: scaleY 而非 height 做進場動畫：height/width transition 在 flex 版面中
+// 每一幀都會觸發整行 reflow，多個項目交錯動畫時會明顯卡頓；scale 走合成層，不觸發版面重算
 .podium-bar {
-  height: var(--podium-height);
-  animation: bar-grow 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: bottom;
+  transform: scaleY(0);
+  will-change: transform;
+  transition: transform 1s ease-out;
+}
+.podium-bar--grown {
+  transform: scaleY(1);
 }
 
 @keyframes row-slide-in {
@@ -295,26 +319,25 @@ export default {
 }
 
 .rank-row__bar {
-  width: var(--bar-width);
   opacity: 0.12;
-  animation: bar-widen 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: left;
+  transform: scaleX(0);
+  will-change: transform;
+  transition: transform 1s ease-out;
 }
-@keyframes bar-widen {
-  from { width: 0; }
+.rank-row__bar--grown {
+  transform: scaleX(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .podium-item,
-  .podium-bar,
-  .rank-row,
-  .rank-row__bar {
+  .rank-row {
     animation: none;
   }
-  .podium-bar {
-    height: var(--podium-height);
-  }
+  .podium-bar,
   .rank-row__bar {
-    width: var(--bar-width);
+    transition: none;
+    transform: none;
   }
 }
 </style>
