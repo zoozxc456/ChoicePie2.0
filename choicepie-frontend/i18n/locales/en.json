@@ -338,6 +338,7 @@
       "host": "🎮 I'm the Host",
       "player": "📱 I'm a Player"
     },
+    "firstStepBadge": "Start here",
     "hostSteps": [
       { "title": "Paste Your Content", "desc": "Paste your tech article, notes, or YouTube link. Supports plain text and URLs, up to 5,000 characters." },
       { "title": "AI Generates Questions", "desc": "Choose question count (3 / 5 / 10) and difficulty. AI generates multiple-choice questions in 30 seconds. Preview and edit freely." },
