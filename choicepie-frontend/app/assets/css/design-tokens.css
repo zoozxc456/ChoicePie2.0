@@ -117,7 +117,7 @@
 
   /* 字體堆疊 */
   --font-sans:
-    'Inter', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, -apple-system,
+    'Outfit', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, -apple-system,
     sans-serif;
 
   /* == cp-* 語意色 Tailwind utility，取代 inline style（例如 text-cp-primary、bg-cp-surface、border-cp-border） == */
