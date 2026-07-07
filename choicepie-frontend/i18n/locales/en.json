@@ -298,35 +298,52 @@
   },
   "about": {
     "hero": {
-      "title": "About ChoicePie",
-      "desc": "We believe knowledge sharing shouldn't be a cold, one-way lecture. ChoicePie turns every tech talk into a game."
-    },
-    "mission": {
-      "label": "MISSION",
-      "text": "Make the last 5 minutes of every tech talk the most exciting moment of the room."
+      "eyebrow": "About ChoicePie",
+      "title": "What if learning could be as fun as playing a game?",
+      "desc": "That question is the reason ChoicePie exists."
     },
     "story": {
-      "title": "Why ChoicePie?",
-      "p1": "Have you ever attended a tech talk where the speaker spent 45 minutes sharing great content, only to end with \"Any questions?\" — followed by three seconds of silence and everyone leaving?",
-      "p2": "That knowledge probably stayed on the slides, never truly absorbed.",
-      "p3": "ChoicePie was born from this pain point. We bring the \"Testing Effect\" from academic research into tech communities — converting content into questions improves retention by 50% compared to re-reading.",
-      "p4": "More importantly, competitive Q&A adds excitement, turning those 5 minutes into the most engaging moment of the event."
+      "label": "Where it started",
+      "p1": "In a world overflowing with information yet stuck in passive learning, knowledge often stays on the slide, stays in the book, and is never truly absorbed.",
+      "p2": "ChoicePie isn't just a quiz app. It's a stage that brings knowledge to life. Here, everyone can be a teacher, and everyone can be a student."
+    },
+    "scenarios": {
+      "title": "Knowledge deserves to be shared",
+      "history": {
+        "icon": "📚",
+        "title": "Deep into an obscure piece of history?",
+        "desc": "In minutes, turn that knowledge into a great quiz game. Friends don't just learn something new, they get to chase the high score too."
+      },
+      "exam": {
+        "icon": "🎯",
+        "title": "Studying for an exam but the textbook feels dry?",
+        "desc": "Use game history and question-by-question review to study more actively. Every question you answer becomes part of your progress."
+      }
+    },
+    "belief": {
+      "text": "Break the boundaries of learning. Free knowledge from the page and let it flow between people.",
+      "subtext": "Make learning an adventure, a challenge, a party full of surprises."
+    },
+    "vmv": {
+      "vision": {
+        "label": "VISION",
+        "text": "To become the world's most fun and creative platform for sharing and learning knowledge, where everyone can be both creator and explorer."
+      },
+      "mission": {
+        "label": "MISSION",
+        "text": "To give everyone a simple, powerful tool that turns any topic into an engaging quiz game."
+      }
     },
     "values": {
-      "title": "Our Principles",
-      "fast": { "title": "Fast", "desc": "Generate questions in 30 seconds, set up in 2 minutes — no prep needed." },
-      "fun": { "title": "Fun", "desc": "Timed answers and live rankings make learning feel like a competition." },
-      "effective": { "title": "Effective", "desc": "The Testing Effect ensures knowledge truly sticks, not just sitting on slides." }
-    },
-    "stats": {
-      "title": "Current Status",
-      "stage": { "value": "MVP", "label": "Development Stage" },
-      "timeline": { "value": "2 months", "label": "Target Launch" },
-      "team": { "value": "1", "label": "Core Developer" }
+      "title": "What we believe",
+      "userCentric": { "title": "User-Centric", "desc": "We listen. Every design decision starts from the experience." },
+      "funLearning": { "title": "Fun & Learning", "desc": "Gamification is the most effective way to spark learning." },
+      "createShare": { "title": "Create & Share", "desc": "We give people the freedom to create and the reason to share." },
+      "growth": { "title": "Continuous Growth", "desc": "We care about your progress, not just our features." }
     },
     "cta": {
       "title": "Ready to try it?",
-      "subtitle": "Give it a shot at your next tech talk",
+      "subtitle": "Turn what you know into a game",
       "createGame": "✨ Create Game",
       "howToUse": "How to Use"
     }
