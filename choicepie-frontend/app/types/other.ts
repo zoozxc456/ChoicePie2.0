@@ -1,4 +1,5 @@
 import type { Difficulty, Question } from './quiz'
+import type { GameRoom, GamePhase } from './gameRoom'
 
 /** Server → Client: 推送新題目（不含正確答案） */
 export interface QuestionPayload {
@@ -23,10 +24,12 @@ export interface AnswerResultPayload {
   pointsEarned: number
 }
 
-/** Server → Client: 答題進度（僅 Host 收到） */
+/** Server → Client: 答題進度（僅 Host 收到，含所選選項供即時統計用） */
 export interface AnswerProgressPayload {
   answered: number
   total: number
+  connectionId: string
+  selectedOptionIndex: number
 }
 
 export interface RankEntry {
@@ -60,6 +63,7 @@ export interface GenerateQuestionsResponse {
 export interface CreateRoomRequest {
   quizId?: string
   questions: Question[]
+  timeLimit?: number
 }
 
 export interface CreateRoomResponse {
@@ -69,6 +73,17 @@ export interface CreateRoomResponse {
 export interface JoinRoomRequest {
   roomCode: string
   nickname: string
+}
+
+/** Server → Client: 重新連線後同步完整房間狀態（用於重新整理 / 直接開啟房間頁） */
+export interface RoomStateSyncPayload {
+  phase: GamePhase
+  room: GameRoom
+  currentQuestion?: QuestionPayload
+  answeredCount?: number
+  totalCount?: number
+  questionEnd?: QuestionEndPayload
+  rankings?: RankEntry[]
 }
 
 // ─────────────────────────────────────────────

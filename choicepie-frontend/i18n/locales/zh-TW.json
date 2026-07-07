@@ -96,12 +96,21 @@
       "answerProgress": "作答進度",
       "skipQuestion": "跳過此題",
       "pause": "暫停",
-      "liveRank": "即時排名"
+      "liveRank": "即時排名",
+      "voteCount": "{count} 人",
+      "waitingForAnswers": "等待玩家作答中...",
+      "answeredSoFar": "已作答 {answered} / {total} 人"
     },
     "ended": {
       "title": "🏆 遊戲結束！",
       "finalRank": "最終排名",
       "hostAgain": "再開一場"
+    },
+    "reconnecting": "正在連線房間...",
+    "rejoinFailed": {
+      "title": "找不到這個房間",
+      "desc": "房間可能已經結束或房間碼有誤",
+      "backToLibrary": "返回題庫"
     }
   },
   "bigscreen": {
@@ -199,7 +208,7 @@
       "allQuestions": "使用全部題目",
       "allQuestionsValue": "所有題目",
       "timeLimit": "每題限時",
-      "timeLimitValue": "20 秒",
+      "timeLimitSeconds": "{seconds} 秒",
       "joinMethod": "玩家加入方式",
       "joinMethodValue": "QR Code ＋ 房間碼，無需帳號",
       "createRoom": "▶ 立即建立房間",

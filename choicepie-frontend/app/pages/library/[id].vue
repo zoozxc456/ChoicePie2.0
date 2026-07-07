@@ -273,6 +273,26 @@
                 </div>
                 <span class="text-success-500 font-bold">✓</span>
               </div>
+
+              <div class="flex justify-between items-center p-3 rounded-xl border border-neutral-200">
+                <p class="text-sm font-medium">
+                  {{ t('libraryDetail.modal.timeLimit') }}
+                </p>
+                <div class="flex gap-1.5">
+                  <button
+                    v-for="option in timeLimitOptions"
+                    :key="option"
+                    type="button"
+                    class="h-8 px-3 rounded-full text-xs font-semibold transition-colors"
+                    :class="option === timeLimit
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-neutral-100 text-neutral-600'"
+                    @click="timeLimit = option"
+                  >
+                    {{ t('libraryDetail.modal.timeLimitSeconds', { seconds: option }) }}
+                  </button>
+                </div>
+              </div>
             </div>
 
             <UButton
@@ -330,6 +350,9 @@ const isFavorite = ref(false)
 const isFollowing = ref(false)
 const commentDraft = ref('')
 
+const timeLimitOptions = [10, 20, 30, 60] as const
+const timeLimit = ref<typeof timeLimitOptions[number]>(20)
+
 // 暫時用假資料，之後接上真實 API 後移除
 quizStore.setCurrentQuiz(
   mockQuizzes.find(q => q.id === route.params.id) ?? mockQuizzes[0]!
@@ -356,7 +379,11 @@ const handleCreateRoom = async () => {
   if (!quiz.value) return
   isCreatingRoom.value = true
   try {
-    await gameRoom.createRoom({ quizId: quiz.value.id, questionIds: quiz.value.questions.map(q => q.id) })
+    await gameRoom.createRoom({
+      quizId: quiz.value.id,
+      questionIds: quiz.value.questions.map(q => q.id),
+      timeLimit: timeLimit.value
+    })
   } catch {
     isCreatingRoom.value = false
   }
@@ -368,7 +395,6 @@ const relatedQuizzes = computed(() =>
 
 const gameSettings = computed(() => [
   { label: t('libraryDetail.modal.allQuestions'), value: t('libraryDetail.modal.allQuestionsValue') },
-  { label: t('libraryDetail.modal.timeLimit'), value: t('libraryDetail.modal.timeLimitValue') },
   { label: t('libraryDetail.modal.joinMethod'), value: t('libraryDetail.modal.joinMethodValue') }
 ])
 </script>
