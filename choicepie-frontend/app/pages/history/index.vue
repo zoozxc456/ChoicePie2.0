@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { mockHostedGames } from '~/mocks/history'
 
-definePageMeta({ layout: 'default' })
+definePageMeta({ layout: 'content' })
 
 const { t, locale } = useI18n()
 

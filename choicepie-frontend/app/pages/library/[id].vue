@@ -333,7 +333,7 @@
 import { DIFFICULTY_LABEL } from '~/types/quiz'
 import { mockQuizzes } from '~/mocks/quiz'
 
-definePageMeta({ layout: 'default' })
+definePageMeta({ layout: 'content' })
 
 const { t } = useI18n()
 const route = useRoute()
