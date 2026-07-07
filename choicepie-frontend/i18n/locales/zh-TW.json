@@ -164,6 +164,17 @@
       "questions": "{count} 道題"
     }
   },
+  "history": {
+    "title": "歷史紀錄",
+    "subtitle": "查看你主持過的所有遊戲場次",
+    "empty": "還沒有主持過任何遊戲",
+    "emptyCta": "建立第一場遊戲",
+    "card": {
+      "players": "{count} 位玩家",
+      "questions": "{count} 道題",
+      "topPlayer": "冠軍：{name}（{score} 分）"
+    }
+  },
   "libraryDetail": {
     "backToLibrary": "返回題庫",
     "knowledgePack": "知識包",

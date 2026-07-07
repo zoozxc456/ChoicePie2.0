@@ -22,3 +22,17 @@ export interface GameRoom {
   totalQuestions: number
   hostConnectionId: string
 }
+
+/** 使用者過去主持過的一場遊戲摘要 */
+export interface HostedGameSummary {
+  id: string
+  quizId: string
+  quizTitle: string
+  coverEmoji: string
+  coverGradient: string
+  playerCount: number
+  questionCount: number
+  topPlayerName: string
+  topPlayerScore: number
+  playedAt: string
+}
