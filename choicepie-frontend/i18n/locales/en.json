@@ -165,14 +165,32 @@
     }
   },
   "history": {
-    "title": "History",
-    "subtitle": "View all the games you've hosted",
-    "empty": "You haven't hosted any games yet",
-    "emptyCta": "Create your first game",
-    "card": {
-      "players": "{count} players",
-      "questions": "{count} questions",
-      "topPlayer": "Winner: {name} ({score} pts)"
+    "title": "🎉 History",
+    "subtitle": "Relive the highlights from every party you've thrown or joined",
+    "roles": {
+      "host": "🎤 Hosted by me",
+      "player": "🎮 Played by me"
+    },
+    "host": {
+      "empty": "You haven't hosted a single party yet!",
+      "emptyDesc": "Whip up a quiz and throw your very own trivia party",
+      "emptyCta": "✨ Create your first game",
+      "card": {
+        "players": "{count} players had fun",
+        "questions": "{count} questions",
+        "topPlayer": "🏆 Winner: {name} ({score} pts)"
+      }
+    },
+    "player": {
+      "empty": "You haven't joined a single party yet!",
+      "emptyDesc": "Enter a room code and jump into the trivia arena",
+      "emptyCta": "🎉 Join a game",
+      "card": {
+        "players": "{count} players competing",
+        "questions": "{count} questions",
+        "myRank": "#{rank}",
+        "myScore": "{score} pts"
+      }
     }
   },
   "libraryDetail": {

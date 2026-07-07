@@ -36,3 +36,16 @@ export interface HostedGameSummary {
   topPlayerScore: number
   playedAt: string
 }
+
+/** 使用者過去以玩家身分參加過的一場遊戲摘要 */
+export interface PlayedGameSummary {
+  id: string
+  quizTitle: string
+  coverEmoji: string
+  coverGradient: string
+  playerCount: number
+  questionCount: number
+  myRank: number
+  myScore: number
+  playedAt: string
+}

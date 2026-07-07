@@ -165,14 +165,32 @@
     }
   },
   "history": {
-    "title": "歷史紀錄",
-    "subtitle": "查看你主持過的所有遊戲場次",
-    "empty": "還沒有主持過任何遊戲",
-    "emptyCta": "建立第一場遊戲",
-    "card": {
-      "players": "{count} 位玩家",
-      "questions": "{count} 道題",
-      "topPlayer": "冠軍：{name}（{score} 分）"
+    "title": "🎉 歷史紀錄",
+    "subtitle": "回顧每一場搶答派對的高光時刻",
+    "roles": {
+      "host": "🎤 我主持的",
+      "player": "🎮 我玩過的"
+    },
+    "host": {
+      "empty": "還沒主持過任何一場派對耶！",
+      "emptyDesc": "出一組題目，馬上開一場屬於你的搶答派對吧",
+      "emptyCta": "✨ 建立第一場遊戲",
+      "card": {
+        "players": "{count} 位玩家同樂",
+        "questions": "{count} 道題",
+        "topPlayer": "🏆 冠軍：{name}（{score} 分）"
+      }
+    },
+    "player": {
+      "empty": "還沒加入過任何一場派對耶！",
+      "emptyDesc": "輸入房間碼，馬上加入搶答戰場",
+      "emptyCta": "🎉 加入遊戲",
+      "card": {
+        "players": "{count} 位玩家同場競技",
+        "questions": "{count} 道題",
+        "myRank": "第 {rank} 名",
+        "myScore": "{score} 分"
+      }
     }
   },
   "libraryDetail": {
