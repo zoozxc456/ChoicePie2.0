@@ -37,7 +37,7 @@
         </div>
       </div>
 
-      <!-- 右：唯一視覺主體 — 實際搶答畫面縮影 -->
+      <!-- 右：唯一視覺主體，實際搶答畫面縮影 -->
       <div
         class="quiz-card-tilt relative w-full max-w-xl shrink-0 overflow-hidden rounded-2xl bg-white shadow-[0_40px_100px_rgba(0,0,0,0.45)]"
         aria-hidden="true"
