@@ -305,6 +305,19 @@ html {
   background: var(--cp-success);
 }
 
+/* 作答狀態 Chip（進行中題目） */
+.player-chip-answered {
+  color: var(--cp-success);
+  border-color: var(--cp-success);
+  font-weight: 700;
+}
+.player-chip .pending-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cp-text-muted);
+}
+
 /* 頒獎台名次光暈 */
 .rank-1 {
   box-shadow: 0 0 24px rgba(248, 147, 29, 0.5);

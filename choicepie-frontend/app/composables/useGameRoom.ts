@@ -1,7 +1,7 @@
 import * as signalR from '@microsoft/signalr'
 import { useGameStore } from '~/stores/game'
 import type { Player } from '~/types/gameRoom'
-import type { AnswerProgressPayload, QuestionPayload, AnswerResultPayload, QuestionEndPayload, RankEntry } from '~/types/other'
+import type { AnswerProgressPayload, QuestionPayload, AnswerResultPayload, QuestionEndPayload, RankEntry, RoomStateSyncPayload } from '~/types/other'
 
 let _connection: signalR.HubConnection | null = null
 
@@ -44,7 +44,7 @@ export const useGameRoom = () => {
     })
 
     _connection.on('AnswerProgress', (payload: AnswerProgressPayload) => {
-      gameStore.setAnswerProgress(payload.answered, payload.total)
+      gameStore.setAnswerProgress(payload)
     })
 
     // ── Player Events ──
@@ -68,6 +68,11 @@ export const useGameRoom = () => {
       gameStore.endGame(rankings)
       navigateTo(`/room/${gameStore.roomCode}/result`)
     })
+
+    // ── Reconnect Sync ──
+    _connection.on('RoomStateSync', (payload: RoomStateSyncPayload) => {
+      gameStore.setRoomState(payload)
+    })
   }
 
   const connect = async () => {
@@ -86,9 +91,9 @@ export const useGameRoom = () => {
 
   // ── Host Actions ──
 
-  const createRoom = async (request: { quizId?: string, questionIds: string[] }) => {
+  const createRoom = async (request: { quizId?: string, questionIds: string[], timeLimit?: number }) => {
     await connect()
-    await _connection!.invoke('CreateRoom', request)
+    await _connection!.invoke('CreateRoom', { timeLimit: 20, ...request })
   }
 
   const startGame = async (roomCode: string) => {
@@ -101,6 +106,12 @@ export const useGameRoom = () => {
 
   const pauseGame = async (roomCode: string) => {
     await _connection!.invoke('PauseGame', roomCode)
+  }
+
+  /** 重新整理或直接開啟房間頁時，重新連線並取得目前房間狀態 */
+  const rejoinAsHost = async (roomCode: string) => {
+    await connect()
+    await _connection!.invoke('RejoinRoom', roomCode)
   }
 
   // ── Player Actions ──
@@ -129,6 +140,7 @@ export const useGameRoom = () => {
     startGame,
     skipQuestion,
     pauseGame,
+    rejoinAsHost,
     joinRoom,
     submitAnswer
   }

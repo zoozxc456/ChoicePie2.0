@@ -96,12 +96,21 @@
       "answerProgress": "Answer Progress",
       "skipQuestion": "Skip Question",
       "pause": "Pause",
-      "liveRank": "Live Rankings"
+      "liveRank": "Live Rankings",
+      "voteCount": "{count}",
+      "waitingForAnswers": "Waiting for players to answer...",
+      "answeredSoFar": "{answered} / {total} answered"
     },
     "ended": {
       "title": "🏆 Game Over!",
       "finalRank": "Final Rankings",
       "hostAgain": "Host Another Game"
+    },
+    "reconnecting": "Connecting to room...",
+    "rejoinFailed": {
+      "title": "Room not found",
+      "desc": "This room may have ended, or the room code is incorrect",
+      "backToLibrary": "Back to Library"
     }
   },
   "bigscreen": {
@@ -199,7 +208,7 @@
       "allQuestions": "Use all questions",
       "allQuestionsValue": "All questions",
       "timeLimit": "Time per question",
-      "timeLimitValue": "20 seconds",
+      "timeLimitSeconds": "{seconds}s",
       "joinMethod": "How players join",
       "joinMethodValue": "QR Code or room code, no account needed",
       "createRoom": "▶ Create Room Now",

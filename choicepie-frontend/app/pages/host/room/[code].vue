@@ -185,14 +185,26 @@
               <div
                 v-for="(opt, i) in gameStore.currentQuestion?.options"
                 :key="i"
-                class="rounded-xl p-3 text-sm font-medium"
-                :style="`background: var(--cp-surface-muted); border: 1.5px solid var(--cp-border);`"
+                class="relative rounded-xl p-3 text-sm font-medium overflow-hidden"
+                style="background: var(--cp-surface-muted); border: 1.5px solid var(--cp-border);"
               >
-                <span
-                  class="font-bold mr-2"
-                  style="color: var(--cp-primary);"
-                >{{ ['A', 'B', 'C', 'D'][i] }}</span>
-                {{ opt }}
+                <div
+                  class="absolute inset-y-0 left-0 transition-all duration-500"
+                  :style="`background: var(--cp-primary-light); width: ${optionVotePercent(i)}%;`"
+                />
+                <div class="relative flex items-center justify-between gap-2">
+                  <span>
+                    <span
+                      class="font-bold mr-2"
+                      style="color: var(--cp-primary);"
+                    >{{ ['A', 'B', 'C', 'D'][i] }}</span>
+                    {{ opt }}
+                  </span>
+                  <span
+                    class="text-xs font-bold shrink-0"
+                    style="color: var(--cp-primary);"
+                  >{{ t('host.playing.voteCount', { count: gameStore.optionVoteCounts[i] ?? 0 }) }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -212,7 +224,7 @@
               </span>
             </div>
             <div
-              class="rounded-full overflow-hidden"
+              class="rounded-full overflow-hidden mb-4"
               style="height: 8px; background: var(--cp-surface-muted);"
             >
               <div
@@ -220,6 +232,29 @@
                 :style="`width: ${progressPercent}%; background: var(--cp-primary);`"
               />
             </div>
+
+            <TransitionGroup
+              name="player-list"
+              tag="div"
+              class="flex flex-wrap gap-2"
+            >
+              <div
+                v-for="player in gameStore.players"
+                :key="player.connectionId"
+                class="player-chip"
+                :class="{ 'player-chip-answered': player.hasAnswered }"
+              >
+                <span
+                  v-if="player.hasAnswered"
+                  class="font-bold"
+                >{{ ['A', 'B', 'C', 'D'][player.selectedOptionIndex ?? 0] }}</span>
+                <div
+                  v-else
+                  class="pending-dot"
+                />
+                {{ player.nickname }}
+              </div>
+            </TransitionGroup>
           </div>
 
           <!-- Host Controls -->
@@ -250,7 +285,39 @@
           <p class="text-sm font-semibold mb-4">
             {{ t('host.playing.liveRank') }}
           </p>
+
+          <!-- 作答中：尚未公布排名 -->
+          <div
+            v-if="gameStore.phase === 'question'"
+            class="flex flex-col items-center text-center py-6 gap-3"
+          >
+            <div
+              class="text-4xl pie-spin"
+            >
+              🥧
+            </div>
+            <p
+              class="text-sm font-bold"
+              style="color: var(--cp-primary);"
+            >
+              {{ t('host.playing.waitingForAnswers') }}
+            </p>
+            <p style="color: var(--cp-text-muted); font-size: 12px;">
+              {{ t('host.playing.answeredSoFar', { answered: gameStore.answeredCount, total: gameStore.totalCount }) }}
+            </p>
+            <div class="flex gap-1.5">
+              <span
+                v-for="dot in 3"
+                :key="dot"
+                class="pie-dot"
+                :style="`animation-delay: ${(dot - 1) * 160}ms;`"
+              />
+            </div>
+          </div>
+
+          <!-- 已公布答案：即時排名 -->
           <TransitionGroup
+            v-else
             name="rank"
             tag="div"
             class="flex flex-col gap-2"
@@ -362,6 +429,40 @@
         {{ t('host.ended.hostAgain') }}
       </UButton>
     </template>
+
+    <!-- ─── REJOIN FAILED ─── -->
+    <template v-else-if="rejoinFailed">
+      <div class="flex flex-col items-center justify-center py-24 gap-3 text-center">
+        <p class="text-2xl font-bold">
+          {{ t('host.rejoinFailed.title') }}
+        </p>
+        <p style="color: var(--cp-text-secondary); font-size: 14px;">
+          {{ t('host.rejoinFailed.desc') }}
+        </p>
+        <UButton
+          size="lg"
+          color="primary"
+          class="mt-2"
+          @click="$router.push('/library')"
+        >
+          {{ t('host.rejoinFailed.backToLibrary') }}
+        </UButton>
+      </div>
+    </template>
+
+    <!-- ─── RECONNECTING ─── -->
+    <template v-else>
+      <div class="flex flex-col items-center justify-center py-24 gap-3">
+        <UIcon
+          name="i-lucide-loader-2"
+          class="animate-spin text-4xl"
+          style="color: var(--cp-primary);"
+        />
+        <p style="color: var(--cp-text-secondary); font-size: 14px;">
+          {{ t('host.reconnecting') }}
+        </p>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -389,15 +490,119 @@ const progressPercent = computed(() =>
     : 0
 )
 
-const handleStart = async () => {
-  await gameRoom.startGame(code.value)
+const optionVotePercent = (index: number) => {
+  if (gameStore.answeredCount === 0) return 0
+  return ((gameStore.optionVoteCounts[index] ?? 0) / gameStore.answeredCount) * 100
 }
 
-const handleSkip = async () => {
-  await gameRoom.skipQuestion(code.value)
+const rejoinFailed = ref(false)
+
+// 暫時用假資料模擬遊戲進行，之後接上真實後端（SignalR）後移除
+const MOCK_QUESTIONS = Array.from({ length: 5 }, (_, i) => ({
+  index: i,
+  total: 5,
+  text: `範例題目 ${i + 1}？`,
+  options: ['選項 A', '選項 B', '選項 C', '選項 D'],
+  timeLimit: 20,
+  answerIndex: i % 4,
+  explanation: `這是第 ${i + 1} 題的範例解析說明。`
+}))
+
+const mockQuestionIndex = ref(0)
+let _mockAdvanceTimeout: ReturnType<typeof setTimeout> | null = null
+let _mockAnswerTimeouts: ReturnType<typeof setTimeout>[] = []
+
+const _clearMockAnswerTimeouts = () => {
+  _mockAnswerTimeouts.forEach(clearTimeout)
+  _mockAnswerTimeouts = []
 }
 
-onUnmounted(() => gameRoom.disconnect())
+const _scheduleMockAnswers = () => {
+  const total = gameStore.players.length
+  const optionCount = gameStore.currentQuestion?.options.length ?? 4
+  gameStore.players.forEach((player, i) => {
+    const delay = 1500 + i * 2500 + Math.random() * 1500
+    const selectedOptionIndex = Math.floor(Math.random() * optionCount)
+    _mockAnswerTimeouts.push(setTimeout(() => {
+      gameStore.setAnswerProgress({
+        connectionId: player.connectionId,
+        answered: gameStore.answeredCount + 1,
+        total,
+        selectedOptionIndex
+      })
+    }, delay))
+  })
+}
+
+const mockShowResult = () => {
+  const q = MOCK_QUESTIONS[mockQuestionIndex.value]!
+  const rankings = gameStore.players
+    .map((p, i) => ({ rank: i + 1, nickname: p.nickname, score: (i === 0 ? 300 : 150) * (mockQuestionIndex.value + 1) }))
+    .sort((a, b) => b.score - a.score)
+    .map((r, i) => ({ ...r, rank: i + 1 }))
+
+  gameStore.setQuestionEnd({
+    answerIndex: q.answerIndex,
+    explanation: q.explanation,
+    rankings
+  })
+}
+
+const mockShowNextQuestion = () => {
+  if (mockQuestionIndex.value >= MOCK_QUESTIONS.length) {
+    const finalRankings = gameStore.rankings.length
+      ? gameStore.rankings
+      : gameStore.players.map((p, i) => ({ rank: i + 1, nickname: p.nickname, score: 0 }))
+    gameStore.endGame(finalRankings)
+    return
+  }
+
+  const q = MOCK_QUESTIONS[mockQuestionIndex.value]!
+  gameStore.setQuestion(q)
+  mockQuestionIndex.value++
+  _mockAdvanceTimeout = setTimeout(mockShowResult, q.timeLimit * 1000)
+  _scheduleMockAnswers()
+}
+
+const handleStart = () => {
+  mockQuestionIndex.value = 0
+  mockShowNextQuestion()
+}
+
+const handleSkip = () => {
+  if (_mockAdvanceTimeout) clearTimeout(_mockAdvanceTimeout)
+  _clearMockAnswerTimeouts()
+  if (gameStore.phase === 'question') {
+    mockShowResult()
+  } else {
+    mockShowNextQuestion()
+  }
+}
+
+onMounted(() => {
+  // 若非從建立房間流程 client-side 導航過來（例如重新整理、直接開啟連結），
+  // gameStore 尚未有此房間的狀態，先用假房間資料填充
+  if (gameStore.roomCode !== code.value) {
+    gameStore.setRoom({
+      roomCode: code.value,
+      quizTitle: 'Kubernetes 核心概念入門',
+      status: 'waiting',
+      players: [
+        { connectionId: 'mock-1', nickname: '小美', score: 0, rank: 0, hasAnswered: false },
+        { connectionId: 'mock-2', nickname: 'Leo', score: 0, rank: 0, hasAnswered: false }
+      ],
+      currentQuestionIndex: 0,
+      totalQuestions: MOCK_QUESTIONS.length,
+      hostConnectionId: 'mock-host'
+    })
+  }
+})
+
+onUnmounted(() => {
+  if (_mockAdvanceTimeout) clearTimeout(_mockAdvanceTimeout)
+  _clearMockAnswerTimeouts()
+  gameRoom.disconnect()
+})
 </script>
 
 <script lang="ts">
@@ -410,4 +615,26 @@ export default {
 .player-list-enter-active { transition: all 0.3s ease; }
 .player-list-enter-from { opacity: 0; transform: scale(0.8); }
 .rank-move { transition: transform 0.5s ease; }
+
+.pie-spin {
+  animation: pie-wobble 1.4s ease-in-out infinite;
+}
+
+.pie-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--cp-primary);
+  animation: pie-bounce 1s ease-in-out infinite;
+}
+
+@keyframes pie-wobble {
+  0%, 100% { transform: rotate(-8deg) scale(1); }
+  50% { transform: rotate(8deg) scale(1.08); }
+}
+
+@keyframes pie-bounce {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-4px); }
+}
 </style>
