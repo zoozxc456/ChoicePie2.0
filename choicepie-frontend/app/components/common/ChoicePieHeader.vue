@@ -1,6 +1,6 @@
 <template>
   <header
-    class="fixed top-0 left-0 right-0 z-50 flex items-center gap-3 px-6 h-14"
+    class="fixed top-0 left-0 right-0 z-50 flex items-center gap-3 px-6 h-16"
     :class="transparent ? 'bg-transparent' : 'bg-white'"
     :style="transparent ? '' : 'border-bottom: 1px solid var(--cp-border);'"
   >
