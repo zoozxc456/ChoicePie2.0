@@ -1,0 +1,548 @@
+{
+  "nav": {
+    "join": "Join Game",
+    "createGame": "Create Game",
+    "history": "History",
+    "howToUse": "How to Use",
+    "about": "About",
+    "login": "Sign In / Sign Up",
+    "logout": "Sign Out"
+  },
+  "join": {
+    "title": "Join Game",
+    "subtitle": "No account needed — just enter a nickname",
+    "roomCode": "Room Code",
+    "roomCodePlaceholder": "Room code (6 chars)",
+    "nickname": "Your Nickname",
+    "nicknamePlaceholder": "Enter nickname (2–12 chars)",
+    "submit": "Join Game",
+    "roomNotFound": "Room not found. Please check the room code.",
+    "validation": {
+      "roomCodeLength": "Room code must be exactly 6 characters",
+      "nicknameMin": "Nickname must be at least 2 characters",
+      "nicknameMax": "Nickname cannot exceed 12 characters"
+    },
+    "steps": {
+      "title": "How to Join",
+      "step1Title": "Scan QR Code",
+      "step1Desc": "Or manually enter the 6-character room code",
+      "step2Title": "Enter Nickname",
+      "step2Desc": "2–12 characters, no account required",
+      "step3Title": "Wait to Start",
+      "step3Desc": "Game begins automatically when the host starts"
+    }
+  },
+  "room": {
+    "waiting": {
+      "title": "Game Starting Soon",
+      "subtitle": "Waiting for the host to start",
+      "yourNickname": "Your Nickname",
+      "roomCode": "Room Code",
+      "playerCount": "{count} players joined",
+      "waitingHost": "Waiting for host to start..."
+    },
+    "question": {
+      "questionOf": "Question {current} / {total}",
+      "answered": "Answer submitted, waiting for result..."
+    },
+    "result": {
+      "correct": "Correct!",
+      "wrong": "Wrong!",
+      "points": "+{points} pts",
+      "explanation": "💡 Explanation",
+      "currentRank": "Current Rank",
+      "rank": "#{rank}",
+      "waitingNext": "Waiting for next question..."
+    },
+    "ended": {
+      "title": "Game Over!",
+      "yourResult": "Your Result",
+      "exit": "Leave Game"
+    }
+  },
+  "host": {
+    "questionEditor": {
+      "untitled": "(No question text yet)",
+      "complete": "Complete",
+      "incomplete": "Incomplete",
+      "questionLabel": "Question",
+      "questionPlaceholder": "Enter question...",
+      "optionsLabel": "Options (click ○ to set correct answer)",
+      "optionPlaceholder": "Option...",
+      "explanationLabel": "Explanation",
+      "explanationPlaceholder": "Explanation (optional)..."
+    },
+    "previewModal": {
+      "title": "Confirm Quiz Content",
+      "subtitle": "Double-check your questions and answers — a room code will be created next",
+      "quizTitleLabel": "Quiz Title",
+      "confirm": "🚀 Confirm & Create Game Room",
+      "cancel": "Back to Edit"
+    },
+    "waiting": {
+      "title": "Waiting for Players",
+      "subtitle": "Ask players to scan the QR Code or enter the room code",
+      "bigscreen": "🖥️ Project Screen",
+      "roomCode": "Room Code",
+      "joinedPlayers": "Players Joined",
+      "playerCount": "{count} players",
+      "noPlayers": "Waiting for players to join...",
+      "startGame": "▶ Start Game ({count} players)",
+      "waitMore": "Wait a moment, more players are joining",
+      "scanToJoin": "Scan to Join"
+    },
+    "playing": {
+      "questionOf": "Question {current} / {total}",
+      "answerProgress": "Answer Progress",
+      "skipQuestion": "Skip Question",
+      "pause": "Pause",
+      "liveRank": "Live Rankings",
+      "voteCount": "{count}",
+      "waitingForAnswers": "Waiting for players to answer...",
+      "answeredSoFar": "{answered} / {total} answered"
+    },
+    "ended": {
+      "title": "🏆 Game Over!",
+      "finalRank": "Final Rankings",
+      "hostAgain": "Host Another Game"
+    },
+    "reconnecting": "Connecting to room...",
+    "rejoinFailed": {
+      "title": "Room not found",
+      "desc": "This room may have ended, or the room code is incorrect",
+      "backToLibrary": "Back to Library"
+    }
+  },
+  "bigscreen": {
+    "waiting": {
+      "scanQR": "Scan QR Code to Join",
+      "orEnterCode": "Or enter the room code",
+      "joinUrl": "choicepie.app/join",
+      "playerCount": "{count} players joined"
+    },
+    "playing": {
+      "questionOf": "Question {current} / {total}",
+      "answeredOf": "{answered} / {total} answered"
+    },
+    "ended": {
+      "title": "🏆 Final Rankings",
+      "rankSuffix": ""
+    }
+  },
+  "login": {
+    "title": "Sign in to ChoicePie",
+    "googleLogin": "Sign in with Google",
+    "orDivider": "or",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "loginBtn": "Sign In",
+    "guestHint": "Just here to play?",
+    "noLoginNeeded": "No sign-in needed →",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Sign up",
+    "loginError": "Incorrect email or password. Please try again.",
+    "validation": {
+      "emailInvalid": "Please enter a valid email address",
+      "passwordMin": "Password must be at least 6 characters"
+    },
+    "hostBenefits": {
+      "title": "🎮 Want to host a game?",
+      "desc": "Sign in to build your own quiz library, auto-generate questions with AI, and track your game history."
+    }
+  },
+  "library": {
+    "searchPlaceholder": "Search quizzes...",
+    "featured": "🔥 Featured",
+    "latest": "🆕 Latest",
+    "noResults": "No matching quizzes found",
+    "aiBanner": {
+      "title": "✨ No quiz ready? Let AI generate one in seconds",
+      "subtitle": "Paste text or a URL and AI will create a 4-choice quiz for you",
+      "cta": "Start generating →"
+    },
+    "card": {
+      "questions": "{count} questions"
+    }
+  },
+  "history": {
+    "title": "🎉 History",
+    "subtitle": "Relive the highlights from every party you've thrown or joined",
+    "roles": {
+      "host": "🎤 Hosted by me",
+      "player": "🎮 Played by me"
+    },
+    "host": {
+      "empty": "You haven't hosted a single party yet!",
+      "emptyDesc": "Whip up a quiz and throw your very own trivia party",
+      "emptyCta": "✨ Create your first game",
+      "card": {
+        "players": "{count} players had fun",
+        "questions": "{count} questions",
+        "topPlayer": "🏆 Winner: {name} ({score} pts)"
+      }
+    },
+    "player": {
+      "empty": "You haven't joined a single party yet!",
+      "emptyDesc": "Enter a room code and jump into the trivia arena",
+      "emptyCta": "🎉 Join a game",
+      "card": {
+        "players": "{count} players competing",
+        "questions": "{count} questions",
+        "myRank": "#{rank}",
+        "myScore": "{score} pts"
+      }
+    },
+    "detail": {
+      "back": "Back to History",
+      "notFound": "We couldn't find that game",
+      "hostBadge": "🎤 Hosted by you",
+      "playerBadge": "🎮 Played by you",
+      "podiumTitle": "🏆 Podium",
+      "fullRanking": "Full Ranking",
+      "you": " (You)",
+      "meta": {
+        "players": "{count} players",
+        "questions": "{count} questions",
+        "playedAt": "Played on {date}"
+      },
+      "review": {
+        "title": "📝 Review Missed Questions",
+        "subtitle": "{count} missed — let's see the right answers",
+        "empty": "🎉 Perfect score! Nothing to review here",
+        "yourAnswer": "Your answer",
+        "correctAnswer": "Correct answer",
+        "explanation": "Explanation"
+      },
+      "hostNote": {
+        "title": "More host analytics coming soon",
+        "desc": "Accuracy breakdowns and average answer time per question are on the way"
+      }
+    }
+  },
+  "libraryDetail": {
+    "backToLibrary": "Back to Library",
+    "knowledgePack": "Quiz Pack",
+    "creatorLine": "By {name}",
+    "questionList": "Question List",
+    "questions": "{count} questions",
+    "challenges": "{count} plays",
+    "passRate": "Avg. pass rate {rate}%",
+    "passRateBadge": "Pass rate {rate}%",
+    "bookmark": "♥ Save",
+    "favorited": "♥ Saved",
+    "share": "📤 Share",
+    "useForGame": "⚡ Use in Game",
+    "questionTable": {
+      "index": "#",
+      "question": "Question",
+      "passRate": "Pass Rate",
+      "timeLimit": "Time",
+      "singleChoice": "Single choice · 4 options",
+      "timeApprox": "~20s"
+    },
+    "comments": {
+      "title": "💬 Comments ({count})",
+      "placeholder": "Write your thoughts...",
+      "submit": "Post",
+      "daysAgo": "{days} days ago",
+      "justNow": "Just now"
+    },
+    "creator": {
+      "title": "About the Creator",
+      "verified": "Verified Creator",
+      "quizCount": "Quizzes",
+      "challengeCount": "Total Plays",
+      "follow": "Follow Creator",
+      "following": "Following"
+    },
+    "related": "You might also like",
+    "modal": {
+      "title": "Start a Game with This Quiz",
+      "subtitle": "A room code and QR Code will be generated immediately",
+      "settings": "Game Settings",
+      "allQuestions": "Use all questions",
+      "allQuestionsValue": "All questions",
+      "timeLimit": "Time per question",
+      "timeLimitSeconds": "{seconds}s",
+      "joinMethod": "How players join",
+      "joinMethodValue": "QR Code or room code, no account needed",
+      "createRoom": "▶ Create Room Now",
+      "cancel": "Cancel"
+    }
+  },
+  "signIn": {
+    "title": "Create Account",
+    "googleRegister": "Sign up with Google",
+    "orDivider": "or",
+    "namePlaceholder": "Nickname (2+ characters)",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password (8+ characters)",
+    "confirmPasswordPlaceholder": "Confirm password",
+    "submitBtn": "Create Account",
+    "haveAccount": "Already have an account?",
+    "loginLink": "Sign in",
+    "registerError": "This email may already be in use",
+    "passwordMismatch": "Passwords do not match",
+    "strength": {
+      "tooShort": "Too short",
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "validation": {
+      "nameMin": "Name must be at least 2 characters",
+      "emailInvalid": "Please enter a valid email address",
+      "passwordMin": "Password must be at least 8 characters",
+      "confirmPasswordMatch": "Passwords do not match"
+    }
+  },
+  "about": {
+    "hero": {
+      "eyebrow": "About ChoicePie",
+      "title": "What if learning could be as fun as playing a game?",
+      "desc": "That question is the reason ChoicePie exists."
+    },
+    "story": {
+      "label": "Where it started",
+      "p1": "In a world overflowing with information yet stuck in passive learning, knowledge often stays on the slide, stays in the book, and is never truly absorbed.",
+      "p2": "ChoicePie isn't just a quiz app. It's a stage that brings knowledge to life. Here, everyone can be a teacher, and everyone can be a student."
+    },
+    "scenarios": {
+      "title": "Knowledge deserves to be shared",
+      "history": {
+        "icon": "📚",
+        "title": "Deep into an obscure piece of history?",
+        "desc": "In minutes, turn that knowledge into a great quiz game. Friends don't just learn something new, they get to chase the high score too."
+      },
+      "exam": {
+        "icon": "🎯",
+        "title": "Studying for an exam but the textbook feels dry?",
+        "desc": "Use game history and question-by-question review to study more actively. Every question you answer becomes part of your progress."
+      }
+    },
+    "belief": {
+      "text": "Break the boundaries of learning. Free knowledge from the page and let it flow between people.",
+      "subtext": "Make learning an adventure, a challenge, a party full of surprises."
+    },
+    "vmv": {
+      "vision": {
+        "label": "VISION",
+        "text": "To become the world's most fun and creative platform for sharing and learning knowledge, where everyone can be both creator and explorer."
+      },
+      "mission": {
+        "label": "MISSION",
+        "text": "To give everyone a simple, powerful tool that turns any topic into an engaging quiz game."
+      }
+    },
+    "values": {
+      "title": "What we believe",
+      "userCentric": { "title": "User-Centric", "desc": "We listen. Every design decision starts from the experience." },
+      "funLearning": { "title": "Fun & Learning", "desc": "Gamification is the most effective way to spark learning." },
+      "createShare": { "title": "Create & Share", "desc": "We give people the freedom to create and the reason to share." },
+      "growth": { "title": "Continuous Growth", "desc": "We care about your progress, not just our features." }
+    },
+    "cta": {
+      "title": "Ready to try it?",
+      "subtitle": "Turn what you know into a game",
+      "createGame": "✨ Create Game",
+      "howToUse": "How to Use"
+    }
+  },
+  "howToUse": {
+    "title": "How to Use ChoicePie",
+    "subtitle": "From questions to answers in under 5 minutes",
+    "roles": {
+      "host": "🎮 I'm the Host",
+      "player": "📱 I'm a Player"
+    },
+    "firstStepBadge": "Start here",
+    "hostSteps": [
+      { "title": "Paste Your Content", "desc": "Paste your tech article, notes, or YouTube link. Supports plain text and URLs, up to 5,000 characters." },
+      { "title": "AI Generates Questions", "desc": "Choose question count (3 / 5 / 10) and difficulty. AI generates multiple-choice questions in 30 seconds. Preview and edit freely." },
+      { "title": "Create a Game Room", "desc": "Confirm questions and click 'Create Room'. A 6-digit room code and QR Code are instantly generated — project them for players to scan." },
+      { "title": "Start the Game", "desc": "Once players join, click 'Start Game'. Monitor live answer progress and skip or pause questions as needed." }
+    ],
+    "hostStepIcons": ["📝", "✨", "🚪", "🏁"],
+    "playerSteps": [
+      { "title": "Scan QR Code", "desc": "Scan the QR Code projected by the host, or go to choicepie.app/join and enter the 6-digit room code." },
+      { "title": "Enter Nickname", "desc": "Enter a 2–12 character nickname — no account needed. You'll see the waiting screen and other players after joining." },
+      { "title": "Answer Fast", "desc": "You have 20 seconds per question. The faster you answer correctly, the more points you earn. See the answer and your rank after each question." },
+      { "title": "Final Rankings", "desc": "After all questions, the full leaderboard is revealed with your total score and rank." }
+    ],
+    "playerStepIcons": ["📷", "✏️", "⚡", "🏆"],
+    "hostCta": "✨ Create Game Now",
+    "playerCta": "Join Game →",
+    "scoring": {
+      "title": "⚡ Scoring System",
+      "footer": "Wrong answers earn 0 pts · 20 seconds per question",
+      "unit": "pts",
+      "rules": [
+        { "time": "0 – 3 sec", "points": 1000 },
+        { "time": "3 – 6 sec", "points": 800 },
+        { "time": "6 – 10 sec", "points": 600 },
+        { "time": "10+ sec", "points": 400 }
+      ]
+    },
+    "faq": {
+      "title": "FAQ",
+      "items": [
+        { "q": "Do players need an account?", "a": "No. Players only need a nickname to join — no registration required. Only the Host needs to sign in to create a game." },
+        { "q": "How many players can join a room?", "a": "The current MVP supports up to 30 simultaneous players, enough for most tech talks. The limit will increase in future versions." },
+        { "q": "How good is the AI-generated content?", "a": "The AI generates questions highly relevant to your content, with knowledge explanations included. You can preview and edit every question before creating the room." },
+        { "q": "How long is a room code valid?", "a": "A room is valid for 24 hours after creation. After the game ends it becomes read-only (questions and rankings visible), then clears after 48 hours." },
+        { "q": "Can I reuse the same quiz?", "a": "Yes. Hosts can find previously created quizzes in their history and reopen a room with them." }
+      ]
+    }
+  },
+  "hostNew": {
+    "backToChoice": "Back to quiz method",
+    "choice": {
+      "title": "Choose how to create your quiz",
+      "subtitle": "Write questions yourself, or let AI generate them for you",
+      "manual": {
+        "title": "Manual",
+        "desc": "Write your own questions, options, and answers — full control over content",
+        "cta": "Start editing →"
+      },
+      "ai": {
+        "title": "AI Assisted",
+        "desc": "Paste text or a URL and AI will generate questions in seconds",
+        "quotaAvailable": "1 use left today",
+        "quotaUsed": "Daily quota used",
+        "cta": "Start generating →",
+        "ctaLocked": "Quota used"
+      }
+    },
+    "manual": {
+      "title": "✍️ Manual Quiz",
+      "titleLabel": "Quiz title",
+      "titlePlaceholder": "e.g. New Hire Onboarding Q&A",
+      "titleRequired": "Please enter a quiz title",
+      "addQuestion": "Add Question",
+      "readyTitle": "Ready?",
+      "readySubtitle": "Confirm your questions, then create the game room",
+      "questionCount": "{count} questions",
+      "createRoomBtn": "🚀 Create Game Room"
+    },
+    "ai": {
+      "title": "✨ AI Quiz",
+      "locked": {
+        "title": "Daily AI quota used",
+        "desc": "AI-assisted quiz generation is limited to 1 use per day. Today's quota is used up.\nCome back tomorrow, or create a quiz manually now.",
+        "switchToManual": "✍️ Switch to manual"
+      },
+      "contentPlaceholder": "Paste text, presentation notes, or a URL...",
+      "urlHint": "🔗 The system will automatically extract page content",
+      "charCount": "{count} / 5000 chars",
+      "minCharsHint": "Please enter at least 30 characters",
+      "questionCountLabel": "Questions",
+      "questionCountUnit": "{count}",
+      "difficultyLabel": "Difficulty",
+      "difficulty": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "expert": "Expert"
+      },
+      "generateBtn": "✨ Start Generating",
+      "generatingBtn": "✨ AI is generating, please wait...",
+      "readyTitle": "Ready?",
+      "readySubtitle": "Confirm your questions, then create the game room",
+      "questionCount": "{count} questions",
+      "createRoomBtn": "🚀 Create Game Room"
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "updatedAt": "Last updated: {date}",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "body": "By using ChoicePie, you agree to these Terms of Service. If you do not agree, please do not use the service."
+      },
+      "accounts": {
+        "title": "2. Accounts",
+        "body": "Creating a game requires an account; joining a game does not. You are responsible for keeping your login credentials secure and for all activity under your account."
+      },
+      "content": {
+        "title": "3. User Content",
+        "body": "Quizzes you upload or create (including AI-generated questions) remain yours, but you grant ChoicePie a license to store, process, and display that content in order to provide the service."
+      },
+      "conduct": {
+        "title": "4. Acceptable Use",
+        "body": "Do not use the service to post illegal, infringing, harassing, or malicious content. ChoicePie reserves the right to remove violating content or terminate accounts."
+      },
+      "termination": {
+        "title": "5. Termination",
+        "body": "We may suspend or terminate your account for violating these terms. You may also stop using the service at any time."
+      },
+      "disclaimer": {
+        "title": "6. Disclaimer",
+        "body": "The service is currently in MVP development and is provided \"as is\" without guarantee of uninterrupted or error-free operation. We do not guarantee the accuracy of AI-generated content."
+      },
+      "changes": {
+        "title": "7. Changes to These Terms",
+        "body": "We may update these terms from time to time; material changes will be announced on the site. Continued use of the service constitutes acceptance of the updated terms."
+      },
+      "contact": {
+        "title": "8. Contact Us",
+        "body": "If you have any questions about these terms, please reach out to us via the About page."
+      }
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "updatedAt": "Last updated: {date}",
+    "sections": {
+      "collection": {
+        "title": "1. What We Collect",
+        "body": "When you register, we collect your name and email (or basic profile info via Google sign-in). Players joining a game only need a nickname and do not need to register."
+      },
+      "usage": {
+        "title": "2. How We Use Your Data",
+        "body": "We use this data to provide account login, store the quizzes you create, and operate game rooms. We do not use your data for purposes unrelated to the service."
+      },
+      "sharing": {
+        "title": "3. Data Sharing",
+        "body": "We do not sell your personal data. We only share necessary information with third parties when required by law or necessary to provide the service (e.g. authentication providers)."
+      },
+      "cookies": {
+        "title": "4. Cookies & Tracking",
+        "body": "We use essential cookies to maintain login sessions and game room connections. We do not use them for cross-site advertising tracking."
+      },
+      "retention": {
+        "title": "5. Data Retention",
+        "body": "Your account data is retained until you delete your account. Temporary game room data (such as answer history) is cleared some time after the game ends."
+      },
+      "rights": {
+        "title": "6. Your Rights",
+        "body": "You may request to view, correct, or delete your personal data at any time by contacting us via the About page."
+      },
+      "changes": {
+        "title": "7. Changes to This Policy",
+        "body": "We may update this policy from time to time; material changes will be announced on the site."
+      },
+      "contact": {
+        "title": "8. Contact Us",
+        "body": "If you have any questions about this policy, please reach out to us via the About page."
+      }
+    }
+  },
+  "error": {
+    "notFound": {
+      "title": "Page Not Found",
+      "desc": "The page you're looking for may have moved or doesn't exist. Head back home and see what's cooking!"
+    },
+    "generic": {
+      "title": "Something Went Wrong",
+      "desc": "We hit a snag on our end. Please try again in a moment."
+    },
+    "backHome": "🏠 Back Home"
+  },
+  "common": {
+    "players": "{count} players",
+    "rank": "#{rank}",
+    "score": "{score} pts",
+    "you": "(you)",
+    "loading": "Loading..."
+  }
+}

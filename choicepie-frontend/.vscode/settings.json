@@ -1,0 +1,41 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.useFlatConfig": true,
+  "eslint.validate": ["javascript", "typescript", "vue"],
+  "[vue]": {
+    "editor.defaultFormatter": "Vue.volar"
+  },
+  "vue.format.script.initialIndent": false,
+  "vue.format.style.initialIndent": false,
+  "prettier.enable": true,
+  "typescript.format.semicolons": "remove",
+  "javascript.format.semicolons": "remove",
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "cSpell.words": [
+    "bigscreen",
+    "choicepie",
+    "gamehub",
+    "grayscale",
+    "Jheng",
+    "lucide",
+    "Noto",
+    "nums",
+    "Nuxt",
+    "nuxtjs",
+    "onreconnected",
+    "onreconnecting",
+    "persistedstate",
+    "rgba",
+    "signalr",
+    "Slideover",
+    "vueuse"
+  ]
+}
