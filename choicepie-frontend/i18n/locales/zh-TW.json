@@ -191,6 +191,32 @@
         "myRank": "第 {rank} 名",
         "myScore": "{score} 分"
       }
+    },
+    "detail": {
+      "back": "返回歷史紀錄",
+      "notFound": "找不到這場遊戲紀錄",
+      "hostBadge": "🎤 我主持的遊戲",
+      "playerBadge": "🎮 我參加的遊戲",
+      "podiumTitle": "🏆 頒獎台",
+      "fullRanking": "完整排名",
+      "you": "（你）",
+      "meta": {
+        "players": "{count} 位玩家",
+        "questions": "{count} 道題",
+        "playedAt": "遊玩時間：{date}"
+      },
+      "review": {
+        "title": "📝 複習錯題",
+        "subtitle": "{count} 題答錯，來看看正確答案吧",
+        "empty": "🎉 全對！這場沒有錯題可以複習",
+        "yourAnswer": "你的答案",
+        "correctAnswer": "正確答案",
+        "explanation": "詳解"
+      },
+      "hostNote": {
+        "title": "更多主持數據，敬請期待",
+        "desc": "答題正確率、每題平均作答時間等分析功能正在路上"
+      }
     }
   },
   "libraryDetail": {
