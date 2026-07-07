@@ -5,27 +5,21 @@
       <h1 class="text-4xl font-black mb-3">
         {{ t('howToUse.title') }}
       </h1>
-      <p
-        class="text-lg"
-        style="color: var(--cp-text-secondary);"
-      >
+      <p class="text-lg text-cp-text-secondary">
         {{ t('howToUse.subtitle') }}
       </p>
     </div>
 
     <!-- Role Toggle -->
     <div class="flex justify-center mb-12">
-      <div
-        class="flex rounded-xl p-1 gap-1"
-        style="background: var(--cp-surface-muted); border: 1px solid var(--cp-border);"
-      >
+      <div class="flex rounded-xl p-1 gap-1 bg-cp-surface-muted border border-cp-border">
         <button
           v-for="role in roles"
           :key="role.key"
           class="px-6 py-2 rounded-lg text-sm font-semibold transition-all"
-          :style="activeRole === role.key
-            ? 'background: white; color: var(--cp-primary); box-shadow: var(--cp-shadow-sm);'
-            : 'color: var(--cp-text-secondary);'"
+          :class="activeRole === role.key
+            ? 'bg-white text-cp-primary shadow-cp-sm'
+            : 'text-cp-text-secondary'"
           @click="activeRole = role.key"
         >
           {{ role.label }}
@@ -39,23 +33,16 @@
         <div
           v-for="(step, i) in hostSteps"
           :key="i"
-          class="flex gap-6 items-start p-6 rounded-2xl bg-white"
-          style="border: 1px solid var(--cp-border);"
+          class="flex gap-6 items-start p-6 rounded-2xl bg-white border border-cp-border"
         >
-          <div
-            class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black text-white shrink-0"
-            style="background: var(--cp-primary);"
-          >
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black text-white shrink-0 bg-cp-primary">
             {{ i + 1 }}
           </div>
           <div class="flex-1">
             <h3 class="font-bold text-base mb-1">
               {{ step.title }}
             </h3>
-            <p
-              class="text-sm leading-relaxed"
-              style="color: var(--cp-text-secondary);"
-            >
+            <p class="text-sm leading-relaxed text-cp-text-secondary">
               {{ step.desc }}
             </p>
           </div>
@@ -83,23 +70,16 @@
         <div
           v-for="(step, i) in playerSteps"
           :key="i"
-          class="flex gap-6 items-start p-6 rounded-2xl bg-white"
-          style="border: 1px solid var(--cp-border);"
+          class="flex gap-6 items-start p-6 rounded-2xl bg-white border border-cp-border"
         >
-          <div
-            class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black text-white shrink-0"
-            style="background: var(--cp-secondary);"
-          >
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black text-white shrink-0 bg-cp-secondary">
             {{ i + 1 }}
           </div>
           <div class="flex-1">
             <h3 class="font-bold text-base mb-1">
               {{ step.title }}
             </h3>
-            <p
-              class="text-sm leading-relaxed"
-              style="color: var(--cp-text-secondary);"
-            >
+            <p class="text-sm leading-relaxed text-cp-text-secondary">
               {{ step.desc }}
             </p>
           </div>
@@ -131,19 +111,12 @@
         <div
           v-for="rule in scoringRules"
           :key="rule.time"
-          class="rounded-2xl p-5 text-center bg-white"
-          style="border: 1px solid var(--cp-border);"
+          class="rounded-2xl p-5 text-center bg-white border border-cp-border"
         >
-          <p
-            class="text-3xl font-black mb-1"
-            style="color: var(--cp-primary);"
-          >
+          <p class="text-3xl font-black mb-1 text-cp-primary">
             {{ rule.points.toLocaleString() }}
           </p>
-          <p
-            class="text-xs font-semibold mb-2"
-            style="color: var(--cp-text-muted);"
-          >
+          <p class="text-xs font-semibold mb-2 text-cp-text-muted">
             {{ t('howToUse.scoring.unit') }}
           </p>
           <p class="text-sm font-medium">
@@ -151,10 +124,7 @@
           </p>
         </div>
       </div>
-      <p
-        class="text-center text-sm mt-4"
-        style="color: var(--cp-text-muted);"
-      >
+      <p class="text-center text-sm mt-4 text-cp-text-muted">
         {{ t('howToUse.scoring.footer') }}
       </p>
     </div>
@@ -168,21 +138,16 @@
         <details
           v-for="faq in faqs"
           :key="faq.q"
-          class="rounded-xl bg-white overflow-hidden group"
-          style="border: 1px solid var(--cp-border);"
+          class="rounded-xl bg-white overflow-hidden group border border-cp-border"
         >
           <summary class="flex items-center justify-between px-5 py-4 cursor-pointer font-semibold text-sm select-none list-none">
             {{ faq.q }}
             <UIcon
               name="i-lucide-chevron-down"
-              class="transition-transform group-open:rotate-180"
-              style="color: var(--cp-text-muted);"
+              class="transition-transform group-open:rotate-180 text-cp-text-muted"
             />
           </summary>
-          <div
-            class="px-5 pb-4 text-sm leading-relaxed"
-            style="color: var(--cp-text-secondary); border-top: 1px solid var(--cp-border);"
-          >
+          <div class="px-5 pb-4 text-sm leading-relaxed text-cp-text-secondary border-t border-cp-border">
             <div class="pt-3">
               {{ faq.a }}
             </div>

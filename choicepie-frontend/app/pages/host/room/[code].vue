@@ -7,15 +7,14 @@
           <h1 class="text-2xl font-bold mb-1">
             {{ t('host.waiting.title') }}
           </h1>
-          <p style="color: var(--cp-text-secondary); font-size: 14px;">
+          <p class="text-sm text-cp-text-secondary">
             {{ t('host.waiting.subtitle') }}
           </p>
         </div>
         <NuxtLink
           :to="bigscreenUrl"
           target="_blank"
-          class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg"
-          style="border: 1.5px solid var(--cp-border); color: var(--cp-text-secondary);"
+          class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg border-[1.5px] border-cp-border text-cp-text-secondary"
         >
           {{ t('host.waiting.bigscreen') }}
         </NuxtLink>
@@ -25,40 +24,25 @@
         <!-- Left: Room info + Players -->
         <div class="flex flex-col gap-4">
           <!-- Room Code -->
-          <div
-            class="rounded-2xl p-6 bg-white"
-            style="border: 1px solid var(--cp-border);"
-          >
-            <p
-              class="text-xs font-semibold mb-2"
-              style="color: var(--cp-text-muted);"
-            >
+          <div class="rounded-2xl p-6 bg-white border border-cp-border">
+            <p class="text-xs font-semibold mb-2 text-cp-text-muted">
               {{ t('host.waiting.roomCode') }}
             </p>
             <div class="room-code">
               {{ code }}
             </div>
-            <p
-              class="text-xs mt-2"
-              style="color: var(--cp-text-muted);"
-            >
+            <p class="text-xs mt-2 text-cp-text-muted">
               {{ joinUrl }}
             </p>
           </div>
 
           <!-- Player List -->
-          <div
-            class="rounded-2xl p-6 bg-white flex-1"
-            style="border: 1px solid var(--cp-border);"
-          >
+          <div class="rounded-2xl p-6 bg-white flex-1 border border-cp-border">
             <div class="flex items-center justify-between mb-4">
               <p class="text-sm font-semibold">
                 {{ t('host.waiting.joinedPlayers') }}
               </p>
-              <span
-                class="text-lg font-bold"
-                style="color: var(--cp-primary);"
-              >{{ t('host.waiting.playerCount', { count: gameStore.playerCount }) }}</span>
+              <span class="text-lg font-bold text-cp-primary">{{ t('host.waiting.playerCount', { count: gameStore.playerCount }) }}</span>
             </div>
 
             <TransitionGroup
@@ -78,8 +62,7 @@
 
             <div
               v-if="gameStore.playerCount === 0"
-              class="text-center py-8"
-              style="color: var(--cp-text-muted); font-size: 13px;"
+              class="text-center py-8 text-sm text-cp-text-muted"
             >
               {{ t('host.waiting.noPlayers') }}
             </div>
@@ -107,14 +90,8 @@
 
         <!-- Right: QR Code -->
         <div class="flex flex-col items-center justify-start pt-2">
-          <div
-            class="rounded-2xl p-5 bg-white w-full flex flex-col items-center"
-            style="border: 1px solid var(--cp-border);"
-          >
-            <div
-              class="rounded-xl overflow-hidden mb-3"
-              style="background: var(--cp-secondary); padding: 12px;"
-            >
+          <div class="rounded-2xl p-5 bg-white w-full flex flex-col items-center border border-cp-border">
+            <div class="rounded-xl overflow-hidden mb-3 bg-cp-secondary p-3">
               <img
                 :src="qrUrl"
                 alt="QR Code"
@@ -126,10 +103,7 @@
             <p class="text-sm font-semibold mb-1">
               {{ t('host.waiting.scanToJoin') }}
             </p>
-            <p
-              class="text-xs"
-              style="color: var(--cp-text-muted);"
-            >
+            <p class="text-xs text-cp-text-muted">
               choicepie.app/join
             </p>
           </div>
@@ -142,38 +116,25 @@
       <div class="grid grid-cols-[1fr_280px] gap-6">
         <!-- Left: Current question status -->
         <div class="flex flex-col gap-4">
-          <div
-            class="rounded-2xl p-6 bg-white"
-            style="border: 1px solid var(--cp-border);"
-          >
+          <div class="rounded-2xl p-6 bg-white border border-cp-border">
             <div class="flex items-center justify-between mb-4">
-              <span
-                class="text-xs font-semibold"
-                style="color: var(--cp-text-muted);"
-              >
+              <span class="text-xs font-semibold text-cp-text-muted">
                 {{ t('host.playing.questionOf', { current: (gameStore.currentQuestion?.index ?? 0) + 1, total: gameStore.currentQuestion?.total }) }}
               </span>
               <span
                 class="text-2xl font-bold tabular-nums"
-                :style="`color: ${gameStore.isTimerUrgent ? 'var(--cp-danger)' : 'var(--cp-primary)'};`"
+                :class="gameStore.isTimerUrgent ? 'text-cp-danger' : 'text-cp-primary'"
               >
                 {{ gameStore.timeLeft }}s
               </span>
             </div>
 
             <!-- Timer bar -->
-            <div
-              class="rounded-full overflow-hidden mb-5"
-              style="height: 6px; background: var(--cp-surface-muted);"
-            >
+            <div class="h-1.5 rounded-full overflow-hidden mb-5 bg-cp-surface-muted">
               <div
-                class="h-full rounded-full transition-all"
-                :class="{ 'animate-pulse': gameStore.isTimerUrgent }"
-                :style="`
-                  width: ${gameStore.timerPercent}%;
-                  background: ${gameStore.isTimerUrgent ? 'var(--cp-danger)' : 'var(--cp-primary)'};
-                  transition: width 1s linear;
-                `"
+                class="h-full rounded-full transition-[width] duration-1000 ease-linear"
+                :class="[gameStore.isTimerUrgent ? 'bg-cp-danger animate-pulse' : 'bg-cp-primary']"
+                :style="{ width: `${gameStore.timerPercent}%` }"
               />
             </div>
 
@@ -185,51 +146,35 @@
               <div
                 v-for="(opt, i) in gameStore.currentQuestion?.options"
                 :key="i"
-                class="relative rounded-xl p-3 text-sm font-medium overflow-hidden"
-                style="background: var(--cp-surface-muted); border: 1.5px solid var(--cp-border);"
+                class="relative rounded-xl p-3 text-sm font-medium overflow-hidden bg-cp-surface-muted border-[1.5px] border-cp-border"
               >
                 <div
-                  class="absolute inset-y-0 left-0 transition-all duration-500"
-                  :style="`background: var(--cp-primary-light); width: ${optionVotePercent(i)}%;`"
+                  class="absolute inset-y-0 left-0 transition-all duration-500 bg-cp-primary-light"
+                  :style="{ width: `${optionVotePercent(i)}%` }"
                 />
                 <div class="relative flex items-center justify-between gap-2">
                   <span>
-                    <span
-                      class="font-bold mr-2"
-                      style="color: var(--cp-primary);"
-                    >{{ ['A', 'B', 'C', 'D'][i] }}</span>
+                    <span class="font-bold mr-2 text-cp-primary">{{ ['A', 'B', 'C', 'D'][i] }}</span>
                     {{ opt }}
                   </span>
-                  <span
-                    class="text-xs font-bold shrink-0"
-                    style="color: var(--cp-primary);"
-                  >{{ t('host.playing.voteCount', { count: gameStore.optionVoteCounts[i] ?? 0 }) }}</span>
+                  <span class="text-xs font-bold shrink-0 text-cp-primary">{{ t('host.playing.voteCount', { count: gameStore.optionVoteCounts[i] ?? 0 }) }}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Answer Progress -->
-          <div
-            class="rounded-2xl p-5 bg-white"
-            style="border: 1px solid var(--cp-border);"
-          >
+          <div class="rounded-2xl p-5 bg-white border border-cp-border">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-semibold">{{ t('host.playing.answerProgress') }}</span>
-              <span
-                class="font-bold"
-                style="color: var(--cp-primary);"
-              >
+              <span class="font-bold text-cp-primary">
                 {{ gameStore.answeredCount }} / {{ gameStore.totalCount }}
               </span>
             </div>
-            <div
-              class="rounded-full overflow-hidden mb-4"
-              style="height: 8px; background: var(--cp-surface-muted);"
-            >
+            <div class="h-2 rounded-full overflow-hidden mb-4 bg-cp-surface-muted">
               <div
-                class="h-full rounded-full transition-all duration-500"
-                :style="`width: ${progressPercent}%; background: var(--cp-primary);`"
+                class="h-full rounded-full transition-all duration-500 bg-cp-primary"
+                :style="{ width: `${progressPercent}%` }"
               />
             </div>
 
@@ -278,10 +223,7 @@
         </div>
 
         <!-- Right: Live Rankings -->
-        <div
-          class="rounded-2xl p-5 bg-white"
-          style="border: 1px solid var(--cp-border);"
-        >
+        <div class="rounded-2xl p-5 bg-white border border-cp-border">
           <p class="text-sm font-semibold mb-4">
             {{ t('host.playing.liveRank') }}
           </p>
@@ -291,18 +233,13 @@
             v-if="gameStore.phase === 'question'"
             class="flex flex-col items-center text-center py-6 gap-3"
           >
-            <div
-              class="text-4xl pie-spin"
-            >
+            <div class="text-4xl pie-spin">
               🥧
             </div>
-            <p
-              class="text-sm font-bold"
-              style="color: var(--cp-primary);"
-            >
+            <p class="text-sm font-bold text-cp-primary">
               {{ t('host.playing.waitingForAnswers') }}
             </p>
-            <p style="color: var(--cp-text-muted); font-size: 12px;">
+            <p class="text-xs text-cp-text-muted">
               {{ t('host.playing.answeredSoFar', { answered: gameStore.answeredCount, total: gameStore.totalCount }) }}
             </p>
             <div class="flex gap-1.5">
@@ -310,7 +247,7 @@
                 v-for="dot in 3"
                 :key="dot"
                 class="pie-dot"
-                :style="`animation-delay: ${(dot - 1) * 160}ms;`"
+                :style="{ animationDelay: `${(dot - 1) * 160}ms` }"
               />
             </div>
           </div>
@@ -326,20 +263,17 @@
               v-for="(entry, i) in gameStore.rankings.slice(0, 8)"
               :key="entry.nickname"
               class="flex items-center gap-3 p-2 rounded-xl"
-              :style="i < 3 ? 'background: var(--cp-surface-muted);' : ''"
+              :class="i < 3 ? 'bg-cp-surface-muted' : ''"
             >
               <span
                 class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                :style="i === 0 ? 'background: var(--cp-primary); color: white;'
-                  : i === 1 ? 'background: var(--cp-info); color: white;'
-                    : i === 2 ? 'background: var(--cp-warning); color: white;'
-                      : 'background: var(--cp-surface-muted); color: var(--cp-text-muted);'"
+                :class="i === 0 ? 'bg-cp-primary text-white'
+                  : i === 1 ? 'bg-cp-info text-white'
+                    : i === 2 ? 'bg-cp-warning text-white'
+                      : 'bg-cp-surface-muted text-cp-text-muted'"
               >{{ i + 1 }}</span>
               <span class="flex-1 text-sm font-medium truncate">{{ entry.nickname }}</span>
-              <span
-                class="text-sm font-bold tabular-nums"
-                style="color: var(--cp-primary);"
-              >
+              <span class="text-sm font-bold tabular-nums text-cp-primary">
                 {{ entry.score.toLocaleString() }}
               </span>
             </div>
@@ -354,7 +288,7 @@
         <h1 class="text-3xl font-bold mb-2">
           {{ t('host.ended.title') }}
         </h1>
-        <p style="color: var(--cp-text-secondary);">
+        <p class="text-cp-text-secondary">
           {{ t('host.ended.finalRank') }}
         </p>
       </div>
@@ -362,59 +296,43 @@
       <!-- Podium -->
       <div class="flex items-end justify-center gap-4 mb-8">
         <div
-          v-for="(entry, i) in [gameStore.rankings[1], gameStore.rankings[0], gameStore.rankings[2]].filter(Boolean)"
-          :key="entry?.nickname"
+          v-for="podium in podiumEntries"
+          :key="podium.entry?.nickname"
           class="flex flex-col items-center gap-2"
         >
           <div
             class="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-black text-white"
-            :style="[1, 0, 2][i] === 0 ? `background: var(--cp-primary); box-shadow: 0 0 24px rgba(248,147,29,0.5);`
-              : [1, 0, 2][i] === 1 ? `background: var(--cp-info);`
-                : `background: var(--cp-warning);`"
+            :class="[podium.meta.colorClass, podium.rank === 0 ? podium.meta.glowClass : '']"
           >
-            {{ [1, 0, 2][i] === 0 ? '🥇' : [1, 0, 2][i] === 1 ? '🥈' : '🥉' }}
+            {{ podium.meta.medal }}
           </div>
           <p class="font-bold text-sm">
-            {{ entry?.nickname }}
+            {{ podium.entry?.nickname }}
           </p>
-          <p
-            class="text-xs"
-            style="color: var(--cp-text-muted);"
-          >
-            {{ entry?.score.toLocaleString() }}
+          <p class="text-xs text-cp-text-muted">
+            {{ podium.entry?.score.toLocaleString() }}
           </p>
           <div
             class="rounded-t-xl w-24 flex items-end justify-center pb-2 text-white font-black text-lg"
-            :style="`
-              height: ${[1, 0, 2][i] === 0 ? '80px' : [1, 0, 2][i] === 1 ? '60px' : '40px'};
-              background: ${[1, 0, 2][i] === 0 ? 'var(--cp-primary)' : [1, 0, 2][i] === 1 ? 'var(--cp-info)' : 'var(--cp-warning)'};
-            `"
+            :class="podium.meta.colorClass"
+            :style="{ height: podium.meta.height }"
           >
-            {{ [2, 1, 3][[1, 0, 2][i] as number] }}
+            {{ podium.meta.place }}
           </div>
         </div>
       </div>
 
       <!-- Full list -->
-      <div
-        class="rounded-2xl bg-white overflow-hidden mb-6"
-        style="border: 1px solid var(--cp-border);"
-      >
+      <div class="rounded-2xl bg-white overflow-hidden mb-6 border border-cp-border">
         <div
           v-for="(entry, i) in gameStore.rankings"
           :key="entry.nickname"
           class="flex items-center gap-4 px-5 py-3"
-          :style="i < gameStore.rankings.length - 1 ? 'border-bottom: 1px solid var(--cp-border);' : ''"
+          :class="i < gameStore.rankings.length - 1 ? 'border-b border-cp-border' : ''"
         >
-          <span
-            class="w-8 text-center font-bold"
-            style="color: var(--cp-text-muted);"
-          >{{ i + 1 }}</span>
+          <span class="w-8 text-center font-bold text-cp-text-muted">{{ i + 1 }}</span>
           <span class="flex-1 font-medium">{{ entry.nickname }}</span>
-          <span
-            class="font-bold tabular-nums"
-            style="color: var(--cp-primary);"
-          >
+          <span class="font-bold tabular-nums text-cp-primary">
             {{ entry.score.toLocaleString() }}
           </span>
         </div>
@@ -436,7 +354,7 @@
         <p class="text-2xl font-bold">
           {{ t('host.rejoinFailed.title') }}
         </p>
-        <p style="color: var(--cp-text-secondary); font-size: 14px;">
+        <p class="text-sm text-cp-text-secondary">
           {{ t('host.rejoinFailed.desc') }}
         </p>
         <UButton
@@ -455,10 +373,9 @@
       <div class="flex flex-col items-center justify-center py-24 gap-3">
         <UIcon
           name="i-lucide-loader-2"
-          class="animate-spin text-4xl"
-          style="color: var(--cp-primary);"
+          class="animate-spin text-4xl text-cp-primary"
         />
-        <p style="color: var(--cp-text-secondary); font-size: 14px;">
+        <p class="text-sm text-cp-text-secondary">
           {{ t('host.reconnecting') }}
         </p>
       </div>
@@ -494,6 +411,19 @@ const optionVotePercent = (index: number) => {
   if (gameStore.answeredCount === 0) return 0
   return ((gameStore.optionVoteCounts[index] ?? 0) / gameStore.answeredCount) * 100
 }
+
+// 頒獎台名次視覺（依原始名次 0=金 1=銀 2=銅）
+const PODIUM_META = [
+  { medal: '🥇', place: 2, colorClass: 'bg-cp-primary', glowClass: 'rank-1', height: '80px' },
+  { medal: '🥈', place: 1, colorClass: 'bg-cp-info', glowClass: 'rank-2', height: '60px' },
+  { medal: '🥉', place: 3, colorClass: 'bg-cp-warning', glowClass: 'rank-3', height: '40px' }
+]
+// 版面呈現順序為 銀/金/銅（原始名次 1/0/2）
+const podiumEntries = computed(() =>
+  [1, 0, 2]
+    .map(rank => ({ rank, entry: gameStore.rankings[rank], meta: PODIUM_META[rank]! }))
+    .filter(p => p.entry)
+)
 
 const rejoinFailed = ref(false)
 

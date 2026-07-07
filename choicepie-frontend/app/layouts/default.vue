@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="min-h-screen"
-    style="background: var(--cp-bg);"
-  >
+  <div class="min-h-screen bg-cp-bg">
     <!-- Top Navbar -->
 
     <!-- Page Content -->

@@ -11,10 +11,7 @@
     </NuxtLink>
 
     <!-- ── Hero ── -->
-    <div
-      class="rounded-t-2xl px-10 pt-10 pb-8 flex gap-8 items-end flex-wrap"
-      style="background: linear-gradient(180deg, #1a1a2e 0%, #16213e 60%, #2d3748 100%);"
-    >
+    <div class="rounded-t-2xl px-10 pt-10 pb-8 flex gap-8 items-end flex-wrap bg-[linear-gradient(180deg,#1a1a2e_0%,#16213e_60%,#2d3748_100%)]">
       <div
         class="w-48 h-48 rounded-xl flex items-center justify-center text-7xl shrink-0 shadow-[0_16px_48px_rgba(0,0,0,0.4)]"
         :style="quiz.coverGradient"
