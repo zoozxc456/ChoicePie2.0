@@ -1,0 +1,7 @@
+﻿services:
+  choicepie.backend.webapi:
+    image: choicepie.backend.webapi
+    build:
+      context: .
+      dockerfile: ChoicePie.Backend.WebApi/Dockerfile
+
