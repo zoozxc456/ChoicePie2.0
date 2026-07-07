@@ -7,8 +7,7 @@
       v-for="(feature, i) in features"
       :key="feature.title"
       class="feature-card sticky top-0 flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-16 lg:px-16"
-      :class="feature.bgClass"
-      :style="i < features.length - 1 ? `z-index: ${i + 1};` : `z-index: ${features.length};`"
+      :class="[feature.bgClass, zIndexClasses[i]]"
     >
       <div class="mx-auto flex w-full max-w-7xl flex-col items-center gap-14 lg:flex-row lg:justify-between lg:gap-10">
         <!-- 文字 -->
@@ -164,6 +163,9 @@ const rankRows = [
   { rank: 2, name: 'Leo', score: 280, badgeClass: 'bg-info-500' },
   { rank: 3, name: 'Ivy', score: 240, badgeClass: 'bg-warning-500' }
 ]
+
+// 疊層順序：後面的卡片要蓋在前面卡片上方
+const zIndexClasses = ['z-10', 'z-20', 'z-30']
 
 const wrapRef = ref<HTMLElement | null>(null)
 let ctx: gsap.Context | null = null

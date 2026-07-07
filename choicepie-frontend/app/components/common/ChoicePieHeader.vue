@@ -1,14 +1,13 @@
 <template>
   <header
     class="fixed top-0 left-0 right-0 z-50 flex items-center gap-3 px-6 h-16"
-    :class="transparent ? 'bg-transparent' : 'bg-white'"
-    :style="transparent ? '' : 'border-bottom: 1px solid var(--cp-border);'"
+    :class="transparent ? 'bg-transparent' : 'bg-white border-b border-cp-border'"
   >
     <!-- Logo -->
     <NuxtLink
       to="/"
       class="flex items-center gap-2 mr-auto text-lg font-bold"
-      :style="transparent ? 'color: white;' : 'color: var(--cp-primary);'"
+      :class="transparent ? 'text-white' : 'text-cp-primary'"
     >
       🥧 ChoicePie
     </NuxtLink>
@@ -29,42 +28,25 @@
     >
       <button
         class="flex flex-col items-center justify-center w-9 h-9 rounded-full gap-1"
-        :class="transparent ? 'border-0 bg-white' : 'border'"
-        :style="transparent ? '' : 'border-color: var(--cp-border);'"
+        :class="transparent ? 'border-0 bg-white' : 'border border-cp-border'"
         @click="isMenuOpen = !isMenuOpen"
       >
-        <span
-          class="block w-4 h-px rounded"
-          style="background: var(--cp-text-secondary);"
-        />
-        <span
-          class="block w-4 h-px rounded"
-          style="background: var(--cp-text-secondary);"
-        />
-        <span
-          class="block w-4 h-px rounded"
-          style="background: var(--cp-text-secondary);"
-        />
+        <span class="block w-4 h-px rounded bg-cp-text-secondary" />
+        <span class="block w-4 h-px rounded bg-cp-text-secondary" />
+        <span class="block w-4 h-px rounded bg-cp-text-secondary" />
       </button>
 
       <!-- Dropdown -->
       <Transition name="dropdown">
         <div
           v-if="isMenuOpen"
-          class="absolute right-0 top-11 rounded-xl py-1.5 min-w-44 z-50"
-          style="background: white; border: 1px solid var(--cp-border); box-shadow: var(--cp-shadow-lg);"
+          class="absolute right-0 top-11 rounded-xl py-1.5 min-w-44 z-50 bg-white border border-cp-border shadow-cp-lg"
         >
           <template v-if="auth.isLoggedIn">
-            <div
-              class="px-3 py-2 text-xs font-semibold"
-              style="color: var(--cp-text-muted);"
-            >
+            <div class="px-3 py-2 text-xs font-semibold text-cp-text-muted">
               {{ auth.user?.name }}
             </div>
-            <hr
-              style="border-color: var(--cp-border);"
-              class="my-1"
-            >
+            <hr class="my-1 border-cp-border">
             <NuxtLink
               to="/library/new"
               class="dropdown-item"
@@ -75,13 +57,9 @@
               class="dropdown-item"
               @click="closeMenu"
             >📊 {{ t('nav.history') }}</NuxtLink>
-            <hr
-              style="border-color: var(--cp-border);"
-              class="my-1"
-            >
+            <hr class="my-1 border-cp-border">
             <button
-              class="dropdown-item w-full text-left"
-              style="color: var(--cp-danger);"
+              class="dropdown-item w-full text-left text-cp-danger"
               @click="auth.logout"
             >
               {{ t('nav.logout') }}
@@ -99,10 +77,7 @@
               @click="closeMenu"
             >✨ {{ t('nav.createGame') }}</NuxtLink>
           </template>
-          <hr
-            style="border-color: var(--cp-border);"
-            class="my-1"
-          >
+          <hr class="my-1 border-cp-border">
           <NuxtLink
             to="/how-to-use"
             class="dropdown-item"

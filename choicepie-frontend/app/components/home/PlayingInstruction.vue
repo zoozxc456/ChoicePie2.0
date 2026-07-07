@@ -32,7 +32,7 @@
           v-for="(step, i) in steps"
           :key="step.num"
           class="reveal-step flex flex-col items-center gap-3 text-center"
-          :style="`animation-delay: ${i * 120}ms;`"
+          :style="{ animationDelay: `${i * 120}ms` }"
         >
           <span class="relative flex h-12 w-12 items-center justify-center rounded-full bg-primary-500 font-extrabold text-white shadow-[0_8px_20px_rgba(248,147,29,0.35)]">
             {{ step.num }}

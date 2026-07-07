@@ -8,23 +8,14 @@
       <h1 class="text-4xl font-black mb-4">
         {{ t('about.hero.title') }}
       </h1>
-      <p
-        class="text-lg leading-relaxed"
-        style="color: var(--cp-text-secondary); max-width: 520px; margin: 0 auto;"
-      >
+      <p class="text-lg leading-relaxed text-cp-text-secondary max-w-130 mx-auto">
         {{ t('about.hero.desc') }}
       </p>
     </div>
 
     <!-- Mission -->
-    <div
-      class="rounded-2xl p-8 mb-8 text-center"
-      style="background: linear-gradient(135deg, #1a1a2e, #2d3748); color: white;"
-    >
-      <p
-        class="text-xs font-bold tracking-wider mb-3"
-        style="color: rgba(255,255,255,0.5);"
-      >
+    <div class="rounded-2xl p-8 mb-8 text-center bg-[linear-gradient(135deg,#1a1a2e,#2d3748)] text-white">
+      <p class="text-xs font-bold tracking-wider mb-3 text-white/50">
         {{ t('about.mission.label') }}
       </p>
       <p class="text-2xl font-bold leading-relaxed">
@@ -37,10 +28,7 @@
       <h2 class="text-xl font-bold mb-5">
         {{ t('about.story.title') }}
       </h2>
-      <div
-        class="rounded-2xl p-6 bg-white leading-relaxed text-sm"
-        style="border: 1px solid var(--cp-border); color: var(--cp-text-secondary); line-height: 2;"
-      >
+      <div class="rounded-2xl p-6 bg-white text-sm border border-cp-border text-cp-text-secondary leading-loose">
         <p class="mb-4">
           {{ t('about.story.p1') }}
         </p>
@@ -65,8 +53,7 @@
         <div
           v-for="value in values"
           :key="value.key"
-          class="rounded-2xl p-5 bg-white"
-          style="border: 1px solid var(--cp-border);"
+          class="rounded-2xl p-5 bg-white border border-cp-border"
         >
           <div class="text-3xl mb-3">
             {{ value.icon }}
@@ -74,10 +61,7 @@
           <h3 class="font-bold mb-2">
             {{ t(`about.values.${value.key}.title`) }}
           </h3>
-          <p
-            class="text-sm leading-relaxed"
-            style="color: var(--cp-text-secondary);"
-          >
+          <p class="text-sm leading-relaxed text-cp-text-secondary">
             {{ t(`about.values.${value.key}.desc`) }}
           </p>
         </div>
@@ -85,10 +69,7 @@
     </div>
 
     <!-- Stats -->
-    <div
-      class="rounded-2xl p-8 mb-12"
-      style="background: var(--cp-primary-light); border: 1px solid var(--cp-primary-border);"
-    >
+    <div class="rounded-2xl p-8 mb-12 bg-cp-primary-light border border-cp-primary-border">
       <h2 class="text-xl font-bold mb-6 text-center">
         {{ t('about.stats.title') }}
       </h2>
@@ -97,16 +78,10 @@
           v-for="stat in stats"
           :key="stat.key"
         >
-          <p
-            class="text-3xl font-black mb-1"
-            style="color: var(--cp-primary);"
-          >
+          <p class="text-3xl font-black mb-1 text-cp-primary">
             {{ t(`about.stats.${stat.key}.value`) }}
           </p>
-          <p
-            class="text-sm"
-            style="color: var(--cp-text-secondary);"
-          >
+          <p class="text-sm text-cp-text-secondary">
             {{ t(`about.stats.${stat.key}.label`) }}
           </p>
         </div>
@@ -118,10 +93,7 @@
       <h2 class="text-2xl font-bold mb-3">
         {{ t('about.cta.title') }}
       </h2>
-      <p
-        class="mb-6"
-        style="color: var(--cp-text-secondary);"
-      >
+      <p class="mb-6 text-cp-text-secondary">
         {{ t('about.cta.subtitle') }}
       </p>
       <div class="flex justify-center gap-3">

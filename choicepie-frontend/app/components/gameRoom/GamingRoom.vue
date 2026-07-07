@@ -21,7 +21,7 @@
     <div
       class="h-full rounded-full transition-[width] duration-1000 ease-linear"
       :class="gameStore.isTimerUrgent ? 'bg-error-500 animate-pulse' : 'bg-primary-500'"
-      :style="`width: ${gameStore.timerPercent}%;`"
+      :style="{ width: `${gameStore.timerPercent}%` }"
     />
   </div>
 

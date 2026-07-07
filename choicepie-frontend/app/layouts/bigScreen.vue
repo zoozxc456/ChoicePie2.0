@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="min-h-screen"
-    style="background: var(--cp-secondary); color: white;"
-  >
+  <div class="min-h-screen bg-cp-secondary text-white">
     <slot />
   </div>
 </template>

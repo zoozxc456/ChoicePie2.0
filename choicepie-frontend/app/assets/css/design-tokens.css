@@ -119,6 +119,42 @@
   --font-sans:
     'Inter', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, -apple-system,
     sans-serif;
+
+  /* == cp-* 語意色 Tailwind utility，取代 inline style（例如 text-cp-primary、bg-cp-surface、border-cp-border） == */
+  --color-cp-primary: #f8931d;
+  --color-cp-primary-hover: #e07f12;
+  --color-cp-primary-light: #fff3e0;
+  --color-cp-primary-border: #fdd8a8;
+
+  --color-cp-secondary: #2d3748;
+  --color-cp-secondary-hover: #1a202c;
+
+  --color-cp-success: #4caf50;
+  --color-cp-success-bg: #e8f5e9;
+  --color-cp-success-border: #a5d6a7;
+
+  --color-cp-danger: #e53e3e;
+  --color-cp-danger-bg: #ffebee;
+  --color-cp-danger-border: #ef9a9a;
+
+  --color-cp-warning: #dd6b20;
+  --color-cp-warning-bg: #fff3e0;
+
+  --color-cp-info: #3182ce;
+  --color-cp-info-bg: #ebf8ff;
+
+  --color-cp-disabled: #e2e8f0;
+  --color-cp-disabled-text: #a0aec0;
+
+  --color-cp-bg: #fbfaf7;
+  --color-cp-surface: #ffffff;
+  --color-cp-surface-muted: #f5f3ef;
+  --color-cp-border: #e8e5df;
+
+  --color-cp-text-primary: #1a1a1a;
+  --color-cp-text-secondary: #626262;
+  --color-cp-text-muted: #a0aec0;
+  --color-cp-text-inverse: #ffffff;
 }
 
 :root {

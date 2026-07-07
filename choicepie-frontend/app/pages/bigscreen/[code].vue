@@ -3,21 +3,12 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-3">
-        <span
-          class="text-2xl font-bold"
-          style="color: var(--cp-primary);"
-        >🥧 ChoicePie</span>
-        <span
-          class="px-3 py-1 rounded-full text-sm font-bold tracking-widest"
-          style="background: rgba(255,255,255,0.1);"
-        >
+        <span class="text-2xl font-bold text-cp-primary">🥧 ChoicePie</span>
+        <span class="px-3 py-1 rounded-full text-sm font-bold tracking-widest bg-white/10">
           {{ code }}
         </span>
       </div>
-      <div
-        class="flex items-center gap-2 text-sm"
-        style="color: rgba(255,255,255,0.5);"
-      >
+      <div class="flex items-center gap-2 text-sm text-white/50">
         <span>{{ t('common.players', { count: gameStore.playerCount }) }}</span>
       </div>
     </div>
@@ -26,16 +17,10 @@
     <template v-if="gameStore.phase === 'waiting' || gameStore.phase === 'idle'">
       <div class="flex-1 flex flex-col items-center justify-center text-center gap-8">
         <div>
-          <p
-            class="text-xl mb-4"
-            style="color: rgba(255,255,255,0.6);"
-          >
+          <p class="text-xl mb-4 text-white/60">
             {{ t('bigscreen.waiting.scanQR') }}
           </p>
-          <div
-            class="rounded-2xl p-4 inline-block"
-            style="background: white;"
-          >
+          <div class="rounded-2xl p-4 inline-block bg-white">
             <img
               :src="`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(`${origin}/join?code=${code}`)}&bgcolor=ffffff&color=2d3748`"
               alt="QR Code"
@@ -45,29 +30,17 @@
           </div>
         </div>
         <div>
-          <p
-            class="text-lg mb-2"
-            style="color: rgba(255,255,255,0.5);"
-          >
+          <p class="text-lg mb-2 text-white/50">
             {{ t('bigscreen.waiting.orEnterCode') }}
           </p>
-          <p
-            class="text-8xl font-black tracking-widest"
-            style="color: var(--cp-primary); letter-spacing: 0.2em;"
-          >
+          <p class="text-8xl font-black tracking-[0.2em] text-cp-primary">
             {{ code }}
           </p>
-          <p
-            class="text-lg mt-2"
-            style="color: rgba(255,255,255,0.4);"
-          >
+          <p class="text-lg mt-2 text-white/40">
             {{ t('bigscreen.waiting.joinUrl') }}
           </p>
         </div>
-        <p
-          class="text-2xl font-bold"
-          style="color: rgba(255,255,255,0.7);"
-        >
+        <p class="text-2xl font-bold text-white/70">
           {{ t('bigscreen.waiting.playerCount', { count: gameStore.playerCount }) }}
         </p>
       </div>
@@ -77,38 +50,27 @@
     <template v-else-if="gameStore.phase === 'question' || gameStore.phase === 'result'">
       <!-- Question header -->
       <div class="flex items-center justify-between mb-6">
-        <span
-          class="text-lg font-semibold"
-          style="color: rgba(255,255,255,0.5);"
-        >
+        <span class="text-lg font-semibold text-white/50">
           {{ t('bigscreen.playing.questionOf', { current: (gameStore.currentQuestion?.index ?? 0) + 1, total: gameStore.currentQuestion?.total }) }}
         </span>
 
         <!-- Timer -->
         <div
           class="w-20 h-20 rounded-full flex items-center justify-center text-4xl font-black border-4 tabular-nums"
-          :style="`
-            border-color: ${gameStore.isTimerUrgent ? 'var(--cp-danger)' : 'var(--cp-primary)'};
-            color: ${gameStore.isTimerUrgent ? 'var(--cp-danger)' : 'var(--cp-primary)'};
-            ${gameStore.isTimerUrgent ? 'animation: pulse 0.5s ease-in-out infinite alternate;' : ''}
-          `"
+          :class="gameStore.isTimerUrgent
+            ? 'border-cp-danger text-cp-danger animate-[pulse_0.5s_ease-in-out_infinite_alternate]'
+            : 'border-cp-primary text-cp-primary'"
         >
           {{ gameStore.timeLeft }}
         </div>
       </div>
 
       <!-- Timer bar -->
-      <div
-        class="rounded-full overflow-hidden mb-8"
-        style="height: 8px; background: rgba(255,255,255,0.1);"
-      >
+      <div class="rounded-full overflow-hidden mb-8 h-2 bg-white/10">
         <div
-          class="h-full rounded-full"
-          :style="`
-            width: ${gameStore.timerPercent}%;
-            background: ${gameStore.isTimerUrgent ? 'var(--cp-danger)' : 'var(--cp-primary)'};
-            transition: width 1s linear;
-          `"
+          class="h-full rounded-full transition-[width] duration-1000 ease-linear"
+          :class="gameStore.isTimerUrgent ? 'bg-cp-danger' : 'bg-cp-primary'"
+          :style="{ width: `${gameStore.timerPercent}%` }"
         />
       </div>
 
@@ -122,16 +84,12 @@
         <div
           v-for="(opt, i) in gameStore.currentQuestion?.options"
           :key="i"
-          class="rounded-2xl p-5 flex items-center gap-4 transition-all duration-500"
-          :style="`
-            border: 2px solid ${optionBorderColor(i)};
-            background: ${optionBackground(i)};
-            ${gameStore.correctAnswerIndex === i ? 'transform: scale(1.02);' : ''}
-          `"
+          class="rounded-2xl p-5 flex items-center gap-4 border-2 transition-all duration-500"
+          :class="[optionBorderClass(i), optionBackgroundClass(i), gameStore.correctAnswerIndex === i ? 'scale-[1.02]' : '']"
         >
           <span
-            class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black shrink-0"
-            :style="`background: ${optionColors[i]}; color: white;`"
+            class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black shrink-0 text-white"
+            :class="optionColorClasses[i]"
           >
             {{ optionLetters[i] }}
           </span>
@@ -145,22 +103,13 @@
 
       <!-- Answer progress -->
       <div class="flex items-center gap-4">
-        <span
-          class="text-sm"
-          style="color: rgba(255,255,255,0.5);"
-        >
+        <span class="text-sm text-white/50">
           {{ t('bigscreen.playing.answeredOf', { answered: gameStore.answeredCount, total: gameStore.totalCount }) }}
         </span>
-        <div
-          class="flex-1 rounded-full overflow-hidden"
-          style="height: 6px; background: rgba(255,255,255,0.1);"
-        >
+        <div class="flex-1 rounded-full overflow-hidden h-1.5 bg-white/10">
           <div
-            class="h-full rounded-full transition-all duration-500"
-            :style="`
-              width: ${gameStore.totalCount > 0 ? (gameStore.answeredCount / gameStore.totalCount) * 100 : 0}%;
-              background: var(--cp-primary);
-            `"
+            class="h-full rounded-full transition-all duration-500 bg-cp-primary"
+            :style="{ width: `${gameStore.totalCount > 0 ? (gameStore.answeredCount / gameStore.totalCount) * 100 : 0}%` }"
           />
         </div>
       </div>
@@ -169,40 +118,32 @@
     <!-- ─── ENDED ─── -->
     <template v-else-if="gameStore.phase === 'ended'">
       <div class="flex-1 flex flex-col items-center justify-center">
-        <p
-          class="text-2xl font-bold mb-10"
-          style="color: rgba(255,255,255,0.6);"
-        >
+        <p class="text-2xl font-bold mb-10 text-white/60">
           {{ t('bigscreen.ended.title') }}
         </p>
 
         <!-- Podium -->
         <div class="flex items-end justify-center gap-6 mb-12">
           <div
-            v-for="(entry, i) in [gameStore.rankings[1], gameStore.rankings[0], gameStore.rankings[2]].filter(Boolean)"
-            :key="entry?.nickname"
+            v-for="podium in podiumEntries"
+            :key="podium.entry?.nickname"
             class="flex flex-col items-center gap-3"
           >
             <p class="text-2xl">
-              {{ [1, 0, 2][i] === 0 ? '🥇' : [1, 0, 2][i] === 1 ? '🥈' : '🥉' }}
+              {{ podium.meta.medal }}
             </p>
             <p class="text-xl font-bold text-white">
-              {{ entry?.nickname }}
+              {{ podium.entry?.nickname }}
             </p>
-            <p
-              style="color: var(--cp-primary);"
-              class="font-bold"
-            >
-              {{ entry?.score.toLocaleString() }}
+            <p class="font-bold text-cp-primary">
+              {{ podium.entry?.score.toLocaleString() }}
             </p>
             <div
               class="w-36 rounded-t-2xl flex items-start justify-center pt-3 text-white text-4xl font-black"
-              :style="`
-                height: ${[1, 0, 2][i] === 0 ? '140px' : [1, 0, 2][i] === 1 ? '100px' : '70px'};
-                background: ${[1, 0, 2][i] === 0 ? 'var(--cp-primary)' : [1, 0, 2][i] === 1 ? 'var(--cp-info)' : 'var(--cp-warning)'};
-              `"
+              :class="podium.meta.colorClass"
+              :style="{ height: podium.meta.height }"
             >
-              {{ [2, 1, 3][[1, 0, 2][i] as number] }}
+              {{ podium.meta.place }}
             </div>
           </div>
         </div>
@@ -214,19 +155,13 @@
             :key="entry.nickname"
             class="text-center"
           >
-            <p
-              class="text-sm"
-              style="color: rgba(255,255,255,0.4);"
-            >
+            <p class="text-sm text-white/40">
               第 {{ i + 4 }} 名
             </p>
             <p class="font-bold text-white">
               {{ entry.nickname }}
             </p>
-            <p
-              class="text-sm"
-              style="color: var(--cp-primary);"
-            >
+            <p class="text-sm text-cp-primary">
               {{ entry.score.toLocaleString() }}
             </p>
           </div>
@@ -248,22 +183,35 @@ const gameStore = useGameStore()
 const gameRoom = useGameRoom()
 
 const optionLetters = ['A', 'B', 'C', 'D']
-const optionColors = ['#e53e3e', '#3182ce', '#f8931d', '#4caf50']
-const optionBg = ['rgba(229,62,62,0.15)', 'rgba(49,130,206,0.15)', 'rgba(248,147,29,0.15)', 'rgba(76,175,80,0.15)']
+const optionColorClasses = ['bg-cp-danger', 'bg-cp-info', 'bg-cp-primary', 'bg-cp-success']
+const optionBorderClasses = ['border-cp-danger/40', 'border-cp-info/40', 'border-cp-primary/40', 'border-cp-success/40']
+const optionBgClasses = ['bg-cp-danger/15', 'bg-cp-info/15', 'bg-cp-primary/15', 'bg-cp-success/15']
 
-const optionBorderColor = (index: number): string => {
+const optionBorderClass = (index: number): string => {
   const correct = gameStore.correctAnswerIndex
-  if (correct === null) return (optionColors[index] ?? '#ffffff') + '60'
-  if (index === correct) return '#4caf50'
-  return 'rgba(255,255,255,0.1)'
+  if (correct === null) return optionBorderClasses[index] ?? 'border-white/20'
+  if (index === correct) return 'border-cp-success'
+  return 'border-white/10'
 }
 
-const optionBackground = (index: number): string => {
+const optionBackgroundClass = (index: number): string => {
   const correct = gameStore.correctAnswerIndex
-  if (correct === null) return optionBg[index] ?? 'rgba(255,255,255,0.1)'
-  if (index === correct) return 'rgba(76,175,80,0.25)'
-  return 'rgba(255,255,255,0.03)'
+  if (correct === null) return optionBgClasses[index] ?? 'bg-white/10'
+  if (index === correct) return 'bg-cp-success/25'
+  return 'bg-white/[0.03]'
 }
+
+// 頒獎台名次視覺（依原始名次 0=金 1=銀 2=銅），版面呈現順序為 銀/金/銅
+const PODIUM_META = [
+  { medal: '🥇', place: 2, colorClass: 'bg-cp-primary', height: '140px' },
+  { medal: '🥈', place: 1, colorClass: 'bg-cp-info', height: '100px' },
+  { medal: '🥉', place: 3, colorClass: 'bg-cp-warning', height: '70px' }
+]
+const podiumEntries = computed(() =>
+  [1, 0, 2]
+    .map(rank => ({ rank, entry: gameStore.rankings[rank], meta: PODIUM_META[rank]! }))
+    .filter(p => p.entry)
+)
 
 onMounted(async () => {
   await gameRoom.connect()
