@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'default' })
+definePageMeta({ layout: 'content' })
 
 const { t } = useI18n()
 

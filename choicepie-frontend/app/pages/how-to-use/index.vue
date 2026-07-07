@@ -159,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'default' })
+definePageMeta({ layout: 'content' })
 
 const { t, tm, rt } = useI18n()
 

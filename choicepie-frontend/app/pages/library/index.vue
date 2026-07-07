@@ -105,7 +105,7 @@ import QuizCard from '~/components/library/QuizCard.vue'
 import { useQuizStore } from '~/stores/quiz'
 import { mockQuizzes } from '~/mocks/quiz'
 
-definePageMeta({ layout: 'default' })
+definePageMeta({ layout: 'content' })
 
 const { t } = useI18n()
 const quizStore = useQuizStore()
