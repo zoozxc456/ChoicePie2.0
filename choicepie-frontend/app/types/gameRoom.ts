@@ -1,3 +1,5 @@
+import type { RankEntry } from './other'
+
 export interface Player {
   connectionId: string
   nickname: string
@@ -35,6 +37,16 @@ export interface HostedGameSummary {
   topPlayerName: string
   topPlayerScore: number
   playedAt: string
+  rankings: RankEntry[]
+}
+
+/** 玩家答錯的一道題目，供賽後複習使用 */
+export interface WrongAnswerReview {
+  questionText: string
+  options: string[]
+  myAnswerIndex: number
+  correctAnswerIndex: number
+  explanation: string
 }
 
 /** 使用者過去以玩家身分參加過的一場遊戲摘要 */
@@ -48,4 +60,6 @@ export interface PlayedGameSummary {
   myRank: number
   myScore: number
   playedAt: string
+  rankings: RankEntry[]
+  wrongAnswers: WrongAnswerReview[]
 }

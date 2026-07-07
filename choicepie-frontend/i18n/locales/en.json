@@ -191,6 +191,32 @@
         "myRank": "#{rank}",
         "myScore": "{score} pts"
       }
+    },
+    "detail": {
+      "back": "Back to History",
+      "notFound": "We couldn't find that game",
+      "hostBadge": "🎤 Hosted by you",
+      "playerBadge": "🎮 Played by you",
+      "podiumTitle": "🏆 Podium",
+      "fullRanking": "Full Ranking",
+      "you": " (You)",
+      "meta": {
+        "players": "{count} players",
+        "questions": "{count} questions",
+        "playedAt": "Played on {date}"
+      },
+      "review": {
+        "title": "📝 Review Missed Questions",
+        "subtitle": "{count} missed — let's see the right answers",
+        "empty": "🎉 Perfect score! Nothing to review here",
+        "yourAnswer": "Your answer",
+        "correctAnswer": "Correct answer",
+        "explanation": "Explanation"
+      },
+      "hostNote": {
+        "title": "More host analytics coming soon",
+        "desc": "Accuracy breakdowns and average answer time per question are on the way"
+      }
     }
   },
   "libraryDetail": {

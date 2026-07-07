@@ -56,9 +56,10 @@
         v-else
         class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
-        <div
+        <NuxtLink
           v-for="game in hostedGames"
           :key="game.id"
+          :to="`/history/${game.id}`"
           class="history-card bg-white rounded-2xl border border-cp-border overflow-hidden flex gap-4 p-4"
         >
           <div
@@ -82,7 +83,7 @@
               {{ t('history.host.card.topPlayer', { name: game.topPlayerName, score: game.topPlayerScore }) }}
             </p>
           </div>
-        </div>
+        </NuxtLink>
       </div>
     </template>
 
@@ -116,9 +117,10 @@
         v-else
         class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
-        <div
+        <NuxtLink
           v-for="game in playedGames"
           :key="game.id"
+          :to="`/history/${game.id}`"
           class="history-card relative bg-white rounded-2xl border border-cp-border overflow-hidden flex gap-4 p-4"
         >
           <span
@@ -148,7 +150,7 @@
               {{ t('history.player.card.myRank', { rank: game.myRank }) }} · {{ t('history.player.card.myScore', { score: game.myScore }) }}
             </p>
           </div>
-        </div>
+        </NuxtLink>
       </div>
     </template>
   </div>
