@@ -1,4 +1,7 @@
 using ChoicePie.Backend.Application.Identity.Queries;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
@@ -11,6 +14,7 @@ namespace ChoicePie.Backend.Application.Tests.Identity;
 public class GetCurrentMemberQueryHandlerTests
 {
     private IMemberRepository _memberRepository = null!;
+    private IAuthAccountRepository _authAccountRepository = null!;
     private ICurrentUserService _currentUserService = null!;
     private GetCurrentMemberQueryHandler _sut = null!;
 
@@ -18,16 +22,20 @@ public class GetCurrentMemberQueryHandlerTests
     public void SetUp()
     {
         _memberRepository = Substitute.For<IMemberRepository>();
+        _authAccountRepository = Substitute.For<IAuthAccountRepository>();
         _currentUserService = Substitute.For<ICurrentUserService>();
-        _sut = new GetCurrentMemberQueryHandler(_memberRepository, _currentUserService);
+        _sut = new GetCurrentMemberQueryHandler(_memberRepository, _authAccountRepository, _currentUserService);
     }
 
     [Test]
     public async Task Handle_GivenAuthenticatedMemberWithMatchingRecord_WhenCalled_ThenReturnsMemberDto()
     {
-        var member = Member.Register(Email.Create("host@example.com"), "Host Name", "hashed-password");
+        var member = Member.Create("Host Name");
+        var authAccount = AuthAccount.Register(Email.Create("host@example.com"), "hashed-password", member.Id);
         _currentUserService.UserId.Returns(member.Id);
         _memberRepository.GetByIdAsync(member.Id, Arg.Any<CancellationToken>()).Returns(member);
+        _authAccountRepository.FirstOrDefaultAsync(Arg.Any<AuthAccountByMemberIdSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(authAccount);
 
         var result = await _sut.Handle(new GetCurrentMemberQuery(), CancellationToken.None);
 
@@ -50,5 +58,17 @@ public class GetCurrentMemberQueryHandlerTests
         _memberRepository.GetByIdAsync(memberId, Arg.Any<CancellationToken>()).Returns((Member?)null);
 
         Assert.ThrowsAsync<MemberNotFoundException>(() => _sut.Handle(new GetCurrentMemberQuery(), CancellationToken.None));
+    }
+
+    [Test]
+    public void Handle_GivenMemberWithNoMatchingAuthAccount_WhenCalled_ThenThrowsAuthAccountNotFoundException()
+    {
+        var member = Member.Create("Host Name");
+        _currentUserService.UserId.Returns(member.Id);
+        _memberRepository.GetByIdAsync(member.Id, Arg.Any<CancellationToken>()).Returns(member);
+        _authAccountRepository.FirstOrDefaultAsync(Arg.Any<AuthAccountByMemberIdSpecification>(), Arg.Any<CancellationToken>())
+            .Returns((AuthAccount?)null);
+
+        Assert.ThrowsAsync<AuthAccountNotFoundException>(() => _sut.Handle(new GetCurrentMemberQuery(), CancellationToken.None));
     }
 }
