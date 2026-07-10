@@ -1,4 +1,4 @@
-namespace ChoicePie.Backend.Application.Identity.Contracts;
+namespace ChoicePie.Backend.Shared.Application.Interfaces;
 
 public interface IPasswordHasher
 {
