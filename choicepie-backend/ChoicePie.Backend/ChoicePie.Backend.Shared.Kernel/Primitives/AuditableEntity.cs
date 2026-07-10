@@ -13,7 +13,7 @@ public abstract class AuditableEntity<TId> : Entity<TId>,
     public DateTime? DeletedAt { get; private set; }
     public Guid? DeleterId { get; private set; }
 
-    [NotMapped] public bool IsDeleted => !DeletedAt.HasValue;
+    [NotMapped] public bool IsDeleted => DeletedAt.HasValue;
 
     public override bool Equals(object? obj)
     {
