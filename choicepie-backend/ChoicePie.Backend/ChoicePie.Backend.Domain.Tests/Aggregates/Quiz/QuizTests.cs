@@ -1,7 +1,7 @@
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Entities;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Events;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
-using Difficulty = ChoicePie.Backend.Domain.Aggregates.Quiz.Difficulty;
+using Difficulty = ChoicePie.Backend.Domain.Aggregates.Quiz.Enums.Difficulty;
 using QuizAggregate = ChoicePie.Backend.Domain.Aggregates.Quiz.Quiz;
 
 namespace ChoicePie.Backend.Domain.Tests.Aggregates.Quiz;

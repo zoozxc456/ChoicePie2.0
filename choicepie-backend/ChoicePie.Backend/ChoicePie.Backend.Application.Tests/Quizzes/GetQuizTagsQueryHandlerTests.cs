@@ -1,5 +1,6 @@
 using ChoicePie.Backend.Application.Quizzes.Queries;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
+using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using NSubstitute;
 
