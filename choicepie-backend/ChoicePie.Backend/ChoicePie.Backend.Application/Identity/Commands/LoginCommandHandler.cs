@@ -5,6 +5,7 @@ using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
+using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using MediatR;
 

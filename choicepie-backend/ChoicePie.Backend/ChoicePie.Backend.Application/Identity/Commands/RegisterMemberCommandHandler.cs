@@ -1,9 +1,9 @@
-using ChoicePie.Backend.Application.Identity.Contracts;
 using ChoicePie.Backend.Application.Identity.Dtos;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.Member;
+using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using MediatR;
