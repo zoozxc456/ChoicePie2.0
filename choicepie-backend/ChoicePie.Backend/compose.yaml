@@ -4,4 +4,3 @@
     build:
       context: .
       dockerfile: ChoicePie.Backend.WebApi/Dockerfile
-

@@ -68,5 +68,8 @@ Secrets/
 
 *.crt
 
+# dotnet-tdd-skill cycle logs
+.tdd-cycle-results/
+
 
 
