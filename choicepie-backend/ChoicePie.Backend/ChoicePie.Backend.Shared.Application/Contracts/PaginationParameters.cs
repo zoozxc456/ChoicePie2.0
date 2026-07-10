@@ -25,8 +25,9 @@ public abstract class PaginationParameters
         {
             _pageSize = value switch
             {
+                <= 0 => _pageSize,
                 > MaxPageSize => MaxPageSize,
-                _ => _pageSize
+                _ => value
             };
         }
     }
