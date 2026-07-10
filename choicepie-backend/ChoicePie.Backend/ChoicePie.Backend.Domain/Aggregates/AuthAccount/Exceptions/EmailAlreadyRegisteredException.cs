@@ -1,7 +1,7 @@
 using System.Net;
 using ChoicePie.Backend.Shared.Kernel.Exceptions;
 
-namespace ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
+namespace ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
 
 public sealed class EmailAlreadyRegisteredException(string email)
     : DomainException(
