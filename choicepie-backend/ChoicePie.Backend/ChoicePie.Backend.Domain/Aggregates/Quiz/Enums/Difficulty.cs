@@ -1,6 +1,6 @@
 using ChoicePie.Backend.Shared.Kernel.Primitives;
 
-namespace ChoicePie.Backend.Domain.Aggregates.Quiz;
+namespace ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 
 public sealed record Difficulty(int Id, string Name) : Enumeration<Difficulty>(Id, Name)
 {

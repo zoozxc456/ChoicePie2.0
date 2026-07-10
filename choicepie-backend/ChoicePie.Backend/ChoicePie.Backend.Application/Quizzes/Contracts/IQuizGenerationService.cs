@@ -1,4 +1,5 @@
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
+using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 
 namespace ChoicePie.Backend.Application.Quizzes.Contracts;
 

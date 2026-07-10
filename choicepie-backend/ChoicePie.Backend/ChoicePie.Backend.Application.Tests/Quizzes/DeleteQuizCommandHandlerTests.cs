@@ -1,5 +1,6 @@
 using ChoicePie.Backend.Application.Quizzes.Commands;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
+using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
