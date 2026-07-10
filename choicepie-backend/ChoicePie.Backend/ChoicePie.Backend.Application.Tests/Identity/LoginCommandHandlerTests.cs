@@ -1,8 +1,9 @@
 using ChoicePie.Backend.Application.Identity.Commands;
 using ChoicePie.Backend.Application.Identity.Contracts;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.Member;
-using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
-using ChoicePie.Backend.Domain.Aggregates.Member.Specifications;
 using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 
@@ -11,23 +12,28 @@ namespace ChoicePie.Backend.Application.Tests.Identity;
 [TestFixture]
 public class LoginCommandHandlerTests
 {
+    private IAuthAccountRepository _authAccountRepository = null!;
     private IMemberRepository _memberRepository = null!;
     private IPasswordHasher _passwordHasher = null!;
     private ITokenService _tokenService = null!;
     private LoginCommandHandler _sut = null!;
     private Member _registeredMember = null!;
+    private AuthAccount _registeredAuthAccount = null!;
 
     [SetUp]
     public void SetUp()
     {
+        _authAccountRepository = Substitute.For<IAuthAccountRepository>();
         _memberRepository = Substitute.For<IMemberRepository>();
         _passwordHasher = Substitute.For<IPasswordHasher>();
         _tokenService = Substitute.For<ITokenService>();
-        _sut = new LoginCommandHandler(_memberRepository, _passwordHasher, _tokenService);
+        _sut = new LoginCommandHandler(_authAccountRepository, _memberRepository, _passwordHasher, _tokenService);
 
-        _registeredMember = Member.Register(Email.Create("host@example.com"), "Host Name", "hashed-password");
-        _memberRepository.FirstOrDefaultAsync(Arg.Any<MemberByEmailSpecification>(), Arg.Any<CancellationToken>())
-            .Returns(_registeredMember);
+        _registeredMember = Member.Create("Host Name");
+        _registeredAuthAccount = AuthAccount.Register(Email.Create("host@example.com"), "hashed-password", _registeredMember.Id);
+        _authAccountRepository.FirstOrDefaultAsync(Arg.Any<AuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(_registeredAuthAccount);
+        _memberRepository.GetByIdAsync(_registeredMember.Id, Arg.Any<CancellationToken>()).Returns(_registeredMember);
     }
 
     private static LoginCommand ValidCommand() => new() { Email = "host@example.com", Password = "correct-password" };
@@ -50,8 +56,8 @@ public class LoginCommandHandlerTests
     [Test]
     public void Handle_GivenUnknownEmail_WhenCalled_ThenThrowsInvalidCredentialsException()
     {
-        _memberRepository.FirstOrDefaultAsync(Arg.Any<MemberByEmailSpecification>(), Arg.Any<CancellationToken>())
-            .Returns((Member?)null);
+        _authAccountRepository.FirstOrDefaultAsync(Arg.Any<AuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
+            .Returns((AuthAccount?)null);
 
         Assert.ThrowsAsync<InvalidCredentialsException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }

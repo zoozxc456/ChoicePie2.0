@@ -1,8 +1,9 @@
 using ChoicePie.Backend.Application.Identity.Commands;
 using ChoicePie.Backend.Application.Identity.Contracts;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.Member;
-using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
-using ChoicePie.Backend.Domain.Aggregates.Member.Specifications;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
 
@@ -12,6 +13,7 @@ namespace ChoicePie.Backend.Application.Tests.Identity;
 public class RegisterMemberCommandHandlerTests
 {
     private IMemberRepository _memberRepository = null!;
+    private IAuthAccountRepository _authAccountRepository = null!;
     private IUnitOfWork _unitOfWork = null!;
     private IPasswordHasher _passwordHasher = null!;
     private RegisterMemberCommandHandler _sut = null!;
@@ -20,9 +22,14 @@ public class RegisterMemberCommandHandlerTests
     public void SetUp()
     {
         _memberRepository = Substitute.For<IMemberRepository>();
+        _authAccountRepository = Substitute.For<IAuthAccountRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _passwordHasher = Substitute.For<IPasswordHasher>();
-        _sut = new RegisterMemberCommandHandler(_memberRepository, _passwordHasher, _unitOfWork);
+        _sut = new RegisterMemberCommandHandler(_memberRepository, _authAccountRepository, _passwordHasher, _unitOfWork);
+
+        _authAccountRepository.ExistsAsync(Arg.Any<AuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+        _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed-password");
     }
 
     [TearDown]
@@ -40,27 +47,35 @@ public class RegisterMemberCommandHandlerTests
     };
 
     [Test]
-    public async Task Handle_GivenNewEmail_WhenCalled_ThenHashesPasswordAndPersistsMember()
+    public async Task Handle_GivenNewEmail_WhenCalled_ThenPersistsMemberAndAuthAccount()
     {
-        _memberRepository.ExistsAsync(Arg.Any<MemberByEmailSpecification>(), Arg.Any<CancellationToken>())
-            .Returns(false);
-        _passwordHasher.Hash("password123").Returns("hashed-password");
-
         await _sut.Handle(ValidCommand(), CancellationToken.None);
 
         await _memberRepository.Received(1).AddAsync(
-            Arg.Is<Member>(m => m.Email.Value == "host@example.com" && m.PasswordHash == "hashed-password"),
+            Arg.Is<Member>(m => m.Name == "Host Name"),
+            Arg.Any<CancellationToken>());
+        await _authAccountRepository.Received(1).AddAsync(
+            Arg.Is<AuthAccount>(a => a.Email.Value == "host@example.com" && a.OriginalPasswordHash == "hashed-password"),
             Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Test]
+    public async Task Handle_GivenNewEmail_WhenCalled_ThenAuthAccountLinksToPersistedMember()
+    {
+        Member? capturedMember = null;
+        AuthAccount? capturedAuthAccount = null;
+        _ = _memberRepository.AddAsync(Arg.Do<Member>(m => capturedMember = m), Arg.Any<CancellationToken>());
+        _ = _authAccountRepository.AddAsync(Arg.Do<AuthAccount>(a => capturedAuthAccount = a), Arg.Any<CancellationToken>());
+
+        await _sut.Handle(ValidCommand(), CancellationToken.None);
+
+        Assert.That(capturedAuthAccount!.MemberId, Is.EqualTo(capturedMember!.Id));
+    }
+
+    [Test]
     public async Task Handle_GivenNewEmail_WhenCalled_ThenReturnsMemberDto()
     {
-        _memberRepository.ExistsAsync(Arg.Any<MemberByEmailSpecification>(), Arg.Any<CancellationToken>())
-            .Returns(false);
-        _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed-password");
-
         var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
 
         Assert.Multiple(() =>
@@ -74,16 +89,16 @@ public class RegisterMemberCommandHandlerTests
     [Test]
     public void Handle_GivenEmailAlreadyRegistered_WhenCalled_ThenThrowsEmailAlreadyRegisteredException()
     {
-        _memberRepository.ExistsAsync(Arg.Any<MemberByEmailSpecification>(), Arg.Any<CancellationToken>())
+        _authAccountRepository.ExistsAsync(Arg.Any<AuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
         Assert.ThrowsAsync<EmailAlreadyRegisteredException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }
 
     [Test]
-    public async Task Handle_GivenEmailAlreadyRegistered_WhenCalled_ThenDoesNotPersistMember()
+    public async Task Handle_GivenEmailAlreadyRegistered_WhenCalled_ThenDoesNotPersistMemberOrAuthAccount()
     {
-        _memberRepository.ExistsAsync(Arg.Any<MemberByEmailSpecification>(), Arg.Any<CancellationToken>())
+        _authAccountRepository.ExistsAsync(Arg.Any<AuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
         try
@@ -96,5 +111,6 @@ public class RegisterMemberCommandHandlerTests
         }
 
         await _memberRepository.DidNotReceive().AddAsync(Arg.Any<Member>(), Arg.Any<CancellationToken>());
+        await _authAccountRepository.DidNotReceive().AddAsync(Arg.Any<AuthAccount>(), Arg.Any<CancellationToken>());
     }
 }
