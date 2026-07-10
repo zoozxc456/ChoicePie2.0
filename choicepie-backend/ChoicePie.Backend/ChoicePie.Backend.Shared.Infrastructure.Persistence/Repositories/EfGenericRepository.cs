@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Specifications;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,19 +44,18 @@ public abstract class EfGenericRepository<TEntity, TContext>(TContext context)
     public Task<TEntity?> GetOneAsync(CancellationToken ct = default)
         => ApplyInclude(_queryable).FirstOrDefaultAsync(ct);
 
+    public Task<TEntity?> FirstOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken ct = default)
+        => SpecificationEvaluator.Apply(ApplyInclude(_queryable), specification).FirstOrDefaultAsync(ct);
 
-    public Task<TEntity?> GetOneAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct = default)
-        => ApplyInclude(_queryable).FirstOrDefaultAsync(predicate, ct);
-
-    public Task<List<TEntity>> GetListAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct = default)
-        => ApplyInclude(_queryable).Where(predicate).ToListAsync(ct);
+    public Task<List<TEntity>> ListAsync(ISpecification<TEntity> specification, CancellationToken ct = default)
+        => SpecificationEvaluator.Apply(ApplyInclude(_queryable), specification).ToListAsync(ct);
 
     public Task<List<TEntity>> GetAllAsync(CancellationToken ct = default)
         => ApplyInclude(_queryable).ToListAsync(ct);
 
-    public Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct = default)
-        => ApplyInclude(_queryable).AnyAsync(predicate, ct);
+    public Task<bool> ExistsAsync(ISpecification<TEntity> specification, CancellationToken ct = default)
+        => SpecificationEvaluator.Apply(ApplyInclude(_queryable), specification).AnyAsync(ct);
 
-    public Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct = default)
-        => ApplyInclude(_queryable).CountAsync(predicate, ct);
+    public Task<int> CountAsync(ISpecification<TEntity> specification, CancellationToken ct = default)
+        => SpecificationEvaluator.Apply(ApplyInclude(_queryable), specification).CountAsync(ct);
 }
