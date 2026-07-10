@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ChoicePie.Backend.Shared.Application.Exceptions;
 using ChoicePie.Backend.Shared.Hosting.API.Response;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +16,11 @@ public class BadRequestExceptionHandler(ILogger<BadRequestExceptionHandler> logg
     {
         var response = exception switch
         {
+            AggregateValidationException avex => ResponseHelper.BadRequest(
+                message: "一個或多個驗證錯誤發生。",
+                traceId: httpContext.TraceIdentifier,
+                errors: new Dictionary<string, string[]>(avex.Errors)),
+
             ValidationException vex => ResponseHelper.BadRequest(
                 message: "一個或多個驗證錯誤發生。",
                 traceId: httpContext.TraceIdentifier,

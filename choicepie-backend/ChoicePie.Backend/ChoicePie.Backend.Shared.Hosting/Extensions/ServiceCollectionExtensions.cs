@@ -1,4 +1,5 @@
 using System.Reflection;
+using ChoicePie.Backend.Shared.Application.Behaviors;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Dependencies;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,7 +11,11 @@ public static class DependencyInjectionExtensions
     {
         public IServiceCollection AddApplication(Assembly assembly)
         {
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(assembly);
+                cfg.AddOpenBehavior(typeof(ValidationBehaviour<,>));
+            });
             services.ScanDependencies(assembly);
             return services;
         }
