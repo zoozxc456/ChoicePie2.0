@@ -2,10 +2,10 @@ using ChoicePie.Backend.Application.Quizzes.Commands;
 using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
+using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
-using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.Quizzes;
@@ -29,7 +29,7 @@ public class GenerateQuizQuestionsCommandHandlerTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _sut = new GenerateQuizQuestionsCommandHandler(_memberRepository, _currentUserService, _generationService, _unitOfWork);
 
-        _member = Member.Register(Email.Create("host@example.com"), "Host Name", "hashed");
+        _member = Member.Create("Host Name");
         _currentUserService.UserId.Returns(_member.Id);
         _memberRepository.GetByIdAsync(_member.Id, Arg.Any<CancellationToken>()).Returns(_member);
     }

@@ -1,8 +1,8 @@
 using ChoicePie.Backend.Application.Quizzes.Queries;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
+using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Shared.Application.Interfaces;
-using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.Quizzes;
@@ -19,7 +19,7 @@ public class ListQuizzesQueryHandlerTests
     {
         _readRepository = Substitute.For<IReadRepository>();
         _sut = new ListQuizzesQueryHandler(_readRepository);
-        _creator = Member.Register(Email.Create("host@example.com"), "Host Name", "hashed");
+        _creator = Member.Create("Host Name");
         _readRepository.Query<Member>().Returns(new List<Member> { _creator }.AsQueryable());
     }
 

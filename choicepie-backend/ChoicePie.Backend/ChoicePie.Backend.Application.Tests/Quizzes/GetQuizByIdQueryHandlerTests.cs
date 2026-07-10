@@ -1,9 +1,9 @@
 using ChoicePie.Backend.Application.Quizzes.Queries;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
+using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
-using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.Quizzes;
@@ -22,7 +22,7 @@ public class GetQuizByIdQueryHandlerTests
         _readRepository = Substitute.For<IReadRepository>();
         _sut = new GetQuizByIdQueryHandler(_readRepository);
 
-        _creator = Member.Register(Email.Create("host@example.com"), "Host Name", "hashed");
+        _creator = Member.Create("Host Name");
         _quiz = Quiz.Create(_creator.Id, "Kubernetes 101", null, "⚓", "g", Difficulty.Beginner, true, ["Kubernetes"]);
 
         _readRepository.Query<Quiz>().Returns(new List<Quiz> { _quiz }.AsQueryable());

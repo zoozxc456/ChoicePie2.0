@@ -5,7 +5,6 @@ using ChoicePie.Backend.Domain.Aggregates.Quiz;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
-using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.Quizzes;
@@ -64,7 +63,7 @@ public class CreateQuizCommandHandlerTests
     [Test]
     public async Task Handle_GivenValidInput_WhenCalled_ThenReturnsQuizDtoWithCreatorInfo()
     {
-        var creator = Member.Register(Email.Create("host@example.com"), "Host Name", "hashed");
+        var creator = Member.Create("Host Name");
         _memberRepository.GetByIdAsync(_userId, Arg.Any<CancellationToken>()).Returns(creator);
 
         var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
