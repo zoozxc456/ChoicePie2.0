@@ -26,7 +26,8 @@ public class MemberQueryServiceTests
     public async Task GetByIdAsync_GivenMemberWithMatchingAuthAccount_WhenCalled_ThenReturnsMemberDto()
     {
         var member = Member.Create("Host Name");
-        var authAccount = AuthAccount.Register(Email.Create("host@example.com"), "hashed-password", "salt", member.Id);
+        var authAccount = AuthAccount.Register(
+            Email.Create("host@example.com"), HashedPassword.Create("hashed-password", "salt"), member.Id);
         _readRepository.Query<Member>().Returns(new List<Member> { member }.AsQueryable());
         _readRepository.Query<AuthAccount>().Returns(new List<AuthAccount> { authAccount }.AsQueryable());
 

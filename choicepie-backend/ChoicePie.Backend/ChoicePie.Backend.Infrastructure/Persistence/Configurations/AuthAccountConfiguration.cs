@@ -26,6 +26,12 @@ public sealed class AuthAccountConfiguration : AuditableEntityConfiguration<Auth
             loginMethod.Property(m => m.Provider)
                 .HasConversion(new EnumerationValueConverter<LoginProvider>())
                 .IsRequired();
+
+            loginMethod.OwnsOne(m => m.Password, password =>
+            {
+                password.Property(p => p.Hash).HasColumnName("PasswordHash");
+                password.Property(p => p.Salt).HasColumnName("Salt");
+            });
         });
     }
 }
