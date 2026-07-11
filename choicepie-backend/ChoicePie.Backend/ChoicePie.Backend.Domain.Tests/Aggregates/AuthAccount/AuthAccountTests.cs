@@ -12,7 +12,7 @@ public class AuthAccountTests
     private static readonly Guid MemberId = Guid.NewGuid();
 
     private static AuthAccountAggregate CreateAuthAccount() =>
-        AuthAccountAggregate.Register(Email.Create("host@example.com"), "hashed-password", MemberId);
+        AuthAccountAggregate.Register(Email.Create("host@example.com"), "hashed-password", "salt", MemberId);
 
     [Test]
     public void Register_GivenValidInput_WhenCalled_ThenCreatesAuthAccountWithExpectedFields()

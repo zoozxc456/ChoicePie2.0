@@ -25,11 +25,12 @@ public class RegisterMemberCommandHandlerTests
         _authAccountRepository = Substitute.For<IAuthAccountRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _passwordHasher = Substitute.For<IPasswordHasher>();
-        _sut = new RegisterMemberCommandHandler(_memberRepository, _authAccountRepository, _passwordHasher, _unitOfWork);
+        _sut = new RegisterMemberCommandHandler(_memberRepository, _authAccountRepository, _passwordHasher,
+            _unitOfWork);
 
         _authAccountRepository.ExistsAsync(Arg.Any<AuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(false);
-        _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed-password");
+        _passwordHasher.Hash(Arg.Any<string>()).Returns(("hashed-password", "salt"));
     }
 
     [TearDown]
@@ -55,7 +56,8 @@ public class RegisterMemberCommandHandlerTests
             Arg.Is<Member>(m => m.Name == "Host Name"),
             Arg.Any<CancellationToken>());
         await _authAccountRepository.Received(1).AddAsync(
-            Arg.Is<AuthAccount>(a => a.Email.Value == "host@example.com" && a.OriginalPasswordHash == "hashed-password"),
+            Arg.Is<AuthAccount>(a =>
+                a.Email.Value == "host@example.com" && a.OriginalPasswordHash == "hashed-password"),
             Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -66,7 +68,8 @@ public class RegisterMemberCommandHandlerTests
         Member? capturedMember = null;
         AuthAccount? capturedAuthAccount = null;
         _ = _memberRepository.AddAsync(Arg.Do<Member>(m => capturedMember = m), Arg.Any<CancellationToken>());
-        _ = _authAccountRepository.AddAsync(Arg.Do<AuthAccount>(a => capturedAuthAccount = a), Arg.Any<CancellationToken>());
+        _ = _authAccountRepository.AddAsync(Arg.Do<AuthAccount>(a => capturedAuthAccount = a),
+            Arg.Any<CancellationToken>());
 
         await _sut.Handle(ValidCommand(), CancellationToken.None);
 

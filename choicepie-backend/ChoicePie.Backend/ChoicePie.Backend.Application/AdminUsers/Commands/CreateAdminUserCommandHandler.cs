@@ -27,15 +27,17 @@ public sealed class CreateAdminUserCommandHandler(
         var role = AdminRole.FromName(request.Role) ?? throw new InvalidAdminRoleException(request.Role);
         var email = Email.Create(request.Email);
 
-        var alreadyRegistered = await adminAuthAccountRepository.ExistsAsync(new AdminAuthAccountByEmailSpecification(email), cancellationToken);
+        var alreadyRegistered =
+            await adminAuthAccountRepository.ExistsAsync(new AdminAuthAccountByEmailSpecification(email),
+                cancellationToken);
         if (alreadyRegistered)
         {
             throw new EmailAlreadyRegisteredException(email.Value);
         }
 
         var adminUser = AdminUser.Create(request.Name, role);
-        var passwordHash = passwordHasher.Hash(request.Password);
-        var adminAuthAccount = AdminAuthAccount.Create(email, passwordHash, adminUser.Id);
+        var (passwordHash, salt) = passwordHasher.Hash(request.Password);
+        var adminAuthAccount = AdminAuthAccount.Create(email, passwordHash, salt, adminUser.Id);
 
         await adminUserRepository.AddAsync(adminUser, cancellationToken);
         await adminAuthAccountRepository.AddAsync(adminAuthAccount, cancellationToken);

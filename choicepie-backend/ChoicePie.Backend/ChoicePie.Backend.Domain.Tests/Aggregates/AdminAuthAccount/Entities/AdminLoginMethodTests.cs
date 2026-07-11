@@ -9,7 +9,7 @@ public class AdminLoginMethodTests
     [Test]
     public void CreateOriginal_GivenPasswordHash_WhenCalled_ThenReturnsOriginalLoginMethod()
     {
-        var loginMethod = AdminLoginMethod.CreateOriginal("hashed-password");
+        var loginMethod = AdminLoginMethod.CreateOriginal("hashed-password", "salt");
 
         Assert.Multiple(() =>
         {

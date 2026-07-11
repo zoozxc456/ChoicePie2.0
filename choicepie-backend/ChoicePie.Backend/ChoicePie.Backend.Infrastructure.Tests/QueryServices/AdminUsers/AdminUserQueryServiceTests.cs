@@ -27,9 +27,11 @@ public class AdminUserQueryServiceTests
     public async Task GetByIdAsync_GivenAdminUserWithMatchingAuthAccount_WhenCalled_ThenReturnsAdminUserDto()
     {
         var adminUser = AdminUser.Create("Ops Name", AdminRole.Admin);
-        var adminAuthAccount = AdminAuthAccount.Create(Email.Create("admin@example.com"), "hashed-password", adminUser.Id);
+        var adminAuthAccount =
+            AdminAuthAccount.Create(Email.Create("admin@example.com"), "hashed-password", "salt", adminUser.Id);
         _readRepository.Query<AdminUser>().Returns(new List<AdminUser> { adminUser }.AsQueryable());
-        _readRepository.Query<AdminAuthAccount>().Returns(new List<AdminAuthAccount> { adminAuthAccount }.AsQueryable());
+        _readRepository.Query<AdminAuthAccount>()
+            .Returns(new List<AdminAuthAccount> { adminAuthAccount }.AsQueryable());
 
         var result = await _sut.GetByIdAsync(adminUser.Id, CancellationToken.None);
 
@@ -45,12 +47,14 @@ public class AdminUserQueryServiceTests
     }
 
     [Test]
-    public void GetByIdAsync_GivenAdminUserWithNoMatchingAuthAccount_WhenCalled_ThenThrowsAdminAuthAccountNotFoundException()
+    public void
+        GetByIdAsync_GivenAdminUserWithNoMatchingAuthAccount_WhenCalled_ThenThrowsAdminAuthAccountNotFoundException()
     {
         var adminUser = AdminUser.Create("Ops Name", AdminRole.Admin);
         _readRepository.Query<AdminUser>().Returns(new List<AdminUser> { adminUser }.AsQueryable());
         _readRepository.Query<AdminAuthAccount>().Returns(new List<AdminAuthAccount>().AsQueryable());
 
-        Assert.ThrowsAsync<AdminAuthAccountNotFoundException>(() => _sut.GetByIdAsync(adminUser.Id, CancellationToken.None));
+        Assert.ThrowsAsync<AdminAuthAccountNotFoundException>(() =>
+            _sut.GetByIdAsync(adminUser.Id, CancellationToken.None));
     }
 }
