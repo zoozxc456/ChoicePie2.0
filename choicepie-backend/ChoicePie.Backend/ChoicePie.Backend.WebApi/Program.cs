@@ -1,91 +1,34 @@
-using System.Text;
-using Asp.Versioning;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Hosting.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Extensions;
-using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
-using ChoicePie.Backend.Shared.Kernel.Auth;
+using ChoicePie.Backend.WebApi.Extensions;
 using ChoicePie.Backend.WebApi.Hubs;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddOpenApiService();
-builder.Services.AddGlobalExceptionHandlers();
-
-builder.Services.AddApiVersioning(options =>
-    {
-        options.DefaultApiVersion = new ApiVersion(1.0);
-        options.AssumeDefaultVersionWhenUnspecified = true;
-        options.ReportApiVersions = true;
-    })
-    .AddMvc()
-    .AddApiExplorer(options =>
-    {
-        options.GroupNameFormat = "'v'VVV";
-        options.SubstituteApiVersionInUrl = true;
-    });
-
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
-
-var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
-                   ?? throw new InvalidOperationException("Jwt settings are not configured.");
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = jwtSettings.Issuer,
-            ValidateAudience = true,
-            ValidAudience = jwtSettings.Audience,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SigningKey)),
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-
-        // SignalR 的瀏覽器端 WebSocket/SSE 連線無法附加 Authorization header，
-        // client 改以 querystring 帶 access_token，這裡讓 JWT 中介軟體改從那裡讀 token。
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"];
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    context.HttpContext.Request.Path.StartsWithSegments("/api/gamehub"))
-                {
-                    context.Token = accessToken;
-                }
-
-                return Task.CompletedTask;
-            }
-        };
-    });
-
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("MemberOnly", policy => policy.RequireClaim(JwtClaimValues.RoleClaimType, JwtClaimValues.MemberRole))
-    .AddPolicy("AdminOnly", policy => policy.RequireClaim(JwtClaimValues.RoleClaimType, JwtClaimValues.AdminRole));
 
 builder.Services
-    .AddApplication(typeof(ChoicePie.Backend.Application.AssemblyReference).Assembly)
+    .AddEndpointsApiExplorer()
+    .AddHttpContextAccessor()
+    .AddOpenApiService()
+    .AddGlobalExceptionHandlers()
+    .AddChoicePieApiVersioning()
+    .AddJwtAuthentication(builder.Configuration)
+    .AddChoicePieAuthorization()
+    .AddChoicePieCors(builder.Configuration)
+    .AddChoicePieCaching(builder.Configuration)
+    .AddSharedDbContextPool<ChoicePieDbContext>(builder.Configuration)
+    .AddSharedPersistence<ChoicePieDbContext>()
     .AddDomain(typeof(ChoicePie.Backend.Domain.AssemblyReference).Assembly)
+    .AddApplication(typeof(ChoicePie.Backend.Application.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Infrastructure.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Infrastructure.Security.AssemblyReference).Assembly)
-    .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Hosting.Extensions.DependencyInjectionExtensions).Assembly);
+    .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Hosting.AssemblyReference).Assembly)
+    .AddSingleton<DomainExceptionHubFilter>();
 
-builder.Services.AddChoicePieCaching(builder.Configuration);
-builder.Services.AddSharedDbContextPool<ChoicePieDbContext>(builder.Configuration)
-    .AddSharedPersistence<ChoicePieDbContext>();
-
-builder.Services.AddSingleton<DomainExceptionHubFilter>();
 builder.Services.AddSignalR(options => options.AddFilter<DomainExceptionHubFilter>());
 
 var app = builder.Build();
@@ -95,10 +38,12 @@ if (app.Environment.IsDevelopment())
     app.AddScalarApplicationConfiguration();
 }
 
+app.UseExceptionHandler();
+
 app.UseHttpsRedirection();
 app.UseRouting();
 
-app.UseCors();
+app.UseCors(CorsExtensions.PolicyName);
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -107,3 +52,5 @@ app.MapControllers();
 app.MapHub<GameHub>("/api/gamehub");
 
 app.Run();
+
+public partial class Program;
