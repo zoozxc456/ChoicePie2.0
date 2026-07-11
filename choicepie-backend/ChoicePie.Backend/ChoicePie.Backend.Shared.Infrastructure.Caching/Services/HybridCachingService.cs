@@ -38,6 +38,22 @@ public class HybridCachingService(HybridCache cache) : ICachingService, IScopedD
         return factoryRan ? default : result;
     }
 
+    public ValueTask SetAsync<T>(
+        string key,
+        T value,
+        ChoicePieCacheOptions? options = null,
+        IEnumerable<string>? tags = null,
+        CancellationToken ct = default)
+    {
+        var entryOptions = MapOptions(options);
+        return cache.SetAsync(key, value, entryOptions, tags, ct);
+    }
+
+    public ValueTask RemoveAsync(string key, CancellationToken ct = default)
+    {
+        return cache.RemoveAsync(key, ct);
+    }
+
     public ValueTask RemoveByTagAsync(string tag, CancellationToken ct = default)
     {
         return cache.RemoveByTagAsync(tag, ct);
