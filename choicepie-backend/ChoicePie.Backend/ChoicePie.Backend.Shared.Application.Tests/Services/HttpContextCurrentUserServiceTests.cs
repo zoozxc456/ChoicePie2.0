@@ -9,12 +9,13 @@ namespace ChoicePie.Backend.Shared.Application.Tests.Services;
 public class HttpContextCurrentUserServiceTests
 {
     [Test]
-    public void UserId_GivenHttpContextWithSubClaim_WhenRead_ThenReturnsParsedGuid()
+    public void UserId_GivenHttpContextWithSubAndMemberRoleClaim_WhenRead_ThenReturnsParsedGuid()
     {
         var userId = Guid.NewGuid();
         var accessor = CreateAccessor(new ClaimsPrincipal(new ClaimsIdentity(
         [
-            new Claim("sub", userId.ToString())
+            new Claim("sub", userId.ToString()),
+            new Claim("role", "member")
         ])));
         var sut = new HttpContextCurrentUserService(accessor);
 
@@ -24,7 +25,24 @@ public class HttpContextCurrentUserServiceTests
     [Test]
     public void UserId_GivenHttpContextWithoutSubClaim_WhenRead_ThenReturnsNull()
     {
-        var accessor = CreateAccessor(new ClaimsPrincipal(new ClaimsIdentity()));
+        var accessor = CreateAccessor(new ClaimsPrincipal(new ClaimsIdentity(
+        [
+            new Claim("role", "member")
+        ])));
+        var sut = new HttpContextCurrentUserService(accessor);
+
+        Assert.That(sut.UserId, Is.Null);
+    }
+
+    [Test]
+    public void UserId_GivenHttpContextWithAdminRoleClaim_WhenRead_ThenReturnsNull()
+    {
+        var userId = Guid.NewGuid();
+        var accessor = CreateAccessor(new ClaimsPrincipal(new ClaimsIdentity(
+        [
+            new Claim("sub", userId.ToString()),
+            new Claim("role", "admin")
+        ])));
         var sut = new HttpContextCurrentUserService(accessor);
 
         Assert.That(sut.UserId, Is.Null);
