@@ -6,9 +6,10 @@ namespace ChoicePie.Backend.Shared.Hosting.Extensions;
 
 public static class ScalarConfigurationExtensions
 {
-    public static void AddOpenApiService(this IServiceCollection services)
+    public static IServiceCollection AddOpenApiService(this IServiceCollection services)
     {
         services.AddOpenApi();
+        return services;
     }
 
     public static void AddScalarApplicationConfiguration(this WebApplication application)
