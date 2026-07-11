@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Dependencies;
+using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using Konscious.Security.Cryptography;
 
 namespace ChoicePie.Backend.Shared.Infrastructure.Security.Hashers;
@@ -14,18 +15,18 @@ public sealed class Argo2IdPasswordHasher : IPasswordHasher, ISingletonDependenc
     private const int HashByteLength = 32;
     private const int DefaultSaltLength = 16;
 
-    public (string hash, string salt) Hash(string password)
+    public HashedPassword Hash(string password)
     {
         var salt = GenerateSalt();
         var hash = HashInternal(password, salt);
-        return (hash, salt);
+        return HashedPassword.Create(hash, salt);
     }
 
-    public bool Verify(string password, string passwordHash, string salt)
+    public bool Verify(string password, HashedPassword hashedPassword)
     {
-        var computed = HashInternal(password, salt);
+        var computed = HashInternal(password, hashedPassword.Salt);
         var computedBytes = Encoding.UTF8.GetBytes(computed);
-        var storedBytes = Encoding.UTF8.GetBytes(passwordHash);
+        var storedBytes = Encoding.UTF8.GetBytes(hashedPassword.Hash);
 
         if (computedBytes.Length != storedBytes.Length)
         {
