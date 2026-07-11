@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChoicePie.Backend.Domain.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChoicePie.Backend.Application.Tests", "ChoicePie.Backend.Application.Tests\ChoicePie.Backend.Application.Tests.csproj", "{6EAF1015-3130-410C-A5F4-259A988740AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChoicePie.Backend.Infrastructure.Tests", "ChoicePie.Backend.Infrastructure.Tests\ChoicePie.Backend.Infrastructure.Tests.csproj", "{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -201,6 +203,18 @@ Global
 		{6EAF1015-3130-410C-A5F4-259A988740AE}.Release|x64.Build.0 = Release|Any CPU
 		{6EAF1015-3130-410C-A5F4-259A988740AE}.Release|x86.ActiveCfg = Release|Any CPU
 		{6EAF1015-3130-410C-A5F4-259A988740AE}.Release|x86.Build.0 = Release|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Debug|x64.Build.0 = Debug|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Debug|x86.Build.0 = Debug|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Release|x64.ActiveCfg = Release|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Release|x64.Build.0 = Release|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Release|x86.ActiveCfg = Release|Any CPU
+		{90B31F44-A442-4F9E-ADB6-2DF6A9592DDE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
