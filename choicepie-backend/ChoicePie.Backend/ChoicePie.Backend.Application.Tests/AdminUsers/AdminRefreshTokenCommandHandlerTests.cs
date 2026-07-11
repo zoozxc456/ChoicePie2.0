@@ -43,8 +43,8 @@ public class AdminRefreshTokenCommandHandlerTests
             _adminUserRepository, _tokenService, _refreshTokenGenerator, _unitOfWork);
 
         _adminUser = AdminUser.Create("Ops Name", AdminRole.Staff);
-        _adminAuthAccount =
-            AdminAuthAccount.Create(Email.Create("admin@example.com"), "hashed-password", "salt", _adminUser.Id);
+        _adminAuthAccount = AdminAuthAccount.Create(
+            Email.Create("admin@example.com"), HashedPassword.Create("hashed-password", "salt"), _adminUser.Id);
         _existingRefreshToken =
             RefreshTokenAggregate.Issue(_adminUser.Id, RefreshTokenOwnerType.Admin, "old-hash", DateTime.UtcNow);
 

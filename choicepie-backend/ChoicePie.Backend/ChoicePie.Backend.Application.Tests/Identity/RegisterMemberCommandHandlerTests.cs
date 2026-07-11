@@ -5,6 +5,7 @@ using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.Identity;
@@ -30,7 +31,7 @@ public class RegisterMemberCommandHandlerTests
 
         _authAccountRepository.ExistsAsync(Arg.Any<AuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(false);
-        _passwordHasher.Hash(Arg.Any<string>()).Returns(("hashed-password", "salt"));
+        _passwordHasher.Hash(Arg.Any<string>()).Returns(HashedPassword.Create("hashed-password", "salt"));
     }
 
     [TearDown]
@@ -57,7 +58,8 @@ public class RegisterMemberCommandHandlerTests
             Arg.Any<CancellationToken>());
         await _authAccountRepository.Received(1).AddAsync(
             Arg.Is<AuthAccount>(a =>
-                a.Email.Value == "host@example.com" && a.OriginalPasswordHash == "hashed-password"),
+                a.Email.Value == "host@example.com" &&
+                a.OriginalPassword == HashedPassword.Create("hashed-password", "salt")),
             Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }

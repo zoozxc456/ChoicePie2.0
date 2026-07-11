@@ -29,8 +29,8 @@ public sealed class RegisterMemberCommandHandler(
         }
 
         var member = Member.Create(request.Name);
-        var (passwordHash, salt) = passwordHasher.Hash(request.Password);
-        var authAccount = AuthAccount.Register(email, passwordHash, salt, member.Id);
+        var hashedPassword = passwordHasher.Hash(request.Password);
+        var authAccount = AuthAccount.Register(email, hashedPassword, member.Id);
 
         await memberRepository.AddAsync(member, cancellationToken);
         await authAccountRepository.AddAsync(authAccount, cancellationToken);

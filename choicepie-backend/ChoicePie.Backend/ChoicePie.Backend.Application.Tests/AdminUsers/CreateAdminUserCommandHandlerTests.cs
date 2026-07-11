@@ -7,6 +7,7 @@ using ChoicePie.Backend.Domain.Aggregates.AdminUser.Enums;
 using ChoicePie.Backend.Domain.Aggregates.AdminUser.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.AdminUsers;
@@ -36,7 +37,7 @@ public class CreateAdminUserCommandHandlerTests
         _adminAuthAccountRepository
             .ExistsAsync(Arg.Any<AdminAuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(false);
-        _passwordHasher.Hash(Arg.Any<string>()).Returns(("hashed-password", "salt"));
+        _passwordHasher.Hash(Arg.Any<string>()).Returns(HashedPassword.Create("hashed-password", "salt"));
     }
 
     [TearDown]
@@ -64,7 +65,8 @@ public class CreateAdminUserCommandHandlerTests
             Arg.Any<CancellationToken>());
         await _adminAuthAccountRepository.Received(1).AddAsync(
             Arg.Is<AdminAuthAccount>(a =>
-                a.Email.Value == "admin@example.com" && a.OriginalPasswordHash == "hashed-password"),
+                a.Email.Value == "admin@example.com" &&
+                a.OriginalPassword == HashedPassword.Create("hashed-password", "salt")),
             Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
