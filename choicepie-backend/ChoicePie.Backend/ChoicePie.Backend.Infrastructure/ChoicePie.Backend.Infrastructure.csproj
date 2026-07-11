@@ -12,4 +12,8 @@
       <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Persistence\ChoicePie.Backend.Shared.Infrastructure.Persistence.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="QueryServices\" />
+    </ItemGroup>
+
 </Project>
