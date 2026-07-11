@@ -1,4 +1,3 @@
-using ChoicePie.Backend.Shared.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;

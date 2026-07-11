@@ -1,4 +1,4 @@
-namespace ChoicePie.Backend.Shared.Application.Interfaces;
+namespace ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 
 public interface IReadRepository
 {
