@@ -9,6 +9,7 @@ public sealed record QuizDto(
     string CoverEmoji,
     string CoverGradient,
     string Difficulty,
+    string Status,
     int ChallengeCount,
     decimal PassRate,
     Guid CreatorId,
@@ -16,7 +17,6 @@ public sealed record QuizDto(
     string? CreatorAvatar,
     IReadOnlyList<QuestionDto> Questions,
     IReadOnlyList<string> Tags,
-    bool IsPublic,
     DateTime CreatedAt,
     DateTime UpdatedAt)
 {
@@ -29,6 +29,7 @@ public sealed record QuizDto(
         quiz.CoverEmoji,
         quiz.CoverGradient,
         quiz.Difficulty.Name,
+        quiz.Status.Name,
         quiz.ChallengeCount,
         quiz.PassRate,
         quiz.OwnerId,
@@ -36,7 +37,6 @@ public sealed record QuizDto(
         creatorAvatar,
         quiz.Questions.Select(QuestionDto.FromDomain).ToList(),
         quiz.Tags,
-        quiz.IsPublic,
         quiz.CreatedAt,
         quiz.LastModifiedAt);
 }

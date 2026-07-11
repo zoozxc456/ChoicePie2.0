@@ -9,5 +9,6 @@ public sealed class ListQuizzesQueryHandler(IQuizQueryService quizQueryService)
     : IRequestHandler<ListQuizzesQuery, PagedResult<QuizSummaryDto>>
 {
     public Task<PagedResult<QuizSummaryDto>> Handle(ListQuizzesQuery request, CancellationToken cancellationToken) =>
-        quizQueryService.ListAsync(request.Tag, request.Search, request.PageNumber, request.PageSize, cancellationToken);
+        quizQueryService.ListAsync(
+            request.Tag, request.Search, request.OwnerId, request.PageNumber, request.PageSize, cancellationToken);
 }

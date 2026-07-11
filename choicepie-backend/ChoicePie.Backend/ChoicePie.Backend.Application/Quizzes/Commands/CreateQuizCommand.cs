@@ -18,8 +18,6 @@ public sealed class CreateQuizCommand : IRequest<QuizDto>
 
     [Required] public required string Difficulty { get; init; }
 
-    public bool IsPublic { get; init; } = true;
-
     public IReadOnlyList<string> Tags { get; init; } = [];
 
     [Required] [MinLength(1)] public required IReadOnlyList<CreateQuestionDto> Questions { get; init; }
