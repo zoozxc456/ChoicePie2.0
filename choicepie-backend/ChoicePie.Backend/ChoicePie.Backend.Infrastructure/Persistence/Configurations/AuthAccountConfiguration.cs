@@ -23,14 +23,19 @@ public sealed class AuthAccountConfiguration : AuditableEntityConfiguration<Auth
         builder.OwnsMany(a => a.LoginMethods, loginMethod =>
         {
             loginMethod.WithOwner().HasForeignKey("AuthAccountId");
-            loginMethod.Property(m => m.Provider)
-                .HasConversion(new EnumerationValueConverter<LoginProvider>())
-                .IsRequired();
 
             loginMethod.OwnsOne(m => m.Password, password =>
             {
                 password.Property(p => p.Hash).HasColumnName("PasswordHash");
                 password.Property(p => p.Salt).HasColumnName("Salt");
+            });
+
+            loginMethod.OwnsOne(m => m.External, external =>
+            {
+                external.Property(e => e.Provider)
+                    .HasConversion(new EnumerationValueConverter<LoginProvider>())
+                    .HasColumnName("Provider");
+                external.Property(e => e.ProviderUserId).HasColumnName("ProviderUserId");
             });
         });
     }

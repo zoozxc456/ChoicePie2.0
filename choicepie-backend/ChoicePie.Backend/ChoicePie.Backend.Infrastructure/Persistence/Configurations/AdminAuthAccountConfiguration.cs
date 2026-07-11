@@ -25,14 +25,19 @@ public sealed class AdminAuthAccountConfiguration : AuditableEntityConfiguration
             loginMethod.WithOwner().HasForeignKey("AdminAuthAccountId");
             loginMethod.Property(m => m.CreatedAt).IsRequired();
             loginMethod.Property(m => m.LastModifiedAt).IsRequired();
-            loginMethod.Property(m => m.Provider)
-                .HasConversion(new EnumerationValueConverter<AdminLoginProvider>())
-                .IsRequired();
 
             loginMethod.OwnsOne(m => m.Password, password =>
             {
                 password.Property(p => p.Hash).HasColumnName("PasswordHash");
                 password.Property(p => p.Salt).HasColumnName("Salt");
+            });
+
+            loginMethod.OwnsOne(m => m.External, external =>
+            {
+                external.Property(e => e.Provider)
+                    .HasConversion(new EnumerationValueConverter<AdminLoginProvider>())
+                    .HasColumnName("Provider");
+                external.Property(e => e.ProviderUserId).HasColumnName("ProviderUserId");
             });
         });
     }
