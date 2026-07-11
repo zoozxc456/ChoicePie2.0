@@ -2,14 +2,12 @@ using ChoicePie.Backend.Domain.Aggregates.AdminUser.Enums;
 using ChoicePie.Backend.Domain.Aggregates.AdminUser.Events;
 using ChoicePie.Backend.Domain.Aggregates.AdminUser.Exceptions;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Domain;
+using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 
 namespace ChoicePie.Backend.Domain.Aggregates.AdminUser;
 
 public sealed class AdminUser : AggregateRoot<Guid>
 {
-    private const int MinNameLength = 2;
-    private const int MaxNameLength = 20;
-
     public string Name { get; private set; } = null!;
     public AdminRole Role { get; private set; } = null!;
 
@@ -19,12 +17,12 @@ public sealed class AdminUser : AggregateRoot<Guid>
 
     public static AdminUser Create(string name, AdminRole role)
     {
-        ValidateName(name);
+        var personName = PersonName.Create(name, n => new InvalidAdminUserNameException(n));
 
         var adminUser = new AdminUser
         {
             Id = Guid.NewGuid(),
-            Name = name,
+            Name = personName.Value,
             Role = role
         };
 
@@ -32,15 +30,5 @@ public sealed class AdminUser : AggregateRoot<Guid>
         adminUser.AddDomainEvent(new AdminUserCreatedDomainEvent(adminUser.Id, adminUser.Name, role.Name));
 
         return adminUser;
-    }
-
-    private static void ValidateName(string name)
-    {
-        var trimmed = name.Trim();
-
-        if (trimmed.Length is < MinNameLength or > MaxNameLength)
-        {
-            throw new InvalidAdminUserNameException(name);
-        }
     }
 }
