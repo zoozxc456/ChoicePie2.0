@@ -12,7 +12,5 @@ public sealed class UpdateQuizCommand : IRequest<QuizDto>
 
     public string? Description { get; init; }
 
-    public bool IsPublic { get; init; }
-
     public IReadOnlyList<string> Tags { get; init; } = [];
 }

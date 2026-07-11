@@ -1,6 +1,8 @@
 using ChoicePie.Backend.Application.Quizzes.Commands;
 using ChoicePie.Backend.Domain.Aggregates.Member;
+using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
+using ChoicePie.Backend.Domain.Aggregates.Quiz.Entities;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
@@ -10,13 +12,13 @@ using NSubstitute;
 namespace ChoicePie.Backend.Application.Tests.Quizzes;
 
 [TestFixture]
-public class UpdateQuizCommandHandlerTests
+public class PublishQuizCommandHandlerTests
 {
     private IQuizRepository _quizRepository = null!;
     private IMemberRepository _memberRepository = null!;
     private ICurrentUserService _currentUserService = null!;
     private IUnitOfWork _unitOfWork = null!;
-    private UpdateQuizCommandHandler _sut = null!;
+    private PublishQuizCommandHandler _sut = null!;
     private readonly Guid _ownerId = Guid.NewGuid();
     private Quiz _quiz = null!;
 
@@ -27,35 +29,23 @@ public class UpdateQuizCommandHandlerTests
         _memberRepository = Substitute.For<IMemberRepository>();
         _currentUserService = Substitute.For<ICurrentUserService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new UpdateQuizCommandHandler(_quizRepository, _memberRepository, _currentUserService, _unitOfWork);
+        _sut = new PublishQuizCommandHandler(_quizRepository, _memberRepository, _currentUserService, _unitOfWork);
 
-        _quiz = Quiz.Create(_ownerId, "Old Title", null, "⚓", "g", Difficulty.Beginner, ["Old"]);
+        _quiz = Quiz.Create(_ownerId, "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
+        _currentUserService.UserId.Returns(_ownerId);
     }
 
     [TearDown]
     public void TearDown() => _unitOfWork.Dispose();
 
-    private UpdateQuizCommand ValidCommand() => new()
-    {
-        Id = _quiz.Id,
-        Title = "New Title",
-        Description = "New Description",
-        Tags = ["New"]
-    };
-
     [Test]
-    public async Task Handle_GivenOwner_WhenCalled_ThenUpdatesQuizAndPersists()
+    public async Task Handle_GivenOwner_WhenCalled_ThenPublishesAndPersists()
     {
-        _currentUserService.UserId.Returns(_ownerId);
+        var result = await _sut.Handle(new PublishQuizCommand(_quiz.Id), CancellationToken.None);
 
-        var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Title, Is.EqualTo("New Title"));
-            Assert.That(result.Tags, Is.EqualTo(new[] { "New" }));
-        });
+        Assert.That(result.Status, Is.EqualTo("published"));
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
@@ -64,22 +54,23 @@ public class UpdateQuizCommandHandlerTests
     {
         _currentUserService.UserId.Returns(Guid.NewGuid());
 
-        Assert.ThrowsAsync<QuizForbiddenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+        Assert.ThrowsAsync<QuizForbiddenException>(() => _sut.Handle(new PublishQuizCommand(_quiz.Id), CancellationToken.None));
     }
 
     [Test]
     public void Handle_GivenQuizNotFound_WhenCalled_ThenThrowsQuizNotFoundException()
     {
-        _currentUserService.UserId.Returns(_ownerId);
-        var command = new UpdateQuizCommand
-        {
-            Id = Guid.NewGuid(),
-            Title = "New Title",
-            Description = null,
-            Tags = []
-        };
-        _quizRepository.GetByIdAsync(command.Id, Arg.Any<CancellationToken>()).Returns((Quiz?)null);
+        var missingId = Guid.NewGuid();
+        _quizRepository.GetByIdAsync(missingId, Arg.Any<CancellationToken>()).Returns((Quiz?)null);
 
-        Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(command, CancellationToken.None));
+        Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(new PublishQuizCommand(missingId), CancellationToken.None));
+    }
+
+    [Test]
+    public void Handle_GivenNoCurrentUser_WhenCalled_ThenThrowsUnauthenticatedException()
+    {
+        _currentUserService.UserId.Returns((Guid?)null);
+
+        Assert.ThrowsAsync<UnauthenticatedException>(() => _sut.Handle(new PublishQuizCommand(_quiz.Id), CancellationToken.None));
     }
 }

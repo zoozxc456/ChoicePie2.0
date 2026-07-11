@@ -10,13 +10,13 @@ using NSubstitute;
 namespace ChoicePie.Backend.Application.Tests.Quizzes;
 
 [TestFixture]
-public class UpdateQuizCommandHandlerTests
+public class AddQuestionCommandHandlerTests
 {
     private IQuizRepository _quizRepository = null!;
     private IMemberRepository _memberRepository = null!;
     private ICurrentUserService _currentUserService = null!;
     private IUnitOfWork _unitOfWork = null!;
-    private UpdateQuizCommandHandler _sut = null!;
+    private AddQuestionCommandHandler _sut = null!;
     private readonly Guid _ownerId = Guid.NewGuid();
     private Quiz _quiz = null!;
 
@@ -27,35 +27,31 @@ public class UpdateQuizCommandHandlerTests
         _memberRepository = Substitute.For<IMemberRepository>();
         _currentUserService = Substitute.For<ICurrentUserService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new UpdateQuizCommandHandler(_quizRepository, _memberRepository, _currentUserService, _unitOfWork);
+        _sut = new AddQuestionCommandHandler(_quizRepository, _memberRepository, _currentUserService, _unitOfWork);
 
-        _quiz = Quiz.Create(_ownerId, "Old Title", null, "⚓", "g", Difficulty.Beginner, ["Old"]);
+        _quiz = Quiz.Create(_ownerId, "Title", null, "⚓", "g", Difficulty.Beginner, []);
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
+        _currentUserService.UserId.Returns(_ownerId);
     }
 
     [TearDown]
     public void TearDown() => _unitOfWork.Dispose();
 
-    private UpdateQuizCommand ValidCommand() => new()
+    private AddQuestionCommand ValidCommand() => new()
     {
-        Id = _quiz.Id,
-        Title = "New Title",
-        Description = "New Description",
-        Tags = ["New"]
+        QuizId = _quiz.Id,
+        Text = "2+2=?",
+        Options = ["1", "2", "3", "4"],
+        AnswerIndex = 3,
+        Explanation = "basic math"
     };
 
     [Test]
-    public async Task Handle_GivenOwner_WhenCalled_ThenUpdatesQuizAndPersists()
+    public async Task Handle_GivenOwner_WhenCalled_ThenAddsQuestionAndPersists()
     {
-        _currentUserService.UserId.Returns(_ownerId);
-
         var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Title, Is.EqualTo("New Title"));
-            Assert.That(result.Tags, Is.EqualTo(new[] { "New" }));
-        });
+        Assert.That(result.QuestionCount, Is.EqualTo(1));
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
@@ -70,15 +66,8 @@ public class UpdateQuizCommandHandlerTests
     [Test]
     public void Handle_GivenQuizNotFound_WhenCalled_ThenThrowsQuizNotFoundException()
     {
-        _currentUserService.UserId.Returns(_ownerId);
-        var command = new UpdateQuizCommand
-        {
-            Id = Guid.NewGuid(),
-            Title = "New Title",
-            Description = null,
-            Tags = []
-        };
-        _quizRepository.GetByIdAsync(command.Id, Arg.Any<CancellationToken>()).Returns((Quiz?)null);
+        var command = ValidCommand() with { QuizId = Guid.NewGuid() };
+        _quizRepository.GetByIdAsync(command.QuizId, Arg.Any<CancellationToken>()).Returns((Quiz?)null);
 
         Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(command, CancellationToken.None));
     }

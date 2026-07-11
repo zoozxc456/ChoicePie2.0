@@ -22,11 +22,13 @@ public class ListQuizzesQueryHandlerTests
     [Test]
     public async Task Handle_WhenCalled_ThenDelegatesToQuizQueryServiceWithRequestParametersAndReturnsItsResult()
     {
+        var ownerId = Guid.NewGuid();
         var expected = new PagedResult<QuizSummaryDto>([], 2, 5, 0);
-        _quizQueryService.ListAsync("Kubernetes", "search-term", 2, 5, Arg.Any<CancellationToken>()).Returns(expected);
+        _quizQueryService.ListAsync("Kubernetes", "search-term", ownerId, 2, 5, Arg.Any<CancellationToken>())
+            .Returns(expected);
 
         var result = await _sut.Handle(
-            new ListQuizzesQuery { Tag = "Kubernetes", Search = "search-term", PageNumber = 2, PageSize = 5 },
+            new ListQuizzesQuery { Tag = "Kubernetes", Search = "search-term", OwnerId = ownerId, PageNumber = 2, PageSize = 5 },
             CancellationToken.None);
 
         Assert.That(result, Is.SameAs(expected));

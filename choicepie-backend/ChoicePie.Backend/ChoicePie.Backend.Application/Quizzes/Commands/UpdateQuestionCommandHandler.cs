@@ -9,21 +9,21 @@ using MediatR;
 
 namespace ChoicePie.Backend.Application.Quizzes.Commands;
 
-public sealed class UpdateQuizCommandHandler(
+public sealed class UpdateQuestionCommandHandler(
     IQuizRepository quizRepository,
     IMemberRepository memberRepository,
     ICurrentUserService currentUserService,
     IUnitOfWork unitOfWork)
-    : IRequestHandler<UpdateQuizCommand, QuizDto>
+    : IRequestHandler<UpdateQuestionCommand, QuizDto>
 {
-    public async Task<QuizDto> Handle(UpdateQuizCommand request, CancellationToken cancellationToken)
+    public async Task<QuizDto> Handle(UpdateQuestionCommand request, CancellationToken cancellationToken)
     {
         var userId = currentUserService.UserId ?? throw new UnauthenticatedException();
-        var quiz = await quizRepository.GetByIdAsync(request.Id, cancellationToken)
-                   ?? throw new QuizNotFoundException(request.Id);
+        var quiz = await quizRepository.GetByIdAsync(request.QuizId, cancellationToken)
+                   ?? throw new QuizNotFoundException(request.QuizId);
 
         quiz.EnsureModifiableBy(userId);
-        quiz.UpdateDetails(request.Title, request.Description, request.Tags);
+        quiz.UpdateQuestion(request.QuestionId, request.Text, request.Options, request.AnswerIndex, request.Explanation);
 
         await quizRepository.UpdateAsync(quiz, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

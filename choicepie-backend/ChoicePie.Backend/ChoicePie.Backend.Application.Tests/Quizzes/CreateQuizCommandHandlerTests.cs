@@ -12,7 +12,7 @@ namespace ChoicePie.Backend.Application.Tests.Quizzes;
 [TestFixture]
 public class CreateQuizCommandHandlerTests
 {
-    private IRepository<Quiz> _quizRepository = null!;
+    private IQuizRepository _quizRepository = null!;
     private IMemberRepository _memberRepository = null!;
     private ICurrentUserService _currentUserService = null!;
     private IUnitOfWork _unitOfWork = null!;
@@ -22,7 +22,7 @@ public class CreateQuizCommandHandlerTests
     [SetUp]
     public void SetUp()
     {
-        _quizRepository = Substitute.For<IRepository<Quiz>>();
+        _quizRepository = Substitute.For<IQuizRepository>();
         _memberRepository = Substitute.For<IMemberRepository>();
         _currentUserService = Substitute.For<ICurrentUserService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
@@ -41,7 +41,6 @@ public class CreateQuizCommandHandlerTests
         CoverEmoji = "⚓",
         CoverGradient = "gradient",
         Difficulty = "beginner",
-        IsPublic = true,
         Tags = ["Kubernetes"],
         Questions =
         [
@@ -87,7 +86,6 @@ public class CreateQuizCommandHandlerTests
             CoverEmoji = command.CoverEmoji,
             CoverGradient = command.CoverGradient,
             Difficulty = "legendary",
-            IsPublic = command.IsPublic,
             Tags = command.Tags,
             Questions = command.Questions
         };

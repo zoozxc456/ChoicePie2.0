@@ -8,7 +8,7 @@ using MediatR;
 namespace ChoicePie.Backend.Application.Quizzes.Commands;
 
 public sealed class DeleteQuizCommandHandler(
-    IRepository<Quiz> quizRepository,
+    IQuizRepository quizRepository,
     ICurrentUserService currentUserService,
     IUnitOfWork unitOfWork)
     : IRequestHandler<DeleteQuizCommand>

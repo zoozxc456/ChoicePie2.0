@@ -12,7 +12,7 @@ using MediatR;
 namespace ChoicePie.Backend.Application.Quizzes.Commands;
 
 public sealed class CreateQuizCommandHandler(
-    IRepository<Quiz> quizRepository,
+    IQuizRepository quizRepository,
     IMemberRepository memberRepository,
     ICurrentUserService currentUserService,
     IUnitOfWork unitOfWork)
@@ -26,7 +26,7 @@ public sealed class CreateQuizCommandHandler(
 
         var quiz = Quiz.Create(
             userId, request.Title, request.Description, request.CoverEmoji, request.CoverGradient,
-            difficulty, request.IsPublic, request.Tags);
+            difficulty, request.Tags);
 
         foreach (var question in request.Questions)
         {
