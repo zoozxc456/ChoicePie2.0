@@ -15,14 +15,17 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\ChoicePie.Backend.Infrastructure\ChoicePie.Backend.Infrastructure.csproj" />
       <ProjectReference Include="..\ChoicePie.Backend.Shared.Hosting\ChoicePie.Backend.Shared.Hosting.csproj" />
       <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Caching\ChoicePie.Backend.Shared.Infrastructure.Caching.csproj" />
       <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Persistence\ChoicePie.Backend.Shared.Infrastructure.Persistence.csproj" />
+      <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Security\ChoicePie.Backend.Shared.Infrastructure.Security.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Asp.Versioning.Mvc" Version="10.0.0" />
+      <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
     </ItemGroup>
 
 </Project>

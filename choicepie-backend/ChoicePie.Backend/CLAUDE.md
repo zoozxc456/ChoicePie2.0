@@ -12,7 +12,7 @@ docker compose up --build                   # containerized run (WebApi Dockerfi
 
 There are no test projects yet. In Development, Scalar API docs are served at `/api-docs`.
 
-Runtime config is NOT in appsettings.json — the WebApi project uses user secrets. Required sections: `DatabaseConnections` (an **array** of `{ "Type": "NPGSQL", "ConnectionString": "..." }`; only the first entry is used and only `NPGSQL` is supported) and `RedisConnection:ConnectionString`.
+Runtime config is NOT in appsettings.json — the WebApi project uses user secrets. Required sections: `DatabaseConnections` (an **array** of `{ "Type": "NPGSQL", "ConnectionString": "..." }`; only the first entry is used and only `NPGSQL` is supported), `RedisConnection:ConnectionString`, and `Jwt:SigningKey` (the JWT HMAC signing key; `Jwt:Issuer`/`Jwt:Audience`/`Jwt:AccessTokenExpirationSeconds` have non-secret defaults in `appsettings.json`).
 
 ## Architecture
 
