@@ -7,5 +7,5 @@ public class JwtSettings : IAppSetting
     public required string SigningKey { get; set; }
     public required string Issuer { get; set; }
     public required string Audience { get; set; }
-    public int ExpirationMinutes { get; set; } = 60;
+    public int AccessTokenExpirationSeconds { get; set; } = 60;
 }
