@@ -33,9 +33,10 @@ public class CreateAdminUserCommandHandlerTests
             _adminUserRepository, _adminAuthAccountRepository, _passwordHasher, _unitOfWork, _currentAdminUserService);
 
         _currentAdminUserService.AdminUserId.Returns(Guid.NewGuid());
-        _adminAuthAccountRepository.ExistsAsync(Arg.Any<AdminAuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
+        _adminAuthAccountRepository
+            .ExistsAsync(Arg.Any<AdminAuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(false);
-        _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed-password");
+        _passwordHasher.Hash(Arg.Any<string>()).Returns(("hashed-password", "salt"));
     }
 
     [TearDown]
@@ -62,7 +63,8 @@ public class CreateAdminUserCommandHandlerTests
             Arg.Is<AdminUser>(a => a.Name == "Ops Name" && a.Role == AdminRole.Staff),
             Arg.Any<CancellationToken>());
         await _adminAuthAccountRepository.Received(1).AddAsync(
-            Arg.Is<AdminAuthAccount>(a => a.Email.Value == "admin@example.com" && a.OriginalPasswordHash == "hashed-password"),
+            Arg.Is<AdminAuthAccount>(a =>
+                a.Email.Value == "admin@example.com" && a.OriginalPasswordHash == "hashed-password"),
             Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -73,7 +75,8 @@ public class CreateAdminUserCommandHandlerTests
         AdminUser? capturedAdminUser = null;
         AdminAuthAccount? capturedAdminAuthAccount = null;
         _ = _adminUserRepository.AddAsync(Arg.Do<AdminUser>(a => capturedAdminUser = a), Arg.Any<CancellationToken>());
-        _ = _adminAuthAccountRepository.AddAsync(Arg.Do<AdminAuthAccount>(a => capturedAdminAuthAccount = a), Arg.Any<CancellationToken>());
+        _ = _adminAuthAccountRepository.AddAsync(Arg.Do<AdminAuthAccount>(a => capturedAdminAuthAccount = a),
+            Arg.Any<CancellationToken>());
 
         await _sut.Handle(ValidCommand(), CancellationToken.None);
 
@@ -105,7 +108,8 @@ public class CreateAdminUserCommandHandlerTests
     [Test]
     public void Handle_GivenEmailAlreadyRegistered_WhenCalled_ThenThrowsEmailAlreadyRegisteredException()
     {
-        _adminAuthAccountRepository.ExistsAsync(Arg.Any<AdminAuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
+        _adminAuthAccountRepository
+            .ExistsAsync(Arg.Any<AdminAuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
         Assert.ThrowsAsync<EmailAlreadyRegisteredException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
@@ -114,7 +118,8 @@ public class CreateAdminUserCommandHandlerTests
     [Test]
     public async Task Handle_GivenEmailAlreadyRegistered_WhenCalled_ThenDoesNotPersistAdminUserOrAdminAuthAccount()
     {
-        _adminAuthAccountRepository.ExistsAsync(Arg.Any<AdminAuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
+        _adminAuthAccountRepository
+            .ExistsAsync(Arg.Any<AdminAuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
         try
@@ -127,7 +132,8 @@ public class CreateAdminUserCommandHandlerTests
         }
 
         await _adminUserRepository.DidNotReceive().AddAsync(Arg.Any<AdminUser>(), Arg.Any<CancellationToken>());
-        await _adminAuthAccountRepository.DidNotReceive().AddAsync(Arg.Any<AdminAuthAccount>(), Arg.Any<CancellationToken>());
+        await _adminAuthAccountRepository.DidNotReceive()
+            .AddAsync(Arg.Any<AdminAuthAccount>(), Arg.Any<CancellationToken>());
     }
 
     [Test]

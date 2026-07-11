@@ -10,7 +10,7 @@ public class LoginMethodTests
     [Test]
     public void CreateOriginal_GivenPasswordHash_WhenCalled_ThenReturnsOriginalLoginMethod()
     {
-        var loginMethod = LoginMethod.CreateOriginal("hashed-password");
+        var loginMethod = LoginMethod.CreateOriginal("hashed-password", "salt");
 
         Assert.Multiple(() =>
         {

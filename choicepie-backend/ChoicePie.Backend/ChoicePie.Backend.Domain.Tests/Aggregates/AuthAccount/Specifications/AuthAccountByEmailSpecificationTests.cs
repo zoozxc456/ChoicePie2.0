@@ -11,7 +11,7 @@ public class AuthAccountByEmailSpecificationTests
     public void ToExpression_GivenAuthAccountWithMatchingEmail_WhenCompiledAndInvoked_ThenReturnsTrue()
     {
         var email = Email.Create("host@example.com");
-        var authAccount = AuthAccountAggregate.Register(email, "hashed-password", Guid.NewGuid());
+        var authAccount = AuthAccountAggregate.Register(email, "hashed-password", "salt", Guid.NewGuid());
         var specification = new AuthAccountByEmailSpecification(email);
 
         var isMatch = specification.ToExpression().Compile()(authAccount);
@@ -22,7 +22,8 @@ public class AuthAccountByEmailSpecificationTests
     [Test]
     public void ToExpression_GivenAuthAccountWithDifferentEmail_WhenCompiledAndInvoked_ThenReturnsFalse()
     {
-        var authAccount = AuthAccountAggregate.Register(Email.Create("host@example.com"), "hashed-password", Guid.NewGuid());
+        var authAccount =
+            AuthAccountAggregate.Register(Email.Create("host@example.com"), "hashed-password", "salt", Guid.NewGuid());
         var specification = new AuthAccountByEmailSpecification(Email.Create("someone-else@example.com"));
 
         var isMatch = specification.ToExpression().Compile()(authAccount);

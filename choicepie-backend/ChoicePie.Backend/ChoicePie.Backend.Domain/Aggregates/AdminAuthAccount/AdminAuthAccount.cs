@@ -19,11 +19,14 @@ public sealed class AdminAuthAccount : AggregateRoot<Guid>
     public string? OriginalPasswordHash =>
         _loginMethods.SingleOrDefault(m => m.Provider == AdminLoginProvider.Original)?.PasswordHash;
 
+    public string? OriginalPasswordSalt =>
+        _loginMethods.SingleOrDefault(m => m.Provider == AdminLoginProvider.Original)?.Salt;
+
     private AdminAuthAccount()
     {
     }
 
-    public static AdminAuthAccount Create(Email email, string passwordHash, Guid adminUserId)
+    public static AdminAuthAccount Create(Email email, string passwordHash, string salt, Guid adminUserId)
     {
         var adminAuthAccount = new AdminAuthAccount
         {
@@ -34,8 +37,9 @@ public sealed class AdminAuthAccount : AggregateRoot<Guid>
         };
 
         adminAuthAccount.SetCreated(adminAuthAccount.Id);
-        adminAuthAccount._loginMethods.Add(AdminLoginMethod.CreateOriginal(passwordHash));
-        adminAuthAccount.AddDomainEvent(new AdminAuthAccountCreatedDomainEvent(adminAuthAccount.Id, adminUserId, email.Value));
+        adminAuthAccount._loginMethods.Add(AdminLoginMethod.CreateOriginal(passwordHash, salt));
+        adminAuthAccount.AddDomainEvent(
+            new AdminAuthAccountCreatedDomainEvent(adminAuthAccount.Id, adminUserId, email.Value));
 
         return adminAuthAccount;
     }

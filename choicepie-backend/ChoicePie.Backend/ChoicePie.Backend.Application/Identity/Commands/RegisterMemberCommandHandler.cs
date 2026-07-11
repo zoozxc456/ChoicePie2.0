@@ -21,15 +21,16 @@ public sealed class RegisterMemberCommandHandler(
     {
         var email = Email.Create(request.Email);
 
-        var alreadyRegistered = await authAccountRepository.ExistsAsync(new AuthAccountByEmailSpecification(email), cancellationToken);
+        var alreadyRegistered =
+            await authAccountRepository.ExistsAsync(new AuthAccountByEmailSpecification(email), cancellationToken);
         if (alreadyRegistered)
         {
             throw new EmailAlreadyRegisteredException(email.Value);
         }
 
         var member = Member.Create(request.Name);
-        var passwordHash = passwordHasher.Hash(request.Password);
-        var authAccount = AuthAccount.Register(email, passwordHash, member.Id);
+        var (passwordHash, salt) = passwordHasher.Hash(request.Password);
+        var authAccount = AuthAccount.Register(email, passwordHash, salt, member.Id);
 
         await memberRepository.AddAsync(member, cancellationToken);
         await authAccountRepository.AddAsync(authAccount, cancellationToken);

@@ -11,7 +11,8 @@ public class AdminAuthAccountByAdminUserIdSpecificationTests
     public void ToExpression_GivenAdminAuthAccountWithMatchingAdminUserId_WhenCompiledAndInvoked_ThenReturnsTrue()
     {
         var adminUserId = Guid.NewGuid();
-        var adminAuthAccount = AdminAuthAccountAggregate.Create(Email.Create("admin@example.com"), "hashed-password", adminUserId);
+        var adminAuthAccount = AdminAuthAccountAggregate.Create(Email.Create("admin@example.com"), "hashed-password",
+            "salt", adminUserId);
         var specification = new AdminAuthAccountByAdminUserIdSpecification(adminUserId);
 
         var isMatch = specification.ToExpression().Compile()(adminAuthAccount);
@@ -22,7 +23,9 @@ public class AdminAuthAccountByAdminUserIdSpecificationTests
     [Test]
     public void ToExpression_GivenAdminAuthAccountWithDifferentAdminUserId_WhenCompiledAndInvoked_ThenReturnsFalse()
     {
-        var adminAuthAccount = AdminAuthAccountAggregate.Create(Email.Create("admin@example.com"), "hashed-password", Guid.NewGuid());
+        var adminAuthAccount =
+            AdminAuthAccountAggregate.Create(Email.Create("admin@example.com"), "hashed-password", "salt",
+                Guid.NewGuid());
         var specification = new AdminAuthAccountByAdminUserIdSpecification(Guid.NewGuid());
 
         var isMatch = specification.ToExpression().Compile()(adminAuthAccount);

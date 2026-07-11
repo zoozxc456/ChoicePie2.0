@@ -12,7 +12,7 @@ public class AdminAuthAccountTests
     private static readonly Guid AdminUserId = Guid.NewGuid();
 
     private static AdminAuthAccountAggregate CreateAdminAuthAccount() =>
-        AdminAuthAccountAggregate.Create(Email.Create("admin@example.com"), "hashed-password", AdminUserId);
+        AdminAuthAccountAggregate.Create(Email.Create("admin@example.com"), "hashed-password", "salt", AdminUserId);
 
     [Test]
     public void Create_GivenValidInput_WhenCalled_ThenCreatesAdminAuthAccountWithExpectedFields()

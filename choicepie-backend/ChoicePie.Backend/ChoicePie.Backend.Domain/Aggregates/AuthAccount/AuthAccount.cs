@@ -19,11 +19,15 @@ public sealed class AuthAccount : AggregateRoot<Guid>
     public string? OriginalPasswordHash =>
         _loginMethods.SingleOrDefault(m => m.Provider == LoginProvider.Original)?.PasswordHash;
 
+    public string? OriginalPasswordSalt =>
+        _loginMethods.SingleOrDefault(m => m.Provider == LoginProvider.Original)?.Salt;
+
+
     private AuthAccount()
     {
     }
 
-    public static AuthAccount Register(Email email, string passwordHash, Guid memberId)
+    public static AuthAccount Register(Email email, string passwordHash, string salt, Guid memberId)
     {
         var authAccount = new AuthAccount
         {
@@ -34,7 +38,7 @@ public sealed class AuthAccount : AggregateRoot<Guid>
         };
 
         authAccount.SetCreated(authAccount.Id);
-        authAccount._loginMethods.Add(LoginMethod.CreateOriginal(passwordHash));
+        authAccount._loginMethods.Add(LoginMethod.CreateOriginal(passwordHash, salt));
         authAccount.AddDomainEvent(new AuthAccountRegisteredDomainEvent(authAccount.Id, memberId, email.Value));
 
         return authAccount;
