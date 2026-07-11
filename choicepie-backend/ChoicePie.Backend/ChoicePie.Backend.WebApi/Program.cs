@@ -6,7 +6,9 @@ using ChoicePie.Backend.Shared.Infrastructure.Caching.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Extensions;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
 using ChoicePie.Backend.Shared.Kernel.Auth;
+using ChoicePie.Backend.WebApi.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +51,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
+
+        // SignalR 的瀏覽器端 WebSocket/SSE 連線無法附加 Authorization header，
+        // client 改以 querystring 帶 access_token，這裡讓 JWT 中介軟體改從那裡讀 token。
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    context.HttpContext.Request.Path.StartsWithSegments("/api/gamehub"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorizationBuilder()
@@ -66,6 +85,9 @@ builder.Services.AddChoicePieCaching(builder.Configuration);
 builder.Services.AddSharedDbContextPool<ChoicePieDbContext>(builder.Configuration)
     .AddSharedPersistence<ChoicePieDbContext>();
 
+builder.Services.AddSingleton<DomainExceptionHubFilter>();
+builder.Services.AddSignalR(options => options.AddFilter<DomainExceptionHubFilter>());
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -82,5 +104,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<GameHub>("/api/gamehub");
 
 app.Run();
