@@ -12,7 +12,7 @@ public class AuthAccountByMemberIdSpecificationTests
     {
         var memberId = Guid.NewGuid();
         var authAccount =
-            AuthAccountAggregate.Register(Email.Create("host@example.com"), "hashed-password", "salt", memberId);
+            AuthAccountAggregate.Register(Email.Create("host@example.com"), HashedPassword.Create("hashed-password", "salt"), memberId);
         var specification = new AuthAccountByMemberIdSpecification(memberId);
 
         var isMatch = specification.ToExpression().Compile()(authAccount);
@@ -24,7 +24,7 @@ public class AuthAccountByMemberIdSpecificationTests
     public void ToExpression_GivenAuthAccountWithDifferentMemberId_WhenCompiledAndInvoked_ThenReturnsFalse()
     {
         var authAccount =
-            AuthAccountAggregate.Register(Email.Create("host@example.com"), "hashed-password", "salt", Guid.NewGuid());
+            AuthAccountAggregate.Register(Email.Create("host@example.com"), HashedPassword.Create("hashed-password", "salt"), Guid.NewGuid());
         var specification = new AuthAccountByMemberIdSpecification(Guid.NewGuid());
 
         var isMatch = specification.ToExpression().Compile()(authAccount);

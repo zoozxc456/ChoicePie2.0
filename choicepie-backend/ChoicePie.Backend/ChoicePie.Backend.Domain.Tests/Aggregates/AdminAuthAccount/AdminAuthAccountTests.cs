@@ -12,7 +12,8 @@ public class AdminAuthAccountTests
     private static readonly Guid AdminUserId = Guid.NewGuid();
 
     private static AdminAuthAccountAggregate CreateAdminAuthAccount() =>
-        AdminAuthAccountAggregate.Create(Email.Create("admin@example.com"), "hashed-password", "salt", AdminUserId);
+        AdminAuthAccountAggregate.Create(
+            Email.Create("admin@example.com"), HashedPassword.Create("hashed-password", "salt"), AdminUserId);
 
     [Test]
     public void Create_GivenValidInput_WhenCalled_ThenCreatesAdminAuthAccountWithExpectedFields()
@@ -45,11 +46,11 @@ public class AdminAuthAccountTests
     }
 
     [Test]
-    public void OriginalPasswordHash_GivenCreatedAccount_WhenRead_ThenReturnsPasswordHash()
+    public void OriginalPassword_GivenCreatedAccount_WhenRead_ThenReturnsHashedPassword()
     {
         var adminAuthAccount = CreateAdminAuthAccount();
 
-        Assert.That(adminAuthAccount.OriginalPasswordHash, Is.EqualTo("hashed-password"));
+        Assert.That(adminAuthAccount.OriginalPassword, Is.EqualTo(HashedPassword.Create("hashed-password", "salt")));
     }
 
     [Test]

@@ -16,17 +16,14 @@ public sealed class AdminAuthAccount : AggregateRoot<Guid>
     public bool IsVerified { get; private set; }
     public IReadOnlyList<AdminLoginMethod> LoginMethods => _loginMethods.AsReadOnly();
 
-    public string? OriginalPasswordHash =>
-        _loginMethods.SingleOrDefault(m => m.Provider == AdminLoginProvider.Original)?.PasswordHash;
-
-    public string? OriginalPasswordSalt =>
-        _loginMethods.SingleOrDefault(m => m.Provider == AdminLoginProvider.Original)?.Salt;
+    public HashedPassword? OriginalPassword =>
+        _loginMethods.SingleOrDefault(m => m.Provider == AdminLoginProvider.Original)?.Password;
 
     private AdminAuthAccount()
     {
     }
 
-    public static AdminAuthAccount Create(Email email, string passwordHash, string salt, Guid adminUserId)
+    public static AdminAuthAccount Create(Email email, HashedPassword password, Guid adminUserId)
     {
         var adminAuthAccount = new AdminAuthAccount
         {
@@ -37,7 +34,7 @@ public sealed class AdminAuthAccount : AggregateRoot<Guid>
         };
 
         adminAuthAccount.SetCreated(adminAuthAccount.Id);
-        adminAuthAccount._loginMethods.Add(AdminLoginMethod.CreateOriginal(passwordHash, salt));
+        adminAuthAccount._loginMethods.Add(AdminLoginMethod.CreateOriginal(password));
         adminAuthAccount.AddDomainEvent(
             new AdminAuthAccountCreatedDomainEvent(adminAuthAccount.Id, adminUserId, email.Value));
 
