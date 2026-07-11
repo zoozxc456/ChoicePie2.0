@@ -17,17 +17,16 @@ public sealed class Quiz : AggregateRoot<Guid>
     public string CoverEmoji { get; private set; } = null!;
     public string CoverGradient { get; private set; } = null!;
     public Difficulty Difficulty { get; private set; } = null!;
-    public bool IsPublic { get; private set; }
+    public QuizStatus Status { get; private set; } = null!;
 
     // Reuses the inherited audit CreatorId (set by SetCreated below) rather than storing the
     // owner twice - the creator IS the owner for authorization purposes in this phase.
     [NotMapped]
     public Guid OwnerId => CreatorId!.Value;
 
-    // Derived from a future History bounded context this aggregate can't see yet. Updated by a
-    // future Quiz.RecordChallengeOutcome(...) called from an INotificationHandler in a later
-    // phase. EfUnitOfWork dispatches domain events after commit, outside any transaction, so that
-    // future handler must be idempotent (at-least-once delivery) - don't assume exactly-once.
+    // Updated by RecordChallengeOutcome, called from a QuizAttemptCompletedDomainEvent handler.
+    // EfUnitOfWork dispatches domain events after commit, outside any transaction, so that
+    // handler is at-least-once delivery, not exactly-once - best effort, not deduplicated.
     public int ChallengeCount { get; private set; }
     public decimal PassRate { get; private set; }
 
@@ -50,7 +49,6 @@ public sealed class Quiz : AggregateRoot<Guid>
         string coverEmoji,
         string coverGradient,
         Difficulty difficulty,
-        bool isPublic,
         IEnumerable<string> tags)
     {
         ValidateTitle(title);
@@ -63,7 +61,7 @@ public sealed class Quiz : AggregateRoot<Guid>
             CoverEmoji = coverEmoji,
             CoverGradient = coverGradient,
             Difficulty = difficulty,
-            IsPublic = isPublic,
+            Status = QuizStatus.Draft,
             ChallengeCount = 0,
             PassRate = 0
         };
@@ -85,23 +83,39 @@ public sealed class Quiz : AggregateRoot<Guid>
 
     public void AddQuestion(Question question)
     {
+        EnsureQuestionsEditable();
+
         _questions.Add(question);
         Touch();
     }
 
     public void RemoveQuestion(Guid questionId)
     {
+        EnsureQuestionsEditable();
+
         _questions.RemoveAll(q => q.Id == questionId);
         Touch();
     }
 
-    public void UpdateDetails(string title, string? description, bool isPublic, IEnumerable<string> tags)
+    public void UpdateQuestion(Guid questionId, string text, IReadOnlyList<string> options, int answerIndex,
+        string explanation)
     {
+        EnsureQuestionsEditable();
+
+        var question = _questions.SingleOrDefault(q => q.Id == questionId)
+                        ?? throw new InvalidQuestionException("找不到指定的題目。");
+
+        question.Update(text, options, answerIndex, explanation);
+        Touch();
+    }
+
+    public void UpdateDetails(string title, string? description, IEnumerable<string> tags)
+    {
+        EnsureEditable();
         ValidateTitle(title);
 
         Title = title;
         Description = description;
-        IsPublic = isPublic;
 
         _tags.Clear();
         _tags.AddRange(tags.Distinct(StringComparer.OrdinalIgnoreCase));
@@ -111,14 +125,67 @@ public sealed class Quiz : AggregateRoot<Guid>
 
     public void Publish()
     {
-        IsPublic = true;
+        if (Status != QuizStatus.Draft)
+        {
+            throw new InvalidQuizException("只有草稿狀態的題庫可以發布。");
+        }
+
+        if (QuestionCount == 0)
+        {
+            throw new InvalidQuizException("題庫至少需要一題才能發布。");
+        }
+
+        Status = QuizStatus.Published;
         Touch();
     }
 
     public void Unpublish()
     {
-        IsPublic = false;
+        if (Status != QuizStatus.Published)
+        {
+            throw new InvalidQuizException("只有已發布狀態的題庫可以取消發布。");
+        }
+
+        Status = QuizStatus.Draft;
         Touch();
+    }
+
+    public void Archive()
+    {
+        if (Status == QuizStatus.Archived)
+        {
+            throw new InvalidQuizException("題庫已經是封存狀態。");
+        }
+
+        Status = QuizStatus.Archived;
+        Touch();
+    }
+
+    public void RecordChallengeOutcome(bool passed)
+    {
+        var previousChallengeCount = ChallengeCount;
+        ChallengeCount++;
+
+        var previousPassedTotal = PassRate * previousChallengeCount;
+        PassRate = (previousPassedTotal + (passed ? 100m : 0m)) / ChallengeCount;
+    }
+
+    private void EnsureEditable()
+    {
+        if (Status == QuizStatus.Archived)
+        {
+            throw new InvalidQuizException("封存狀態的題庫無法修改。");
+        }
+    }
+
+    private void EnsureQuestionsEditable()
+    {
+        EnsureEditable();
+
+        if (Status == QuizStatus.Published)
+        {
+            throw new InvalidQuizException("已發布的題庫無法修改題目，請先取消發布。");
+        }
     }
 
     private static void ValidateTitle(string title)

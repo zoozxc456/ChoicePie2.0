@@ -54,4 +54,28 @@ public class QuestionTests
     {
         Assert.Throws<InvalidQuestionException>(() => Question.Create("   ", FourOptions, 0, "because"));
     }
+
+    [Test]
+    public void Update_GivenValidInput_WhenCalled_ThenReplacesFields()
+    {
+        var question = Question.Create("2+2=?", FourOptions, 1, "因為 2+2=4");
+
+        question.Update("3+3=?", ["4", "5", "6", "7"], 2, "因為 3+3=6");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(question.Text, Is.EqualTo("3+3=?"));
+            Assert.That(question.Options, Is.EqualTo(new[] { "4", "5", "6", "7" }));
+            Assert.That(question.AnswerIndex, Is.EqualTo(2));
+            Assert.That(question.Explanation, Is.EqualTo("因為 3+3=6"));
+        });
+    }
+
+    [Test]
+    public void Update_GivenBlankText_WhenCalled_ThenThrowsInvalidQuestionException()
+    {
+        var question = Question.Create("2+2=?", FourOptions, 1, "因為 2+2=4");
+
+        Assert.Throws<InvalidQuestionException>(() => question.Update("   ", FourOptions, 0, "because"));
+    }
 }

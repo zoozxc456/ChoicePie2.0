@@ -3,13 +3,13 @@ using ChoicePie.Backend.Shared.Kernel.Primitives;
 
 namespace ChoicePie.Backend.Domain.Aggregates.Quiz.Entities;
 
-public sealed class Question:AuditableEntity<Guid>
+public sealed class Question : AuditableEntity<Guid>
 {
     public const int RequiredOptionCount = 4;
-    public string Text { get; }
-    public IReadOnlyList<string> Options { get; }
-    public int AnswerIndex { get; }
-    public string Explanation { get; }
+    public string Text { get; private set; }
+    public IReadOnlyList<string> Options { get; private set; }
+    public int AnswerIndex { get; private set; }
+    public string Explanation { get; private set; }
 
     private Question(Guid id, string text, IReadOnlyList<string> options, int answerIndex, string explanation)
     {
@@ -21,6 +21,23 @@ public sealed class Question:AuditableEntity<Guid>
     }
 
     public static Question Create(string text, IReadOnlyList<string> options, int answerIndex, string explanation)
+    {
+        Validate(text, options, answerIndex);
+
+        return new Question(Guid.NewGuid(), text, options, answerIndex, explanation);
+    }
+
+    public void Update(string text, IReadOnlyList<string> options, int answerIndex, string explanation)
+    {
+        Validate(text, options, answerIndex);
+
+        Text = text;
+        Options = options;
+        AnswerIndex = answerIndex;
+        Explanation = explanation;
+    }
+
+    private static void Validate(string text, IReadOnlyList<string> options, int answerIndex)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -36,7 +53,5 @@ public sealed class Question:AuditableEntity<Guid>
         {
             throw new InvalidQuestionException("答案索引超出選項範圍。");
         }
-
-        return new Question(Guid.NewGuid(), text, options, answerIndex, explanation);
     }
 }
