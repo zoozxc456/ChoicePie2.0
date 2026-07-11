@@ -33,9 +33,8 @@ public sealed class LoginCommandHandler(
                 cancellationToken)
             ?? throw new InvalidCredentialsException();
 
-        if (authAccount.OriginalPasswordHash is not { } passwordHash ||
-            authAccount.OriginalPasswordSalt is not { } salt ||
-            !passwordHasher.Verify(request.Password, passwordHash, salt))
+        if (authAccount.OriginalPassword is not { } hashedPassword ||
+            !passwordHasher.Verify(request.Password, hashedPassword))
         {
             throw new InvalidCredentialsException();
         }

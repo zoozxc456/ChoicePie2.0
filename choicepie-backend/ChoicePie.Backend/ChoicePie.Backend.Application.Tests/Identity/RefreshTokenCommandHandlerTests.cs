@@ -42,7 +42,8 @@ public class RefreshTokenCommandHandlerTests
             _tokenService, _refreshTokenGenerator, _unitOfWork);
 
         _member = Member.Create("Host Name");
-        _authAccount = AuthAccount.Register(Email.Create("host@example.com"), "hashed-password", "salt", _member.Id);
+        _authAccount = AuthAccount.Register(
+            Email.Create("host@example.com"), HashedPassword.Create("hashed-password", "salt"), _member.Id);
         _existingRefreshToken =
             RefreshTokenAggregate.Issue(_member.Id, RefreshTokenOwnerType.Member, "old-hash", DateTime.UtcNow);
 

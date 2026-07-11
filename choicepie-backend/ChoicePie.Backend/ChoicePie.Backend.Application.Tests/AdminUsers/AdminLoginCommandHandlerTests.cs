@@ -42,8 +42,8 @@ public class AdminLoginCommandHandlerTests
             _refreshTokenRepository, _passwordHasher, _tokenService, _refreshTokenGenerator, _unitOfWork);
 
         _adminUser = AdminUser.Create("Ops Name", AdminRole.Staff);
-        _adminAuthAccount =
-            AdminAuthAccount.Create(Email.Create("admin@example.com"), "hashed-password", "salt", _adminUser.Id);
+        _adminAuthAccount = AdminAuthAccount.Create(
+            Email.Create("admin@example.com"), HashedPassword.Create("hashed-password", "salt"), _adminUser.Id);
         _adminAuthAccountRepository
             .FirstOrDefaultAsync(Arg.Any<AdminAuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(_adminAuthAccount);
@@ -63,7 +63,7 @@ public class AdminLoginCommandHandlerTests
     [Test]
     public async Task Handle_GivenValidCredentials_WhenCalled_ThenReturnsAdminUserAndTokens()
     {
-        _passwordHasher.Verify("correct-password", "hashed-password", "salt").Returns(true);
+        _passwordHasher.Verify("correct-password", HashedPassword.Create("hashed-password", "salt")).Returns(true);
         _tokenService.GenerateAccessToken(_adminUser).Returns("jwt-access-token");
 
         var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
@@ -79,7 +79,7 @@ public class AdminLoginCommandHandlerTests
     [Test]
     public async Task Handle_GivenValidCredentials_WhenCalled_ThenPersistsRefreshTokenForAdminUser()
     {
-        _passwordHasher.Verify("correct-password", "hashed-password", "salt").Returns(true);
+        _passwordHasher.Verify("correct-password", HashedPassword.Create("hashed-password", "salt")).Returns(true);
         _tokenService.GenerateAccessToken(_adminUser).Returns("jwt-access-token");
 
         await _sut.Handle(ValidCommand(), CancellationToken.None);
@@ -103,7 +103,7 @@ public class AdminLoginCommandHandlerTests
     [Test]
     public void Handle_GivenWrongPassword_WhenCalled_ThenThrowsInvalidCredentialsException()
     {
-        _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+        _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<HashedPassword>()).Returns(false);
 
         Assert.ThrowsAsync<InvalidCredentialsException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }

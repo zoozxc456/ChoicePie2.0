@@ -36,8 +36,8 @@ public sealed class CreateAdminUserCommandHandler(
         }
 
         var adminUser = AdminUser.Create(request.Name, role);
-        var (passwordHash, salt) = passwordHasher.Hash(request.Password);
-        var adminAuthAccount = AdminAuthAccount.Create(email, passwordHash, salt, adminUser.Id);
+        var hashedPassword = passwordHasher.Hash(request.Password);
+        var adminAuthAccount = AdminAuthAccount.Create(email, hashedPassword, adminUser.Id);
 
         await adminUserRepository.AddAsync(adminUser, cancellationToken);
         await adminAuthAccountRepository.AddAsync(adminAuthAccount, cancellationToken);
