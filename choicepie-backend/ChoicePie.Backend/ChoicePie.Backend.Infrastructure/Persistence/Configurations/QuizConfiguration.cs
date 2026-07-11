@@ -32,13 +32,29 @@ public sealed class QuizConfiguration : AuditableEntityConfiguration<Quiz>
             .HasColumnType("text[]")
             .Metadata.SetValueComparer(stringListComparer);
 
+        builder.OwnsOne(q => q.Stats, stats =>
+        {
+            stats.Property(s => s.Count).HasColumnName("ChallengeCount").IsRequired();
+            stats.Property(s => s.PassRate).HasColumnName("PassRate").IsRequired();
+        });
+
+        builder.OwnsOne(q => q.Cover, cover =>
+        {
+            cover.Property(c => c.Emoji).HasColumnName("CoverEmoji").IsRequired();
+            cover.Property(c => c.Gradient).HasColumnName("CoverGradient").IsRequired();
+        });
+
         builder.OwnsMany(q => q.Questions, question =>
         {
             question.WithOwner().HasForeignKey("QuizId");
 
-            question.Property(q => q.Options)
-                .HasColumnType("text[]")
-                .Metadata.SetValueComparer(stringListComparer);
+            question.OwnsOne(q => q.Choices, choices =>
+            {
+                choices.Property(c => c.Options)
+                    .HasColumnType("text[]")
+                    .Metadata.SetValueComparer(stringListComparer);
+                choices.Property(c => c.AnswerIndex).IsRequired();
+            });
         });
     }
 }
