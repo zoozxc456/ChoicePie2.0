@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <UserSecretsId>a4254835-b771-4d89-b77e-276ae2f0b6d5</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ChoicePie.Backend.Infrastructure\ChoicePie.Backend.Infrastructure.csproj" />
+      <ProjectReference Include="..\ChoicePie.Backend.Shared.Hosting\ChoicePie.Backend.Shared.Hosting.csproj" />
+      <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Caching\ChoicePie.Backend.Shared.Infrastructure.Caching.csproj" />
+      <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Persistence\ChoicePie.Backend.Shared.Infrastructure.Persistence.csproj" />
+      <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Security\ChoicePie.Backend.Shared.Infrastructure.Security.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Asp.Versioning.Mvc" Version="10.0.0" />
+      <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+</Project>
