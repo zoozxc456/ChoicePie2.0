@@ -2,7 +2,7 @@ using ChoicePie.Backend.Shared.Kernel.Primitives;
 
 namespace ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Entities;
 
-public sealed class QuizAttemptAnswer : Entity<Guid>
+public sealed class QuizAttemptAnswer : AuditableEntity<Guid>
 {
     public Guid QuestionId { get; private set; }
     public int SelectedOptionIndex { get; private set; }

@@ -6,13 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 dotnet build ChoicePie.Backend.sln          # build everything
+dotnet test ChoicePie.Backend.sln           # run all test projects
 dotnet run --project ChoicePie.Backend.WebApi   # run the API (http://localhost:5185)
 docker compose up --build                   # containerized run (WebApi Dockerfile)
 ```
 
-There are no test projects yet. In Development, Scalar API docs are served at `/api-docs`.
+Test projects mirror every product project (`Domain.Tests`, `Application.Tests`, `Infrastructure.Tests`, `Shared.Kernel.Tests`, `Shared.Application.Tests`, `WebApi.Tests`). All use NUnit3; `Domain/Application/Infrastructure/Shared.*.Tests` additionally use NSubstitute + ExpectedObjects for unit tests. `WebApi.Tests` is the exception — it uses `Microsoft.AspNetCore.Mvc.Testing` (`WebApplicationFactory<Program>`, `Program` is `partial` for this reason) + `Testcontainers.PostgreSql` to spin up a real Postgres container and run true HTTP/DB integration tests (`CustomWebApplicationFactory.cs`), not mocks. In Development, Scalar API docs are served at `/api-docs`.
 
-Runtime config is NOT in appsettings.json — the WebApi project uses user secrets. Required sections: `DatabaseConnections` (an **array** of `{ "Type": "NPGSQL", "ConnectionString": "..." }`; only the first entry is used and only `NPGSQL` is supported), `RedisConnection:ConnectionString`, and `Jwt:SigningKey` (the JWT HMAC signing key; `Jwt:Issuer`/`Jwt:Audience`/`Jwt:AccessTokenExpirationSeconds` have non-secret defaults in `appsettings.json`).
+Runtime config is NOT in appsettings.json — the WebApi project uses user secrets. Required sections: `DatabaseConnections` (an **array** of `{ "Type": "NPGSQL", "ConnectionString": "..." }`; only the first entry is used and only `NPGSQL` is supported), `RedisConnection:ConnectionString`, and `Jwt:SigningKey` (the JWT HMAC signing key; `Jwt:Issuer`/`Jwt:Audience`/`Jwt:AccessTokenExpirationSeconds` have non-secret defaults in `appsettings.json`). `Cors:AllowedOrigins` (string array) also has a non-secret default (`["http://localhost:3000"]`) in `appsettings.json`.
 
 ## Architecture
 
@@ -25,8 +26,12 @@ Projects split into two groups:
   - `Shared.Application` — MediatR contracts, `DomainEventNotification<T>`, `ICachingService`, paging contracts (`PagedResult`, `PaginationParameters`).
   - `Shared.Infrastructure.Persistence` — EF Core: `EfGenericRepository`, `EfUnitOfWork`, Npgsql registration, auditable-entity configurations.
   - `Shared.Infrastructure.Caching` — `HybridCachingService` (L1 memory ~3 min, L2 Redis ~30 min, key prefix `ChoicePie_`).
+  - `Shared.Infrastructure.Security` — `Hashers/Argo2IdPasswordHasher` (Argon2id via Konscious.Security.Cryptography, 64MB/4 iterations/2-way parallelism, constant-time compare) and `Tokens/RefreshTokenGenerator` (32 random bytes as the raw token, SHA-256 hex digest persisted server-side).
   - `Shared.Hosting` — ASP.NET Core cross-cutting: `ApiResponse<T>` envelope (`Code`/`Status`/`Data`/`Message`), global exception handler chain (`DomainException` → `BadRequest` → default, via `IExceptionHandler` + ProblemDetails), Scalar/OpenAPI setup, custom JSON converters, Scrutor DI scanning.
-- **Product slice** — `Domain`, `Application`, `Infrastructure`, `WebApi`. Mostly empty scaffolds so far (each has an `AssemblyReference` marker class used for assembly scanning). Dependency direction: `WebApi → Infrastructure → Application → Domain → Shared.Kernel`; each layer may also reference its matching `Shared.*` project. Never point an inner layer at an outer one.
+- **Product slice** — `Domain`, `Application`, `Infrastructure`, `WebApi` (each has an `AssemblyReference` marker class used for assembly scanning). Dependency direction: `WebApi → Infrastructure → Application → Domain → Shared.Kernel`; each layer may also reference its matching `Shared.*` project. Never point an inner layer at an outer one.
+  - **Aggregates** (`Domain/Aggregates/`): `Member` (end-user profile, separate from credentials), `AuthAccount` (end-user login credentials — password + external OAuth identities — linked to a `Member`), `AdminUser` (admin-side profile/role), `AdminAuthAccount` (admin login credentials, mirrors `AuthAccount`), `RefreshToken` (hashed refresh-token record backing the JWT refresh flow), `Quiz` (quiz definition: questions, difficulty, status, AI-generation quota), `QuizAttempt` (one user's attempt at a `Quiz`), `GameRoom` (live multiplayer game/session state machine backing `GameHub`), `GameSession` (durable historical record of a completed `GameRoom`).
+  - **WebApi surface**: `Controllers/` — `AuthController`, `AdminAuthController`, `QuizzesController`, `QuizAttemptsController` (request DTOs live in matching `WebApi/Requests/<Feature>/` folders, bound directly as action parameters). `Hubs/GameHub` (SignalR, `Hub<IGameHubClient>`, mapped at `/api/gamehub`) — authenticated Host-only methods (`CreateRoom`, `StartGame`, `SkipQuestion`, `PauseGame`, `RejoinRoom`, policy `MemberOnly`) plus anonymous player methods (`JoinRoom`, `SubmitAnswer`); server→client events via `IGameHubClient` (`RoomCreated`, `PlayerJoined`, `PlayerLeft`, `AnswerProgress`, `GameStarted`, `QuestionStart`, `AnswerResult`, `QuestionEnd`, `GameEnd`, `RoomStateSync`); `DomainExceptionHubFilter` translates `DomainException`s into `HubException`s for the hub, mirroring the WebApi exception-handler chain.
+  - **Auth flow**: `JwtTokenBuilder` (`Infrastructure/Identity/`) builds the access token (HMAC-SHA256, `sub` + role claim). `WebApi/Extensions/AuthCookieExtensions.SetAuthCookies` writes both access + refresh tokens as `HttpOnly`/`Secure`/`SameSite=Lax` cookies (`Path=/api`; comment notes `SameSite=None` would be needed cross-domain in prod) instead of returning them in the response body. `WebApi/Extensions/JwtAuthenticationExtensions` reads the JWT back from the `AccessToken` cookie via `OnMessageReceived` (falling back to the `Authorization` header for non-browser clients), and this same cookie flow authenticates the SignalR WebSocket handshake for `GameHub`.
 
 ### Architectural principles
 
@@ -44,7 +49,7 @@ Local `dotnet-*` skills enforce these principles — invoke the matching skill w
 | Code smell detection / refactoring | `dotnet-code-smell-detector-skill` |
 | Full combined architecture review | `dotnet-architecture-review-suite-skill` |
 
-**This project is developed with TDD.** When implementing any new class, method, or feature, invoke `dotnet-tdd-skill` and drive the work through the Red-Green-Refactor cycle — start from a failing test, don't write production code first. For hardening or reviewing already-written tests, use `dotnet-nunit-unit-test-skill` (NUnit3 + NSubstitute + ExpectedObjects) for unit tests and `dotnet-integration-test-skill` (Testcontainers / WebApplicationFactory) for repository/API tests.
+**This project is developed with TDD.** When implementing any new class, method, or feature, invoke `dotnet-tdd-skill` and drive the work through the Red-Green-Refactor cycle — start from a failing test, don't write production code first. For hardening or reviewing already-written tests, use `dotnet-nunit-unit-test-skill` (NUnit3 + NSubstitute + ExpectedObjects) for unit tests and `dotnet-integration-test-skill` (Testcontainers / WebApplicationFactory) for repository/API tests — `ChoicePie.Backend.WebApi.Tests` is the current example, using `CustomWebApplicationFactory` + `Testcontainers.PostgreSql` for end-to-end HTTP auth-endpoint tests.
 
 ### Conventions that aren't obvious from a single file
 
@@ -59,3 +64,4 @@ Local `dotnet-*` skills enforce these principles — invoke the matching skill w
 - **Persistence setup**: pooled `DbContext` (`AddSharedDbContextPool`) with snake_case naming (EFCore.NamingConventions). `ChoicePieDbContext` auto-applies all `IEntityTypeConfiguration` from the Infrastructure assembly — add entity configurations there.
 - **Extension methods use the C# 14 `extension(...)` block syntax** (see `PersistenceServiceCollectionExtensions`); follow that style in new extension classes.
 - Code comments and some exception messages are written in Traditional Chinese; keep that style when editing those files.
+- **Never derive from the bare `Entity<TId>`.** All entities and aggregate roots — including child entities under `Entities/` — use `AuditableEntity<TId>` (or `AppendOnlyAuditableEntity` for append-only records) so audit columns and soft delete are always present. Treat `Entity<TId>` as legacy/unused; don't introduce new usages of it.

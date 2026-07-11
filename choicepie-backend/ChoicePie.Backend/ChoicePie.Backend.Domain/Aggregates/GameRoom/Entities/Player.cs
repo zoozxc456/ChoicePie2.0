@@ -2,7 +2,7 @@ using ChoicePie.Backend.Shared.Kernel.Primitives;
 
 namespace ChoicePie.Backend.Domain.Aggregates.GameRoom.Entities;
 
-public sealed class Player : Entity<Guid>
+public sealed class Player : AuditableEntity<Guid>
 {
     private readonly Dictionary<int, PlayerAnswer> _answersByQuestionIndex = [];
 

@@ -6,7 +6,7 @@ using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 
 namespace ChoicePie.Backend.Domain.Aggregates.AuthAccount.Entities;
 
-public sealed class LoginMethod : Entity<Guid>
+public sealed class LoginMethod : AuditableEntity<Guid>
 {
     public HashedPassword? Password { get; private set; }
     public ExternalIdentity? External { get; private set; }
