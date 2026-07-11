@@ -3,6 +3,7 @@ using ChoicePie.Backend.Domain.Aggregates.Quiz.Entities;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Events;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.Quiz.ValueObjects;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Domain;
 
 namespace ChoicePie.Backend.Domain.Aggregates.Quiz;
@@ -14,8 +15,7 @@ public sealed class Quiz : AggregateRoot<Guid>
 
     public string Title { get; private set; } = null!;
     public string? Description { get; private set; }
-    public string CoverEmoji { get; private set; } = null!;
-    public string CoverGradient { get; private set; } = null!;
+    public QuizCover Cover { get; private set; } = null!;
     public Difficulty Difficulty { get; private set; } = null!;
     public QuizStatus Status { get; private set; } = null!;
 
@@ -27,8 +27,13 @@ public sealed class Quiz : AggregateRoot<Guid>
     // Updated by RecordChallengeOutcome, called from a QuizAttemptCompletedDomainEvent handler.
     // EfUnitOfWork dispatches domain events after commit, outside any transaction, so that
     // handler is at-least-once delivery, not exactly-once - best effort, not deduplicated.
-    public int ChallengeCount { get; private set; }
-    public decimal PassRate { get; private set; }
+    public ChallengeStats Stats { get; private set; } = ChallengeStats.None;
+
+    [NotMapped]
+    public int ChallengeCount => Stats.Count;
+
+    [NotMapped]
+    public decimal PassRate => Stats.PassRate;
 
     public IReadOnlyList<Question> Questions => _questions.AsReadOnly();
     public IReadOnlyList<string> Tags => _tags.AsReadOnly();
@@ -58,14 +63,11 @@ public sealed class Quiz : AggregateRoot<Guid>
             Id = Guid.NewGuid(),
             Title = title,
             Description = description,
-            CoverEmoji = coverEmoji,
-            CoverGradient = coverGradient,
+            Cover = QuizCover.Create(coverEmoji, coverGradient),
             Difficulty = difficulty,
-            Status = QuizStatus.Draft,
-            ChallengeCount = 0,
-            PassRate = 0
+            Status = QuizStatus.Draft
         };
-        quiz._tags.AddRange(tags.Distinct(StringComparer.OrdinalIgnoreCase));
+        quiz._tags.AddRange(TagList.Create(tags).Values);
 
         quiz.SetCreated(creatorId);
         quiz.AddDomainEvent(new QuizCreatedDomainEvent(quiz.Id, creatorId, quiz.Title));
@@ -118,7 +120,7 @@ public sealed class Quiz : AggregateRoot<Guid>
         Description = description;
 
         _tags.Clear();
-        _tags.AddRange(tags.Distinct(StringComparer.OrdinalIgnoreCase));
+        _tags.AddRange(TagList.Create(tags).Values);
 
         Touch();
     }
@@ -163,11 +165,7 @@ public sealed class Quiz : AggregateRoot<Guid>
 
     public void RecordChallengeOutcome(bool passed)
     {
-        var previousChallengeCount = ChallengeCount;
-        ChallengeCount++;
-
-        var previousPassedTotal = PassRate * previousChallengeCount;
-        PassRate = (previousPassedTotal + (passed ? 100m : 0m)) / ChallengeCount;
+        Stats = Stats.RecordOutcome(passed);
     }
 
     private void EnsureEditable()
