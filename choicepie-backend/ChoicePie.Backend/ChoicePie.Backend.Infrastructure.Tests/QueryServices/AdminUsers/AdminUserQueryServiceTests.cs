@@ -28,7 +28,8 @@ public class AdminUserQueryServiceTests
     {
         var adminUser = AdminUser.Create("Ops Name", AdminRole.Admin);
         var adminAuthAccount =
-            AdminAuthAccount.Create(Email.Create("admin@example.com"), "hashed-password", "salt", adminUser.Id);
+            AdminAuthAccount.Create(
+                Email.Create("admin@example.com"), HashedPassword.Create("hashed-password", "salt"), adminUser.Id);
         _readRepository.Query<AdminUser>().Returns(new List<AdminUser> { adminUser }.AsQueryable());
         _readRepository.Query<AdminAuthAccount>()
             .Returns(new List<AdminAuthAccount> { adminAuthAccount }.AsQueryable());
