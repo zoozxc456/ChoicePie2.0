@@ -5,35 +5,53 @@ using ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.AdminUser;
 using ChoicePie.Backend.Domain.Aggregates.AdminUser.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.RefreshToken;
+using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Enums;
 using ChoicePie.Backend.Shared.Application.Interfaces;
+using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using MediatR;
+using RefreshTokenAggregate = ChoicePie.Backend.Domain.Aggregates.RefreshToken.RefreshToken;
 
 namespace ChoicePie.Backend.Application.AdminUsers.Commands;
 
 public sealed class AdminLoginCommandHandler(
     IAdminAuthAccountRepository adminAuthAccountRepository,
     IAdminUserRepository adminUserRepository,
+    IRefreshTokenRepository refreshTokenRepository,
     IPasswordHasher passwordHasher,
-    IAdminTokenService tokenService)
+    IAdminTokenService tokenService,
+    IRefreshTokenGenerator refreshTokenGenerator,
+    IUnitOfWork unitOfWork)
     : IRequestHandler<AdminLoginCommand, AdminLoginResultDto>
 {
     public async Task<AdminLoginResultDto> Handle(AdminLoginCommand request, CancellationToken cancellationToken)
     {
         var email = Email.Create(request.Email);
-        var adminAuthAccount = await adminAuthAccountRepository.FirstOrDefaultAsync(new AdminAuthAccountByEmailSpecification(email), cancellationToken)
-                                ?? throw new InvalidCredentialsException();
+        var adminAuthAccount =
+            await adminAuthAccountRepository.FirstOrDefaultAsync(new AdminAuthAccountByEmailSpecification(email),
+                cancellationToken)
+            ?? throw new InvalidCredentialsException();
 
-        if (adminAuthAccount.OriginalPasswordHash is not { } passwordHash || !passwordHasher.Verify(request.Password, passwordHash))
+        if (adminAuthAccount.OriginalPasswordHash is not { } passwordHash ||
+            adminAuthAccount.OriginalPasswordSalt is not { } salt ||
+            !passwordHasher.Verify(request.Password, passwordHash, salt))
         {
             throw new InvalidCredentialsException();
         }
 
         var adminUser = await adminUserRepository.GetByIdAsync(adminAuthAccount.AdminUserId, cancellationToken)
-                         ?? throw new AdminUserNotFoundException(adminAuthAccount.AdminUserId);
+                        ?? throw new AdminUserNotFoundException(adminAuthAccount.AdminUserId);
 
-        var token = tokenService.GenerateToken(adminUser);
+        var accessToken = tokenService.GenerateAccessToken(adminUser);
+        var (rawRefreshToken, refreshTokenHash) = refreshTokenGenerator.Generate();
+        var refreshToken =
+            RefreshTokenAggregate.Issue(adminUser.Id, RefreshTokenOwnerType.Admin, refreshTokenHash, DateTime.UtcNow);
 
-        return new AdminLoginResultDto(AdminUserDto.FromDomain(adminUser, adminAuthAccount), token);
+        await refreshTokenRepository.AddAsync(refreshToken, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new AdminLoginResultDto(AdminUserDto.FromDomain(adminUser, adminAuthAccount), accessToken,
+            rawRefreshToken);
     }
 }
