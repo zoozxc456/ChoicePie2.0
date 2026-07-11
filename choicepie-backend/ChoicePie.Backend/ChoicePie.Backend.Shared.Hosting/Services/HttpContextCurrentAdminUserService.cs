@@ -5,25 +5,23 @@ using Microsoft.AspNetCore.Http;
 
 namespace ChoicePie.Backend.Shared.Hosting.Services;
 
-public class HttpContextCurrentUserService(IHttpContextAccessor httpContextAccessor)
-    : ICurrentUserService, IScopedDependency
+public class HttpContextCurrentAdminUserService(IHttpContextAccessor httpContextAccessor)
+    : ICurrentAdminUserService, IScopedDependency
 {
-    // "sub" is the standard JWT subject claim (JwtRegisteredClaimNames.Sub). Using the literal
-    // string avoids pulling the JWT package into Shared.Hosting just for a claim-type constant.
     private const string SubjectClaimType = "sub";
 
-    public Guid? UserId
+    public Guid? AdminUserId
     {
         get
         {
             var user = httpContextAccessor.HttpContext?.User;
-            if (user?.FindFirst(JwtClaimValues.RoleClaimType)?.Value != JwtClaimValues.MemberRole)
+            if (user?.FindFirst(JwtClaimValues.RoleClaimType)?.Value != JwtClaimValues.AdminRole)
             {
                 return null;
             }
 
             var value = user.FindFirst(SubjectClaimType)?.Value;
-            return Guid.TryParse(value, out var userId) ? userId : null;
+            return Guid.TryParse(value, out var adminUserId) ? adminUserId : null;
         }
     }
 }
