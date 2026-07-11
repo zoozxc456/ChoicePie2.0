@@ -28,6 +28,11 @@ public sealed class QuizAttemptConfiguration : AuditableEntityConfiguration<Quiz
             .HasColumnType("uuid[]")
             .Metadata.SetValueComparer(guidListComparer);
 
+        builder.OwnsOne(a => a.Result, result =>
+        {
+            result.Property(r => r.Value).HasColumnName("Score");
+        });
+
         builder.OwnsMany(a => a.Answers, answer => { answer.WithOwner().HasForeignKey("QuizAttemptId"); });
     }
 }
