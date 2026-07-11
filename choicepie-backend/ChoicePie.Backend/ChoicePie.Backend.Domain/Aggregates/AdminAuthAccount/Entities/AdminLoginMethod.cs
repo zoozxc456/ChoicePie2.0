@@ -1,25 +1,24 @@
 using ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.Enums;
 using ChoicePie.Backend.Shared.Kernel.Primitives;
+using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 
 namespace ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.Entities;
 
 public sealed class AdminLoginMethod : AuditableEntity<Guid>
 {
     public AdminLoginProvider Provider { get; private set; } = null!;
-    public string? PasswordHash { get; private set; }
-    public string? Salt { get; private set; }
+    public HashedPassword? Password { get; private set; }
     public string? ProviderUserId { get; private set; }
 
     private AdminLoginMethod()
     {
     }
 
-    public static AdminLoginMethod CreateOriginal(string passwordHash, string salt) => new()
+    public static AdminLoginMethod CreateOriginal(HashedPassword password) => new()
     {
         Id = Guid.NewGuid(),
         Provider = AdminLoginProvider.Original,
-        PasswordHash = passwordHash,
-        Salt = salt
+        Password = password
     };
 
     public static AdminLoginMethod CreateExternal(AdminLoginProvider provider, string providerUserId) => new()

@@ -16,18 +16,14 @@ public sealed class AuthAccount : AggregateRoot<Guid>
     public bool IsVerified { get; private set; }
     public IReadOnlyList<LoginMethod> LoginMethods => _loginMethods.AsReadOnly();
 
-    public string? OriginalPasswordHash =>
-        _loginMethods.SingleOrDefault(m => m.Provider == LoginProvider.Original)?.PasswordHash;
-
-    public string? OriginalPasswordSalt =>
-        _loginMethods.SingleOrDefault(m => m.Provider == LoginProvider.Original)?.Salt;
-
+    public HashedPassword? OriginalPassword =>
+        _loginMethods.SingleOrDefault(m => m.Provider == LoginProvider.Original)?.Password;
 
     private AuthAccount()
     {
     }
 
-    public static AuthAccount Register(Email email, string passwordHash, string salt, Guid memberId)
+    public static AuthAccount Register(Email email, HashedPassword password, Guid memberId)
     {
         var authAccount = new AuthAccount
         {
@@ -38,7 +34,7 @@ public sealed class AuthAccount : AggregateRoot<Guid>
         };
 
         authAccount.SetCreated(authAccount.Id);
-        authAccount._loginMethods.Add(LoginMethod.CreateOriginal(passwordHash, salt));
+        authAccount._loginMethods.Add(LoginMethod.CreateOriginal(password));
         authAccount.AddDomainEvent(new AuthAccountRegisteredDomainEvent(authAccount.Id, memberId, email.Value));
 
         return authAccount;

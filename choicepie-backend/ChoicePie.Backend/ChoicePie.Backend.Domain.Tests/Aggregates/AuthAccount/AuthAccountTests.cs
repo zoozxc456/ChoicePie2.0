@@ -12,7 +12,8 @@ public class AuthAccountTests
     private static readonly Guid MemberId = Guid.NewGuid();
 
     private static AuthAccountAggregate CreateAuthAccount() =>
-        AuthAccountAggregate.Register(Email.Create("host@example.com"), "hashed-password", "salt", MemberId);
+        AuthAccountAggregate.Register(
+            Email.Create("host@example.com"), HashedPassword.Create("hashed-password", "salt"), MemberId);
 
     [Test]
     public void Register_GivenValidInput_WhenCalled_ThenCreatesAuthAccountWithExpectedFields()
@@ -45,11 +46,11 @@ public class AuthAccountTests
     }
 
     [Test]
-    public void OriginalPasswordHash_GivenRegisteredAccount_WhenRead_ThenReturnsPasswordHash()
+    public void OriginalPassword_GivenRegisteredAccount_WhenRead_ThenReturnsHashedPassword()
     {
         var authAccount = CreateAuthAccount();
 
-        Assert.That(authAccount.OriginalPasswordHash, Is.EqualTo("hashed-password"));
+        Assert.That(authAccount.OriginalPassword, Is.EqualTo(HashedPassword.Create("hashed-password", "salt")));
     }
 
     [Test]
