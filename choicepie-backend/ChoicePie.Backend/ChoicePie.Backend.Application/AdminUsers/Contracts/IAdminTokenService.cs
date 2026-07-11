@@ -4,5 +4,5 @@ namespace ChoicePie.Backend.Application.AdminUsers.Contracts;
 
 public interface IAdminTokenService
 {
-    string GenerateToken(AdminUser adminUser);
+    string GenerateAccessToken(AdminUser adminUser);
 }
