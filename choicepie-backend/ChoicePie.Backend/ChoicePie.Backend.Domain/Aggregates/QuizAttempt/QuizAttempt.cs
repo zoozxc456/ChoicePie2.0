@@ -3,14 +3,13 @@ using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Entities;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Enums;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Events;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.ValueObjects;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Domain;
 
 namespace ChoicePie.Backend.Domain.Aggregates.QuizAttempt;
 
 public sealed class QuizAttempt : AggregateRoot<Guid>
 {
-    private const decimal PassThreshold = 60m;
-
     private readonly List<Guid> _expectedQuestionIds = [];
     private readonly List<QuizAttemptAnswer> _answers = [];
 
@@ -19,10 +18,13 @@ public sealed class QuizAttempt : AggregateRoot<Guid>
     public AttemptStatus Status { get; private set; } = null!;
     public DateTime StartedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
-    public decimal? Score { get; private set; }
+    public AttemptScore? Result { get; private set; }
 
     [NotMapped]
-    public bool? Passed => Score.HasValue ? Score >= PassThreshold : null;
+    public decimal? Score => Result?.Value;
+
+    [NotMapped]
+    public bool? Passed => Result?.Passed;
 
     public IReadOnlyList<Guid> ExpectedQuestionIds => _expectedQuestionIds.AsReadOnly();
     public IReadOnlyList<QuizAttemptAnswer> Answers => _answers.AsReadOnly();
@@ -82,13 +84,12 @@ public sealed class QuizAttempt : AggregateRoot<Guid>
             correctAnswerIndexByQuestionId.TryGetValue(a.QuestionId, out var correctIndex) &&
             correctIndex == a.SelectedOptionIndex);
 
-        Score = correctCount / (decimal)_expectedQuestionIds.Count * 100m;
+        Result = AttemptScore.FromCorrectCount(correctCount, _expectedQuestionIds.Count);
         Status = AttemptStatus.Completed;
         CompletedAt = utcNow;
         Touch();
 
-        var passed = Score >= PassThreshold;
-        AddDomainEvent(new QuizAttemptCompletedDomainEvent(Id, QuizId, MemberId, Score.Value, passed));
+        AddDomainEvent(new QuizAttemptCompletedDomainEvent(Id, QuizId, MemberId, Result.Value, Result.Passed));
     }
 
     public void EnsureOwnedBy(Guid memberId)
