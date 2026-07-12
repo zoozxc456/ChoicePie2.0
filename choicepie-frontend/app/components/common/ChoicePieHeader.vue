@@ -81,7 +81,7 @@
             <div class="py-1">
               <button
                 class="dropdown-item dropdown-item--danger text-left"
-                @click="auth.logout"
+                @click="auth.logout()"
               >
                 <UIcon
                   name="i-lucide-log-out"

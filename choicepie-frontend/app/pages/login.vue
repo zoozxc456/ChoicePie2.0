@@ -109,7 +109,9 @@
     </div>
 
     <!-- Host benefits -->
-    <div class="w-full max-w-md mt-5 rounded-2xl bg-white border border-neutral-200 p-4 text-sm text-neutral-600 leading-relaxed">
+    <div
+      class="w-full max-w-md mt-5 rounded-2xl bg-white border border-neutral-200 p-4 text-sm text-neutral-600 leading-relaxed"
+    >
       <p class="font-bold text-neutral-900 mb-1">
         {{ t('login.hostBenefits.title') }}
       </p>
@@ -119,11 +121,14 @@
 </template>
 
 <script setup lang="ts">
-import * as z from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import { ApiError } from '~/composables/useApi'
+import { useLoginSchema, type LoginSchema } from '~/types/auth'
 
 definePageMeta({ layout: 'default' })
 
 const { t } = useI18n()
+const loginSchema = useLoginSchema()
 const auth = useAuthStore()
 const route = useRoute()
 
@@ -136,25 +141,20 @@ if (auth.isLoggedIn) {
   await navigateTo(redirect.value)
 }
 
-const loginSchema = z.object({
-  email: z.email(t('login.validation.emailInvalid')),
-  password: z.string().min(6, t('login.validation.passwordMin'))
-})
-
-type LoginForm = z.infer<typeof loginSchema>
-
-const loginState = reactive<LoginForm>({
+const loginState = reactive<LoginSchema>({
   email: '',
   password: ''
 })
 
-const handleEmailLogin = async () => {
+const handleEmailLogin = async (event: FormSubmitEvent<LoginSchema>) => {
   error.value = ''
-  try {
-    await auth.loginWithEmail(loginState.email, loginState.password)
-    await navigateTo(redirect.value)
-  } catch {
-    error.value = t('login.loginError')
+  if (event.data) {
+    try {
+      await auth.loginWithEmail(loginState)
+      await navigateTo(redirect.value)
+    } catch (e: unknown) {
+      error.value = e instanceof ApiError ? e.message : t('login.loginError')
+    }
   }
 }
 
@@ -169,5 +169,4 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-</style>
+<style scoped lang="scss"></style>

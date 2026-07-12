@@ -142,7 +142,7 @@
           size="lg"
           :color="isFormValid ? 'primary' : 'neutral'"
           class="font-bold h-12 rounded-2xl"
-          :class="{ 'bg-[#e2e8f0]! text-neutral-400!': !isFormValid }"
+          :class="{ 'bg-cp-disabled! text-neutral-400!': !isFormValid }"
           :disabled="!isFormValid"
           :loading="isLoading"
         >
@@ -162,11 +162,13 @@
 </template>
 
 <script setup lang="ts">
-import * as z from 'zod'
+import { ApiError } from '~/composables/useApi'
+import { useRegisterSchema, type RegisterSchema } from '~/types/auth'
 
 definePageMeta({ layout: 'default' })
 
 const { t } = useI18n()
+const registerSchema = useRegisterSchema()
 const auth = useAuthStore()
 const route = useRoute()
 
@@ -181,24 +183,7 @@ if (auth.isLoggedIn) {
   await navigateTo(redirect.value)
 }
 
-const registerSchema = z.object({
-  name: z.string().min(2, t('signIn.validation.nameMin')),
-  email: z.email(t('signIn.validation.emailInvalid')),
-  password: z.string().min(8, t('signIn.validation.passwordMin')),
-  confirmPassword: z.string()
-}).refine(data => data.password === data.confirmPassword, {
-  message: t('signIn.validation.confirmPasswordMatch'),
-  path: ['confirmPassword']
-})
-
-type RegisterForm = {
-  name: string
-  email: string
-  password: string
-  confirmPassword: string
-}
-
-const registerState = reactive<RegisterForm>({
+const registerState = reactive<RegisterSchema>({
   name: '',
   email: '',
   password: '',
@@ -224,15 +209,15 @@ const handleRegister = async () => {
   isLoading.value = true
   error.value = ''
   try {
-    await $fetch('/api/auth/register', {
-      method: 'POST',
-      body: { name: registerState.name.trim(), email: registerState.email, password: registerState.password }
+    await auth.register({
+      name: registerState.name.trim(),
+      email: registerState.email,
+      password: registerState.password,
+      confirmPassword: registerState.confirmPassword
     })
-    await auth.loginWithEmail(registerState.email, registerState.password)
     await navigateTo(redirect.value)
   } catch (e: unknown) {
-    const msg = (e as { data?: { message?: string } })?.data?.message
-    error.value = msg ?? t('signIn.registerError')
+    error.value = e instanceof ApiError ? e.message : t('signIn.registerError')
   } finally {
     isLoading.value = false
   }
