@@ -229,34 +229,15 @@
     "challenges": "{count} plays",
     "passRate": "Avg. pass rate {rate}%",
     "passRateBadge": "Pass rate {rate}%",
-    "bookmark": "♥ Save",
-    "favorited": "♥ Saved",
-    "share": "📤 Share",
     "useForGame": "⚡ Use in Game",
-    "questionTable": {
-      "index": "#",
-      "question": "Question",
-      "passRate": "Pass Rate",
-      "timeLimit": "Time",
-      "singleChoice": "Single choice · 4 options",
-      "timeApprox": "~20s"
+    "soloPractice": "📝 Solo Practice",
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived",
+      "publishAction": "Publish",
+      "unpublishAction": "Unpublish"
     },
-    "comments": {
-      "title": "💬 Comments ({count})",
-      "placeholder": "Write your thoughts...",
-      "submit": "Post",
-      "daysAgo": "{days} days ago",
-      "justNow": "Just now"
-    },
-    "creator": {
-      "title": "About the Creator",
-      "verified": "Verified Creator",
-      "quizCount": "Quizzes",
-      "challengeCount": "Total Plays",
-      "follow": "Follow Creator",
-      "following": "Following"
-    },
-    "related": "You might also like",
     "modal": {
       "title": "Start a Game with This Quiz",
       "subtitle": "A room code and QR Code will be generated immediately",

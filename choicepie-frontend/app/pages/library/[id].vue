@@ -42,22 +42,43 @@
       </button>
 
       <button
-        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap"
-        @click="isFavorite = !isFavorite"
-      >
-        {{ isFavorite ? t('libraryDetail.favorited') : t('libraryDetail.bookmark') }}
-      </button>
-      <button class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap">
-        {{ t('libraryDetail.share') }}
-      </button>
-      <button
         class="h-10 px-4 rounded-full text-[13px] font-semibold text-white bg-secondary-800 whitespace-nowrap"
         @click="isStartModalOpen = true"
       >
         {{ t('libraryDetail.useForGame') }}
       </button>
+      <button
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap"
+        :disabled="isStartingAttempt"
+        @click="handleSoloPractice"
+      >
+        {{ t('libraryDetail.soloPractice') }}
+      </button>
 
       <div class="ml-auto flex gap-2 items-center">
+        <button
+          v-if="isOwner && quiz.status !== 'Published'"
+          class="h-8 px-3.5 rounded-full text-[13px] font-semibold text-white bg-primary-500 whitespace-nowrap disabled:opacity-60"
+          :disabled="isTogglingStatus"
+          @click="handlePublish"
+        >
+          {{ t('libraryDetail.status.publishAction') }}
+        </button>
+        <button
+          v-if="isOwner && quiz.status === 'Published'"
+          class="h-8 px-3.5 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap disabled:opacity-60"
+          :disabled="isTogglingStatus"
+          @click="handleUnpublish"
+        >
+          {{ t('libraryDetail.status.unpublishAction') }}
+        </button>
+        <span
+          v-if="isOwner"
+          class="text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap"
+          :class="statusBadgeClass"
+        >
+          {{ statusLabel }}
+        </span>
         <span class="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-success-100 text-success-800 whitespace-nowrap">
           {{ t('libraryDetail.passRateBadge', { rate: quiz.passRate }) }}
         </span>
@@ -90,129 +111,20 @@
               <div class="flex-1 text-sm font-medium">
                 {{ q.text }}
               </div>
-              <div class="text-xs text-neutral-600 w-12 text-right">
-                —
-              </div>
-              <div class="text-xs text-neutral-400 w-10 text-right">
-                {{ t('libraryDetail.questionTable.timeApprox') }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Comments -->
-        <div class="bg-white border border-neutral-200 rounded-2xl p-5">
-          <h3 class="text-base font-bold mb-4">
-            {{ t('libraryDetail.comments.title', { count: comments.length }) }}
-          </h3>
-
-          <div class="flex gap-2 mb-4">
-            <UInput
-              v-model="commentDraft"
-              :placeholder="t('libraryDetail.comments.placeholder')"
-              size="lg"
-              class="flex-1"
-              :ui="{ base: 'bg-neutral-100 h-10 text-sm px-4' }"
-            />
-            <UButton
-              color="primary"
-              class="rounded-full font-semibold px-4"
-              @click="submitComment"
-            >
-              {{ t('libraryDetail.comments.submit') }}
-            </UButton>
-          </div>
-
-          <div class="flex flex-col gap-3">
-            <div
-              v-for="c in comments"
-              :key="c.name + c.time"
-              class="flex gap-2.5"
-            >
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-neutral-600 bg-neutral-100 shrink-0">
-                {{ c.initial }}
-              </div>
-              <div class="bg-neutral-100 rounded-tl-none rounded-2xl px-3.5 py-2.5 max-w-md">
-                <p class="text-xs font-bold mb-0.5">
-                  {{ c.name }}
-                </p>
-                <p class="text-sm leading-relaxed">
-                  {{ c.text }}
-                </p>
-                <p class="text-[11px] text-neutral-400 mt-1">
-                  {{ c.time }}
-                </p>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right: Creator + Related -->
+      <!-- Right: Creator -->
       <div class="flex flex-col gap-6">
         <div class="bg-white border border-neutral-200 rounded-2xl p-5 flex flex-col items-center gap-2.5 text-center">
           <div class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white bg-secondary-800 shrink-0">
             {{ quiz.creatorName[0] }}
           </div>
           <p class="text-sm font-bold flex items-center gap-1">
-            {{ quiz.creatorName }} <span class="text-info-500">✔️</span>
+            {{ quiz.creatorName }}
           </p>
-          <div class="grid grid-cols-2 gap-3 w-full mt-2">
-            <div>
-              <p class="text-lg font-extrabold text-primary-500">
-                12
-              </p>
-              <p class="text-[11px] text-neutral-400">
-                {{ t('libraryDetail.creator.quizCount') }}
-              </p>
-            </div>
-            <div>
-              <p class="text-lg font-extrabold text-primary-500">
-                8.4k
-              </p>
-              <p class="text-[11px] text-neutral-400">
-                {{ t('libraryDetail.creator.challengeCount') }}
-              </p>
-            </div>
-          </div>
-          <button
-            class="w-full h-9 rounded-full text-[13px] font-semibold border-[1.5px] border-primary-500 text-primary-500 mt-2"
-            @click="isFollowing = !isFollowing"
-          >
-            {{ isFollowing ? t('libraryDetail.creator.following') : t('libraryDetail.creator.follow') }}
-          </button>
-        </div>
-
-        <div class="bg-white border border-neutral-200 rounded-2xl p-5">
-          <p class="text-sm font-bold mb-3">
-            {{ t('libraryDetail.related') }}
-          </p>
-          <div class="flex flex-col gap-3">
-            <NuxtLink
-              v-for="related in relatedQuizzes"
-              :key="related.id"
-              :to="`/library/${related.id}`"
-              class="flex items-center gap-2.5"
-            >
-              <div
-                class="w-12 h-12 rounded-lg flex items-center justify-center text-xl shrink-0"
-                :style="related.coverGradient"
-              >
-                {{ related.coverEmoji }}
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-[13px] font-semibold truncate">
-                  {{ related.title }}
-                </p>
-                <p class="text-[11px] text-neutral-400 truncate">
-                  {{ related.tags[0] }} · {{ t('libraryDetail.questions', { count: related.questionCount }) }}
-                </p>
-              </div>
-              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 bg-primary-100 text-primary-500">
-                ▶
-              </div>
-            </NuxtLink>
-          </div>
         </div>
       </div>
     </div>
@@ -331,29 +243,26 @@
 
 <script setup lang="ts">
 import { DIFFICULTY_LABEL } from '~/types/quiz'
-import { mockQuizzes } from '~/mocks/quiz'
 
 definePageMeta({ layout: 'content' })
 
 const { t } = useI18n()
 const route = useRoute()
 const quizStore = useQuizStore()
+const quizAttemptStore = useQuizAttemptStore()
 const gameRoom = useGameRoom()
+const auth = useAuthStore()
 
 const quiz = computed(() => quizStore.currentQuiz)
 const isStartModalOpen = ref(false)
 const isCreatingRoom = ref(false)
-const isFavorite = ref(false)
-const isFollowing = ref(false)
-const commentDraft = ref('')
+const isStartingAttempt = ref(false)
+const isTogglingStatus = ref(false)
 
 const timeLimitOptions = [10, 20, 30, 60] as const
 const timeLimit = ref<typeof timeLimitOptions[number]>(20)
 
-// 暫時用假資料，之後接上真實 API 後移除
-quizStore.setCurrentQuiz(
-  mockQuizzes.find(q => q.id === route.params.id) ?? mockQuizzes[0]!
-)
+await quizStore.fetchQuizById(route.params.id as string)
 
 const difficultyClass = computed(() => ({
   beginner: 'bg-success-100 text-success-800',
@@ -361,15 +270,38 @@ const difficultyClass = computed(() => ({
   expert: 'bg-error-100 text-error-800'
 }[quiz.value!.difficulty]))
 
-const comments = ref([
-  { initial: 'Y', name: 'YuHao', text: '這題庫出得很到位，第 3 題我猜了兩次才搞懂 😂', time: t('libraryDetail.comments.daysAgo', { days: 2 }) },
-  { initial: 'C', name: 'ChiaEn', text: '題庫品質很高！解析說明很清楚，推薦給正在準備的朋友 👍', time: t('libraryDetail.comments.daysAgo', { days: 4 }) }
-])
+const isOwner = computed(() => !!auth.user && auth.user.id === quiz.value?.creatorId)
 
-const submitComment = () => {
-  if (!commentDraft.value.trim()) return
-  comments.value.unshift({ initial: 'M', name: 'Mingyu', text: commentDraft.value.trim(), time: t('libraryDetail.comments.justNow') })
-  commentDraft.value = ''
+const statusLabel = computed(() => ({
+  Published: t('libraryDetail.status.published'),
+  Draft: t('libraryDetail.status.draft'),
+  Archived: t('libraryDetail.status.archived')
+}[quiz.value?.status ?? ''] ?? quiz.value?.status))
+
+const statusBadgeClass = computed(() => ({
+  Published: 'bg-success-100 text-success-800',
+  Draft: 'bg-neutral-100 text-neutral-600',
+  Archived: 'bg-warning-100 text-warning-800'
+}[quiz.value?.status ?? ''] ?? 'bg-neutral-100 text-neutral-600'))
+
+const handlePublish = async () => {
+  if (!quiz.value) return
+  isTogglingStatus.value = true
+  try {
+    await quizStore.publishQuiz(quiz.value.id)
+  } finally {
+    isTogglingStatus.value = false
+  }
+}
+
+const handleUnpublish = async () => {
+  if (!quiz.value) return
+  isTogglingStatus.value = true
+  try {
+    await quizStore.unpublishQuiz(quiz.value.id)
+  } finally {
+    isTogglingStatus.value = false
+  }
 }
 
 const handleCreateRoom = async () => {
@@ -386,9 +318,21 @@ const handleCreateRoom = async () => {
   }
 }
 
-const relatedQuizzes = computed(() =>
-  mockQuizzes.filter(q => q.id !== quiz.value?.id).slice(0, 3)
-)
+const handleSoloPractice = async () => {
+  if (!quiz.value) return
+  const auth = useAuthStore()
+  if (!auth.isLoggedIn) {
+    await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    return
+  }
+  isStartingAttempt.value = true
+  try {
+    const result = await quizAttemptStore.startAttempt(quiz.value.id)
+    await navigateTo(`/attempt/${result.attemptId}`)
+  } catch {
+    isStartingAttempt.value = false
+  }
+}
 
 const gameSettings = computed(() => [
   { label: t('libraryDetail.modal.allQuestions'), value: t('libraryDetail.modal.allQuestionsValue') },

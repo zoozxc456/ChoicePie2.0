@@ -229,34 +229,15 @@
     "challenges": "{count} 人挑戰",
     "passRate": "平均答對率 {rate}%",
     "passRateBadge": "答對率 {rate}%",
-    "bookmark": "♥ 收藏",
-    "favorited": "♥ 已收藏",
-    "share": "📤 分享",
     "useForGame": "⚡ 用於遊戲",
-    "questionTable": {
-      "index": "#",
-      "question": "題目",
-      "passRate": "答對率",
-      "timeLimit": "限時",
-      "singleChoice": "單選題 · 4 個選項",
-      "timeApprox": "~20s"
+    "soloPractice": "📝 單人練習",
+    "status": {
+      "published": "已發布",
+      "draft": "草稿",
+      "archived": "已封存",
+      "publishAction": "發布",
+      "unpublishAction": "下架"
     },
-    "comments": {
-      "title": "💬 評論（{count}）",
-      "placeholder": "寫下你的想法...",
-      "submit": "送出",
-      "daysAgo": "{days} 天前",
-      "justNow": "剛剛"
-    },
-    "creator": {
-      "title": "關於創作者",
-      "verified": "認證創作者",
-      "quizCount": "題庫",
-      "challengeCount": "挑戰次數",
-      "follow": "關注創作者",
-      "following": "已關注"
-    },
-    "related": "你可能也喜歡",
     "modal": {
       "title": "用此題庫開遊戲",
       "subtitle": "確認後系統會立即產生房間碼和 QR Code",
