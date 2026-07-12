@@ -420,9 +420,9 @@
       "titleRequired": "請輸入題庫名稱",
       "addQuestion": "新增題目",
       "readyTitle": "準備好了？",
-      "readySubtitle": "確認題目後即可建立遊戲房間",
+      "readySubtitle": "確認題目後即可儲存題庫",
       "questionCount": "{count} 題",
-      "createRoomBtn": "🚀 建立遊戲房間"
+      "createRoomBtn": "儲存題庫"
     },
     "ai": {
       "title": "✨ AI 出題",
@@ -446,9 +446,9 @@
       "generateBtn": "✨ 開始生成題目",
       "generatingBtn": "✨ AI 出題中，請稍候...",
       "readyTitle": "準備好了？",
-      "readySubtitle": "確認題目後即可建立遊戲房間",
+      "readySubtitle": "確認題目後即可儲存題庫",
       "questionCount": "{count} 題",
-      "createRoomBtn": "🚀 建立遊戲房間"
+      "createRoomBtn": "儲存題庫"
     }
   },
   "terms": {

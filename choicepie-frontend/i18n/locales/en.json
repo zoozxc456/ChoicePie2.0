@@ -420,9 +420,9 @@
       "titleRequired": "Please enter a quiz title",
       "addQuestion": "Add Question",
       "readyTitle": "Ready?",
-      "readySubtitle": "Confirm your questions, then create the game room",
+      "readySubtitle": "Confirm your questions, then save the quiz",
       "questionCount": "{count} questions",
-      "createRoomBtn": "🚀 Create Game Room"
+      "createRoomBtn": "Save Quiz"
     },
     "ai": {
       "title": "✨ AI Quiz",
@@ -446,9 +446,9 @@
       "generateBtn": "✨ Start Generating",
       "generatingBtn": "✨ AI is generating, please wait...",
       "readyTitle": "Ready?",
-      "readySubtitle": "Confirm your questions, then create the game room",
+      "readySubtitle": "Confirm your questions, then save the quiz",
       "questionCount": "{count} questions",
-      "createRoomBtn": "🚀 Create Game Room"
+      "createRoomBtn": "Save Quiz"
     }
   },
   "terms": {

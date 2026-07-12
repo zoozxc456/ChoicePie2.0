@@ -155,7 +155,7 @@
         :open="isPreviewOpen"
         :questions="questions"
         :loading="isCreatingRoom"
-        @confirm="handleCreateRoom"
+        @confirm="handleSaveQuiz"
         @cancel="isPreviewOpen = false"
       />
     </template>
@@ -175,7 +175,6 @@ definePageMeta({
 
 const { t } = useI18n()
 const quizStore = useQuizStore()
-const gameRoom = useGameRoom()
 
 const content = ref('')
 const questionCount = ref<3 | 5 | 10>(5)
@@ -221,10 +220,12 @@ const setCorrectAnswer = (qIndex: number, optIndex: number) => {
   updateQuestion(qIndex, 'answerIndex', optIndex)
 }
 
-const handleCreateRoom = async () => {
+const handleSaveQuiz = async () => {
   isCreatingRoom.value = true
   try {
-    await gameRoom.createRoom({ questionIds: questions.value.map(q => q.id) })
+    const title = content.value.trim().slice(0, 30)
+    const quiz = await quizStore.saveQuiz(questions.value, title, difficulty.value)
+    await navigateTo(`/library/${quiz.id}`)
   } catch {
     isCreatingRoom.value = false
   }
