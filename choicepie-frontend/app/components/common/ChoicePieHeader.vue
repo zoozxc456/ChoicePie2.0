@@ -61,6 +61,14 @@
                 class="dropdown-item__icon"
               />{{ t('nav.createGame') }}</NuxtLink>
               <NuxtLink
+                to="/library/mine"
+                class="dropdown-item dropdown-item--info"
+                @click="closeMenu"
+              ><UIcon
+                name="i-lucide-library"
+                class="dropdown-item__icon"
+              />{{ t('nav.myLibrary') }}</NuxtLink>
+              <NuxtLink
                 to="/history"
                 class="dropdown-item dropdown-item--info"
                 @click="closeMenu"
