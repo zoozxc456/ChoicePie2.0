@@ -1,6 +1,16 @@
 <template>
   <div
-    v-if="!game"
+    v-if="gameSessionStore.isLoading"
+    class="flex justify-center py-20"
+  >
+    <UIcon
+      name="i-lucide-loader-2"
+      class="animate-spin text-4xl text-primary-500"
+    />
+  </div>
+
+  <div
+    v-else-if="!game"
     class="max-w-3xl mx-auto px-6 py-20 text-center"
   >
     <p class="text-sm text-cp-text-secondary mb-4">
@@ -215,22 +225,46 @@
 </template>
 
 <script setup lang="ts">
-import { mockHostedGames, mockPlayedGames } from '~/mocks/history'
+import { useGameSessionStore } from '~/stores/gameSession'
 
-definePageMeta({ layout: 'content' })
+definePageMeta({ layout: 'content', middleware: ['auth'] })
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const gameSessionStore = useGameSessionStore()
 
 const id = computed(() => route.params.id as string)
 
-const hostedGame = computed(() => mockHostedGames.find(g => g.id === id.value))
-const playedGame = computed(() => mockPlayedGames.find(g => g.id === id.value))
+const session = computed(() => gameSessionStore.currentSession)
+const isHost = computed(() => session.value?.isHost ?? false)
 
-const isHost = computed(() => !!hostedGame.value)
-const game = computed(() => hostedGame.value ?? playedGame.value)
+const game = computed(() => {
+  if (!session.value) return undefined
+  return {
+    coverEmoji: session.value.coverEmoji,
+    coverGradient: `background: ${session.value.coverGradient};`,
+    quizTitle: session.value.quizTitle,
+    playerCount: session.value.playerCount,
+    questionCount: session.value.questionCount,
+    playedAt: session.value.playedAtUtc,
+    rankings: session.value.rankings
+  }
+})
 
-const isMe = (nickname?: string) => !isHost.value && nickname === '你'
+const playedGame = computed(() => {
+  if (!session.value || session.value.isHost) return undefined
+  return { wrongAnswers: session.value.myWrongAnswers }
+})
+
+const myNickname = computed(() =>
+  session.value?.rankings.find(r => r.rank === session.value?.myRank)?.nickname
+)
+
+const isMe = (nickname?: string) => !isHost.value && !!nickname && nickname === myNickname.value
+
+onMounted(() => {
+  gameSessionStore.fetchSessionById(id.value)
+})
 
 // 頒獎台/排名條狀圖的動態高度、寬度無法用 CSS @keyframes 動畫（custom property 不會被插值），
 // 改用掛載後切換內聯樣式搭配 CSS transition 觸發進場動畫。

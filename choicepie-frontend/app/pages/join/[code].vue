@@ -1,7 +1,14 @@
 <template>
   <div class="max-w-md mx-auto px-4 py-6">
+    {{ gameStore.phase }}
+    <p
+      v-if="joinError"
+      class="text-center text-sm text-error-500"
+    >
+      {{ joinError }}
+    </p>
     <WaitingRoom
-      v-if="gameStore.phase === 'waiting'"
+      v-else-if="gameStore.phase === 'idle'"
       :code="code"
     />
     <GamingRoom
@@ -21,66 +28,24 @@ import GameEnded from '~/components/gameRoom/GameEnded.vue'
 
 definePageMeta({ layout: 'default' })
 
+const { t } = useI18n()
 const route = useRoute()
 const code = computed(() => (route.params.code as string).toUpperCase())
 
 const gameStore = useGameStore()
 const gameRoom = useGameRoom()
+const joinError = ref('')
 
 onMounted(async () => {
-  // if (!gameStore.myNickname) {
-  //   await navigateTo(`/join?code=${code.value}`)
-  // }
+  if (!gameStore.myNickname) {
+    await navigateTo(`/join?code=${code.value}`)
+    return
+  }
 
-  // 刻板用假資料，之後接上真實 API 後移除
-  if (gameStore.phase === 'idle') {
-    gameStore.setMyNickname('Player1')
-    gameStore.setRoom({
-      roomCode: code.value,
-      quizTitle: 'Mock Quiz',
-      status: 'waiting',
-      players: [
-        { connectionId: '1', nickname: 'Player1', score: 0, rank: 0, hasAnswered: false },
-        { connectionId: '2', nickname: 'Player2', score: 0, rank: 0, hasAnswered: false },
-        { connectionId: '3', nickname: 'Player3', score: 0, rank: 0, hasAnswered: false }
-      ],
-      currentQuestionIndex: 0,
-      totalQuestions: 5,
-      hostConnectionId: 'host'
-    })
-
-    // 刻板用假題目，之後接上真實 API 後移除
-    gameStore.setQuestion({
-      index: 0,
-      total: 5,
-      text: '台灣最高的山是哪一座？',
-      options: ['玉山', '雪山', '合歡山', '阿里山'],
-      timeLimit: 20
-    })
-
-    // 刻板用假結果，之後接上真實 API 後移除
-    gameStore.selectAnswer(0)
-    gameStore.setAnswerResult({
-      isCorrect: true,
-      correctAnswerIndex: 0,
-      pointsEarned: 850
-    })
-    gameStore.setQuestionEnd({
-      answerIndex: 0,
-      explanation: '玉山海拔 3,952 公尺，是台灣及東亞最高峰。',
-      rankings: [
-        { rank: 1, nickname: 'Player1', score: 850 },
-        { rank: 2, nickname: 'Player2', score: 620 },
-        { rank: 3, nickname: 'Player3', score: 400 }
-      ]
-    })
-
-    // 刻板用假最終排名，之後接上真實 API 後移除
-    gameStore.endGame([
-      { rank: 1, nickname: 'Player1', score: 4200 },
-      { rank: 2, nickname: 'Player2', score: 3150 },
-      { rank: 3, nickname: 'Player3', score: 2600 }
-    ])
+  try {
+    await gameRoom.joinRoom(code.value, gameStore.myNickname)
+  } catch {
+    joinError.value = t('join.roomNotFound')
   }
 })
 

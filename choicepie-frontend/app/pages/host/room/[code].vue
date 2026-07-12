@@ -52,7 +52,7 @@
             >
               <div
                 v-for="player in gameStore.players"
-                :key="player.connectionId"
+                :key="player.id"
                 class="player-chip"
               >
                 <div class="online-dot" />
@@ -185,7 +185,7 @@
             >
               <div
                 v-for="player in gameStore.players"
-                :key="player.connectionId"
+                :key="player.id"
                 class="player-chip"
                 :class="{ 'player-chip-answered': player.hasAnswered }"
               >
@@ -427,110 +427,34 @@ const podiumEntries = computed(() =>
 
 const rejoinFailed = ref(false)
 
-// 暫時用假資料模擬遊戲進行，之後接上真實後端（SignalR）後移除
-const MOCK_QUESTIONS = Array.from({ length: 5 }, (_, i) => ({
-  index: i,
-  total: 5,
-  text: `範例題目 ${i + 1}？`,
-  options: ['選項 A', '選項 B', '選項 C', '選項 D'],
-  timeLimit: 20,
-  answerIndex: i % 4,
-  explanation: `這是第 ${i + 1} 題的範例解析說明。`
-}))
-
-const mockQuestionIndex = ref(0)
-let _mockAdvanceTimeout: ReturnType<typeof setTimeout> | null = null
-let _mockAnswerTimeouts: ReturnType<typeof setTimeout>[] = []
-
-const _clearMockAnswerTimeouts = () => {
-  _mockAnswerTimeouts.forEach(clearTimeout)
-  _mockAnswerTimeouts = []
-}
-
-const _scheduleMockAnswers = () => {
-  const total = gameStore.players.length
-  const optionCount = gameStore.currentQuestion?.options.length ?? 4
-  gameStore.players.forEach((player, i) => {
-    const delay = 1500 + i * 2500 + Math.random() * 1500
-    const selectedOptionIndex = Math.floor(Math.random() * optionCount)
-    _mockAnswerTimeouts.push(setTimeout(() => {
-      gameStore.setAnswerProgress({
-        connectionId: player.connectionId,
-        answered: gameStore.answeredCount + 1,
-        total,
-        selectedOptionIndex
-      })
-    }, delay))
-  })
-}
-
-const mockShowResult = () => {
-  const q = MOCK_QUESTIONS[mockQuestionIndex.value]!
-  const rankings = gameStore.players
-    .map((p, i) => ({ rank: i + 1, nickname: p.nickname, score: (i === 0 ? 300 : 150) * (mockQuestionIndex.value + 1) }))
-    .sort((a, b) => b.score - a.score)
-    .map((r, i) => ({ ...r, rank: i + 1 }))
-
-  gameStore.setQuestionEnd({
-    answerIndex: q.answerIndex,
-    explanation: q.explanation,
-    rankings
-  })
-}
-
-const mockShowNextQuestion = () => {
-  if (mockQuestionIndex.value >= MOCK_QUESTIONS.length) {
-    const finalRankings = gameStore.rankings.length
-      ? gameStore.rankings
-      : gameStore.players.map((p, i) => ({ rank: i + 1, nickname: p.nickname, score: 0 }))
-    gameStore.endGame(finalRankings)
-    return
-  }
-
-  const q = MOCK_QUESTIONS[mockQuestionIndex.value]!
-  gameStore.setQuestion(q)
-  mockQuestionIndex.value++
-  _mockAdvanceTimeout = setTimeout(mockShowResult, q.timeLimit * 1000)
-  _scheduleMockAnswers()
-}
-
 const handleStart = () => {
-  mockQuestionIndex.value = 0
-  mockShowNextQuestion()
+  gameRoom.startGame(code.value)
 }
 
 const handleSkip = () => {
-  if (_mockAdvanceTimeout) clearTimeout(_mockAdvanceTimeout)
-  _clearMockAnswerTimeouts()
-  if (gameStore.phase === 'question') {
-    mockShowResult()
-  } else {
-    mockShowNextQuestion()
-  }
+  gameRoom.skipQuestion(code.value)
 }
 
-onMounted(() => {
+// 計時器歸零時由 Host 端自動呼叫 SkipQuestion 結算本題，後端本身不會自動計時
+watch(() => gameStore.timeLeft, (timeLeft) => {
+  if (timeLeft === 0 && gameStore.phase === 'question') {
+    gameRoom.skipQuestion(code.value)
+  }
+})
+
+onMounted(async () => {
   // 若非從建立房間流程 client-side 導航過來（例如重新整理、直接開啟連結），
-  // gameStore 尚未有此房間的狀態，先用假房間資料填充
+  // gameStore 尚未有此房間的狀態，向後端取得目前房間快照
   if (gameStore.roomCode !== code.value) {
-    gameStore.setRoom({
-      roomCode: code.value,
-      quizTitle: 'Kubernetes 核心概念入門',
-      status: 'waiting',
-      players: [
-        { connectionId: 'mock-1', nickname: '小美', score: 0, rank: 0, hasAnswered: false },
-        { connectionId: 'mock-2', nickname: 'Leo', score: 0, rank: 0, hasAnswered: false }
-      ],
-      currentQuestionIndex: 0,
-      totalQuestions: MOCK_QUESTIONS.length,
-      hostConnectionId: 'mock-host'
-    })
+    try {
+      await gameRoom.rejoinAsHost(code.value)
+    } catch {
+      rejoinFailed.value = true
+    }
   }
 })
 
 onUnmounted(() => {
-  if (_mockAdvanceTimeout) clearTimeout(_mockAdvanceTimeout)
-  _clearMockAnswerTimeouts()
   gameRoom.disconnect()
 })
 </script>

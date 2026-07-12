@@ -36,7 +36,7 @@
       <div class="flex flex-wrap gap-2">
         <div
           v-for="player in gameStore.players"
-          :key="player.connectionId"
+          :key="player.id"
           class="player-chip"
           :class="player.nickname === gameStore.myNickname
             ? 'bg-primary-100 border-primary-200'

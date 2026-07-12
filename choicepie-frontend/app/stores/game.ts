@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { GameRoom, GamePhase, Player } from '~/types/gameRoom'
-import type { QuestionPayload, RankEntry, AnswerResultPayload, QuestionEndPayload, RoomStateSyncPayload, AnswerProgressPayload } from '~/types/other'
+import type { QuestionPayload, RankEntry, AnswerResultPayload, QuestionEndPayload, RoomStateSyncPayload, AnswerProgressPayload, BackendGamePhase } from '~/types/other'
 
 export const useGameStore = defineStore('game', () => {
   // ── 房間狀態 ──
@@ -86,12 +86,22 @@ export const useGameStore = defineStore('game', () => {
     phase.value = 'waiting'
   }
 
+  /** 後端 GamePhase 字串（lobby/question/reveal/ended）對應前端 GamePhase（waiting/question/result/ended） */
+  const BACKEND_PHASE_MAP: Record<BackendGamePhase, GamePhase> = {
+    lobby: 'waiting',
+    question: 'question',
+    reveal: 'result',
+    ended: 'ended'
+  }
+
   /** 重新連線後套用伺服器同步回來的完整房間快照（重新整理 / 直接開啟房間頁時使用） */
   const setRoomState = (payload: RoomStateSyncPayload) => {
-    room.value = payload.room
-    phase.value = payload.phase
+    const mappedPhase = BACKEND_PHASE_MAP[payload.phase]
 
-    if (payload.phase === 'question' && payload.currentQuestion) {
+    room.value = payload.room
+    phase.value = mappedPhase
+
+    if (mappedPhase === 'question' && payload.currentQuestion) {
       currentQuestion.value = payload.currentQuestion
       selectedAnswerIndex.value = null
       isCorrect.value = null
@@ -101,12 +111,12 @@ export const useGameStore = defineStore('game', () => {
       answeredCount.value = payload.answeredCount ?? 0
       totalCount.value = payload.totalCount ?? players.value.length
       _startTimer(payload.currentQuestion.timeLimit)
-    } else if (payload.phase === 'result' && payload.questionEnd) {
+    } else if (mappedPhase === 'result' && payload.questionEnd) {
       correctAnswerIndex.value = payload.questionEnd.answerIndex
       currentExplanation.value = payload.questionEnd.explanation
       rankings.value = payload.questionEnd.rankings
       _stopTimer()
-    } else if (payload.phase === 'ended' && payload.rankings) {
+    } else if (mappedPhase === 'ended' && payload.rankings) {
       rankings.value = payload.rankings
       _stopTimer()
     }
@@ -114,13 +124,13 @@ export const useGameStore = defineStore('game', () => {
 
   const addPlayer = (player: Player) => {
     if (!room.value) return
-    const exists = room.value.players.some(p => p.connectionId === player.connectionId)
+    const exists = room.value.players.some(p => p.id === player.id)
     if (!exists) room.value.players.push(player)
   }
 
-  const removePlayer = (connectionId: string) => {
+  /** 後端 PlayerLeft 事件目前傳的是 SignalR connectionId，不是 player id，故無法在此比對移除玩家（已知後端缺口） */
+  const removePlayer = (_connectionId: string) => {
     if (!room.value) return
-    room.value.players = room.value.players.filter(p => p.connectionId !== connectionId)
   }
 
   const setQuestion = (q: QuestionPayload) => {
@@ -153,7 +163,7 @@ export const useGameStore = defineStore('game', () => {
     answeredCount.value = payload.answered
     totalCount.value = payload.total
     if (!room.value) return
-    const player = room.value.players.find(p => p.connectionId === payload.connectionId)
+    const player = room.value.players.find(p => p.id === payload.playerId)
     if (player) {
       player.hasAnswered = true
       player.selectedOptionIndex = payload.selectedOptionIndex

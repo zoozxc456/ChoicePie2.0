@@ -1,5 +1,5 @@
 import type { Difficulty, Question } from './quiz'
-import type { GameRoom, GamePhase } from './gameRoom'
+import type { GameRoom } from './gameRoom'
 
 /** Server → Client: 推送新題目（不含正確答案） */
 export interface QuestionPayload {
@@ -28,7 +28,7 @@ export interface AnswerResultPayload {
 export interface AnswerProgressPayload {
   answered: number
   total: number
-  connectionId: string
+  playerId: string
   selectedOptionIndex: number
 }
 
@@ -61,8 +61,8 @@ export interface GenerateQuestionsResponse {
 }
 
 export interface CreateRoomRequest {
-  quizId?: string
-  questions: Question[]
+  quizId: string
+  questionIds?: string[]
   timeLimit?: number
 }
 
@@ -75,9 +75,12 @@ export interface JoinRoomRequest {
   nickname: string
 }
 
+/** 後端 GameRoom.GamePhase 的字串值，與前端 GamePhase 命名不同（lobby/reveal vs waiting/result） */
+export type BackendGamePhase = 'lobby' | 'question' | 'reveal' | 'ended'
+
 /** Server → Client: 重新連線後同步完整房間狀態（用於重新整理 / 直接開啟房間頁） */
 export interface RoomStateSyncPayload {
-  phase: GamePhase
+  phase: BackendGamePhase
   room: GameRoom
   currentQuestion?: QuestionPayload
   answeredCount?: number

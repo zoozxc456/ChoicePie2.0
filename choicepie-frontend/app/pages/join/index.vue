@@ -109,7 +109,7 @@ import * as z from 'zod'
 definePageMeta({ layout: 'default' })
 
 const { t } = useI18n()
-const gameRoom = useGameRoom()
+const gameStore = useGameStore()
 
 const isJoining = ref(false)
 const error = ref('')
@@ -129,13 +129,8 @@ const joinState = reactive<JoinForm>({
 const handleJoin = async () => {
   isJoining.value = true
   error.value = ''
-  try {
-    // await gameRoom.joinRoom(joinState.roomCode.toUpperCase(), joinState.nickname.trim())
-    await navigateTo(`/join/${joinState.roomCode.toUpperCase()}`)
-  } catch {
-    error.value = t('join.roomNotFound')
-    isJoining.value = false
-  }
+  gameStore.setMyNickname(joinState.nickname.trim())
+  await navigateTo(`/join/${joinState.roomCode.toUpperCase()}`)
 }
 
 const steps = computed(() => [

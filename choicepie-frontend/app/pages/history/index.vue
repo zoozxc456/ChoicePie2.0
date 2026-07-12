@@ -26,8 +26,19 @@
       </div>
     </div>
 
+    <!-- Loading -->
+    <div
+      v-if="gameSessionStore.isLoading"
+      class="flex justify-center py-20"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="animate-spin text-4xl text-primary-500"
+      />
+    </div>
+
     <!-- Host history -->
-    <template v-if="activeRole === 'host'">
+    <template v-else-if="activeRole === 'host'">
       <div
         v-if="!hostedGames.length"
         class="empty-state text-center py-20"
@@ -157,11 +168,12 @@
 </template>
 
 <script setup lang="ts">
-import { mockHostedGames, mockPlayedGames } from '~/mocks/history'
+import { useGameSessionStore } from '~/stores/gameSession'
 
-definePageMeta({ layout: 'content' })
+definePageMeta({ layout: 'content', middleware: ['auth'] })
 
 const { t, locale } = useI18n()
+const gameSessionStore = useGameSessionStore()
 
 type RoleKey = 'host' | 'player'
 const activeRole = ref<RoleKey>('host')
@@ -171,8 +183,34 @@ const roles = computed(() => [
   { key: 'player' as RoleKey, label: t('history.roles.player') }
 ])
 
-const hostedGames = ref(mockHostedGames)
-const playedGames = ref(mockPlayedGames)
+const hostedGames = computed(() => gameSessionStore.hostedSessions.map(s => ({
+  id: s.id,
+  quizTitle: s.quizTitle,
+  coverEmoji: s.coverEmoji,
+  coverGradient: `background: ${s.coverGradient};`,
+  playerCount: s.playerCount,
+  questionCount: s.questionCount,
+  topPlayerName: s.topPlayerName,
+  topPlayerScore: s.topPlayerScore,
+  playedAt: s.playedAtUtc
+})))
+
+const playedGames = computed(() => gameSessionStore.playedSessions.map(s => ({
+  id: s.id,
+  quizTitle: s.quizTitle,
+  coverEmoji: s.coverEmoji,
+  coverGradient: `background: ${s.coverGradient};`,
+  playerCount: s.playerCount,
+  questionCount: s.questionCount,
+  myRank: s.myRank ?? 0,
+  myScore: s.myScore ?? 0,
+  playedAt: s.playedAtUtc
+})))
+
+onMounted(() => {
+  gameSessionStore.fetchHostedSessions()
+  gameSessionStore.fetchPlayedSessions()
+})
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString(locale.value === 'en' ? 'en-US' : 'zh-TW', {
