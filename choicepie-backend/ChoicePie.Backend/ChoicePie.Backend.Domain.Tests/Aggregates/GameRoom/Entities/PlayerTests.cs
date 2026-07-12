@@ -20,6 +20,24 @@ public class PlayerTests
     }
 
     [Test]
+    public void Create_GivenNoMemberId_WhenCalled_ThenMemberIdIsNull()
+    {
+        var player = Player.Create("小明", "connection-1");
+
+        Assert.That(player.MemberId, Is.Null);
+    }
+
+    [Test]
+    public void Create_GivenMemberId_WhenCalled_ThenMemberIdIsSet()
+    {
+        var memberId = Guid.NewGuid();
+
+        var player = Player.Create("小明", "connection-1", memberId);
+
+        Assert.That(player.MemberId, Is.EqualTo(memberId));
+    }
+
+    [Test]
     public void HasAnsweredQuestion_GivenNoAnswerRecordedYet_WhenCalled_ThenReturnsFalse()
     {
         var player = Player.Create("小明", "connection-1");

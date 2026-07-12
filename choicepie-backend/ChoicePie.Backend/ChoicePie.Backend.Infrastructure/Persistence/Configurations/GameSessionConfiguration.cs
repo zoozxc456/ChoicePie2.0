@@ -30,6 +30,9 @@ public sealed class GameSessionConfiguration : AuditableEntityConfiguration<Game
         builder.HasIndex(s => s.HostUserId);
 
         builder.Property(s => s.RoomCode).IsRequired().HasMaxLength(6);
+        builder.Property(s => s.QuizTitle).IsRequired();
+        builder.Property(s => s.CoverEmoji).IsRequired();
+        builder.Property(s => s.CoverGradient).IsRequired();
 
         builder.OwnsMany(s => s.Questions, question =>
         {
@@ -43,6 +46,8 @@ public sealed class GameSessionConfiguration : AuditableEntityConfiguration<Game
         builder.OwnsMany(s => s.PlayerResults, result =>
         {
             result.WithOwner().HasForeignKey("GameSessionId");
+
+            result.HasIndex(r => r.MemberId);
 
             result.Property(r => r.Answers)
                 .HasConversion(

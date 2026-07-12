@@ -8,6 +8,7 @@ public sealed class Player : AuditableEntity<Guid>
 
     public string Nickname { get; private set; } = null!;
     public string ConnectionId { get; private set; } = null!;
+    public Guid? MemberId { get; private set; }
     public int Score { get; private set; }
     public int? SelectedOptionIndex { get; private set; }
 
@@ -15,11 +16,16 @@ public sealed class Player : AuditableEntity<Guid>
     {
     }
 
-    public static Player Create(string nickname, string connectionId) => new()
+    /// <summary>
+    /// memberId 為選填：玩家不需登入即可加入房間，但若加入時已登入，會記下 MemberId
+    /// 讓遊戲結束後的 GameSession 快照可歸戶到該使用者的「我玩過的遊戲」歷史。
+    /// </summary>
+    public static Player Create(string nickname, string connectionId, Guid? memberId = null) => new()
     {
         Id = Guid.NewGuid(),
         Nickname = nickname,
-        ConnectionId = connectionId
+        ConnectionId = connectionId,
+        MemberId = memberId
     };
 
     public IReadOnlyDictionary<int, PlayerAnswer> Answers => _answersByQuestionIndex;
@@ -36,7 +42,7 @@ public sealed class Player : AuditableEntity<Guid>
     public void ResetForNextQuestion() => SelectedOptionIndex = null;
 
     public PlayerMemento ToMemento() =>
-        new(Id, Nickname, ConnectionId, Score, SelectedOptionIndex, _answersByQuestionIndex);
+        new(Id, Nickname, ConnectionId, MemberId, Score, SelectedOptionIndex, _answersByQuestionIndex);
 
     public static Player Restore(PlayerMemento memento)
     {
@@ -45,6 +51,7 @@ public sealed class Player : AuditableEntity<Guid>
             Id = memento.Id,
             Nickname = memento.Nickname,
             ConnectionId = memento.ConnectionId,
+            MemberId = memento.MemberId,
             Score = memento.Score,
             SelectedOptionIndex = memento.SelectedOptionIndex
         };
@@ -67,6 +74,7 @@ public sealed record PlayerMemento(
     Guid Id,
     string Nickname,
     string ConnectionId,
+    Guid? MemberId,
     int Score,
     int? SelectedOptionIndex,
     IReadOnlyDictionary<int, PlayerAnswer> Answers);

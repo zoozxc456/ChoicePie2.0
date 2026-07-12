@@ -36,7 +36,7 @@ public class SkipQuestionCommandHandlerTests
         var questions = Enumerable.Range(0, questionCount)
             .Select(i => new GameQuestionSnapshot(Guid.NewGuid(), $"Q{i}", ["1", "2", "3", "4"], 1, "解析"))
             .ToList();
-        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", questions, 20, CreatedAtUtc);
+        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
         room.Join("小明", "conn-1", CreatedAtUtc.AddSeconds(1));
         return room;
     }

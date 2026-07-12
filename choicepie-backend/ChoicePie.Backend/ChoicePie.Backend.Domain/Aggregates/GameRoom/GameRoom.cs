@@ -20,6 +20,10 @@ public sealed class GameRoom : AggregateRoot<Guid>
 
     public Guid HostUserId { get; private set; }
     public string RoomCode { get; private set; } = null!;
+    public Guid QuizId { get; private set; }
+    public string QuizTitle { get; private set; } = null!;
+    public string CoverEmoji { get; private set; } = null!;
+    public string CoverGradient { get; private set; } = null!;
     public int TimeLimitSeconds { get; private set; }
     public GamePhase Phase { get; private set; } = null!;
     public int CurrentQuestionIndex { get; private set; } = -1;
@@ -38,6 +42,10 @@ public sealed class GameRoom : AggregateRoot<Guid>
     public static GameRoom Create(
         Guid hostUserId,
         string roomCode,
+        Guid quizId,
+        string quizTitle,
+        string coverEmoji,
+        string coverGradient,
         IReadOnlyList<GameQuestionSnapshot> questions,
         int timeLimitSeconds,
         DateTime createdAtUtc)
@@ -57,6 +65,10 @@ public sealed class GameRoom : AggregateRoot<Guid>
             Id = Guid.NewGuid(),
             HostUserId = hostUserId,
             RoomCode = roomCode,
+            QuizId = quizId,
+            QuizTitle = quizTitle,
+            CoverEmoji = coverEmoji,
+            CoverGradient = coverGradient,
             TimeLimitSeconds = timeLimitSeconds,
             Phase = GamePhase.Lobby,
             CreatedAtUtc = createdAtUtc
@@ -67,7 +79,7 @@ public sealed class GameRoom : AggregateRoot<Guid>
         return room;
     }
 
-    public Player Join(string nickname, string connectionId, DateTime utcNow)
+    public Player Join(string nickname, string connectionId, DateTime utcNow, Guid? memberId = null)
     {
         if (utcNow >= CreatedAtUtc + PlayableWindow)
         {
@@ -84,7 +96,7 @@ public sealed class GameRoom : AggregateRoot<Guid>
             throw new RoomFullException(RoomCode);
         }
 
-        var player = Player.Create(nickname, connectionId);
+        var player = Player.Create(nickname, connectionId, memberId);
         _players.Add(player);
 
         return player;
@@ -189,6 +201,10 @@ public sealed class GameRoom : AggregateRoot<Guid>
             Id,
             HostUserId,
             RoomCode,
+            QuizId,
+            QuizTitle,
+            CoverEmoji,
+            CoverGradient,
             TimeLimitSeconds,
             Phase.Name,
             CurrentQuestionIndex,
@@ -206,6 +222,10 @@ public sealed class GameRoom : AggregateRoot<Guid>
             Id = memento.Id,
             HostUserId = memento.HostUserId,
             RoomCode = memento.RoomCode,
+            QuizId = memento.QuizId,
+            QuizTitle = memento.QuizTitle,
+            CoverEmoji = memento.CoverEmoji,
+            CoverGradient = memento.CoverGradient,
             TimeLimitSeconds = memento.TimeLimitSeconds,
             Phase = GamePhase.FromName(memento.Phase) ?? throw new InvalidGameRoomException($"未知的遊戲階段：{memento.Phase}"),
             CurrentQuestionIndex = memento.CurrentQuestionIndex,
@@ -229,6 +249,10 @@ public sealed record GameRoomMemento(
     Guid Id,
     Guid HostUserId,
     string RoomCode,
+    Guid QuizId,
+    string QuizTitle,
+    string CoverEmoji,
+    string CoverGradient,
     int TimeLimitSeconds,
     string Phase,
     int CurrentQuestionIndex,

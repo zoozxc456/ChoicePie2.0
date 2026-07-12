@@ -22,10 +22,10 @@ public class GameRoomTests
     ];
 
     private static Domain.Aggregates.GameRoom.GameRoom CreateRoom(int timeLimitSeconds = 20) =>
-        Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", OneQuestion(), timeLimitSeconds, CreatedAtUtc);
+        Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", OneQuestion(), timeLimitSeconds, CreatedAtUtc);
 
     private static Domain.Aggregates.GameRoom.GameRoom CreateRoomWithTwoQuestions(int timeLimitSeconds = 20) =>
-        Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", TwoQuestions(), timeLimitSeconds, CreatedAtUtc);
+        Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", TwoQuestions(), timeLimitSeconds, CreatedAtUtc);
 
     [Test]
     public void Create_GivenValidInput_WhenCalled_ThenFieldsAreSetAndPhaseIsLobby()
@@ -47,7 +47,7 @@ public class GameRoomTests
     public void Create_GivenEmptyQuestions_WhenCalled_ThenThrowsInvalidGameRoomException()
     {
         Assert.Throws<InvalidGameRoomException>(() =>
-            Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", [], 20, CreatedAtUtc));
+            Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", [], 20, CreatedAtUtc));
     }
 
     [TestCase(5)]

@@ -28,7 +28,7 @@ public class StartGameCommandHandlerTests
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "基本加法"),
             new(Guid.NewGuid(), "2+2=?", ["1", "2", "3", "4"], AnswerIndex: 3, "基本加法")
         };
-        return Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", questions, 20, CreatedAtUtc);
+        return Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
     }
 
     [Test]

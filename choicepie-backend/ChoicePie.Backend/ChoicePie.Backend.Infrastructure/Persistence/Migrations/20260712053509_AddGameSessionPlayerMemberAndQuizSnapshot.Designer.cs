@@ -3,6 +3,7 @@ using System;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ChoicePieDbContext))]
-    partial class ChoicePieDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260712053509_AddGameSessionPlayerMemberAndQuizSnapshot")]
+    partial class AddGameSessionPlayerMemberAndQuizSnapshot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -546,30 +549,6 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                                 .HasForeignKey("AdminAuthAccountId")
                                 .HasConstraintName("fk_admin_login_method_admin_auth_account_admin_auth_account_id");
 
-                            b1.OwnsOne("ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.ValueObjects.AdminExternalIdentity", "External", b2 =>
-                                {
-                                    b2.Property<Guid>("AdminLoginMethodId")
-                                        .HasColumnType("uuid")
-                                        .HasColumnName("id");
-
-                                    b2.Property<int>("Provider")
-                                        .HasColumnType("integer")
-                                        .HasColumnName("Provider");
-
-                                    b2.Property<string>("ProviderUserId")
-                                        .IsRequired()
-                                        .HasColumnType("text")
-                                        .HasColumnName("ProviderUserId");
-
-                                    b2.HasKey("AdminLoginMethodId");
-
-                                    b2.ToTable("admin_login_method", (string)null);
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("AdminLoginMethodId")
-                                        .HasConstraintName("fk_admin_login_method_admin_login_method_id");
-                                });
-
                             b1.OwnsOne("ChoicePie.Backend.Shared.Kernel.ValueObjects.HashedPassword", "Password", b2 =>
                                 {
                                     b2.Property<Guid>("AdminLoginMethodId")
@@ -588,7 +567,31 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
 
                                     b2.HasKey("AdminLoginMethodId");
 
-                                    b2.ToTable("admin_login_method", (string)null);
+                                    b2.ToTable("admin_login_method");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AdminLoginMethodId")
+                                        .HasConstraintName("fk_admin_login_method_admin_login_method_id");
+                                });
+
+                            b1.OwnsOne("ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.ValueObjects.AdminExternalIdentity", "External", b2 =>
+                                {
+                                    b2.Property<Guid>("AdminLoginMethodId")
+                                        .HasColumnType("uuid")
+                                        .HasColumnName("id");
+
+                                    b2.Property<int>("Provider")
+                                        .HasColumnType("integer")
+                                        .HasColumnName("Provider");
+
+                                    b2.Property<string>("ProviderUserId")
+                                        .IsRequired()
+                                        .HasColumnType("text")
+                                        .HasColumnName("ProviderUserId");
+
+                                    b2.HasKey("AdminLoginMethodId");
+
+                                    b2.ToTable("admin_login_method");
 
                                     b2.WithOwner()
                                         .HasForeignKey("AdminLoginMethodId")
@@ -651,30 +654,6 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                                 .HasForeignKey("AuthAccountId")
                                 .HasConstraintName("fk_login_method_auth_account_auth_account_id");
 
-                            b1.OwnsOne("ChoicePie.Backend.Domain.Aggregates.AuthAccount.ValueObjects.ExternalIdentity", "External", b2 =>
-                                {
-                                    b2.Property<Guid>("LoginMethodId")
-                                        .HasColumnType("uuid")
-                                        .HasColumnName("id");
-
-                                    b2.Property<int>("Provider")
-                                        .HasColumnType("integer")
-                                        .HasColumnName("Provider");
-
-                                    b2.Property<string>("ProviderUserId")
-                                        .IsRequired()
-                                        .HasColumnType("text")
-                                        .HasColumnName("ProviderUserId");
-
-                                    b2.HasKey("LoginMethodId");
-
-                                    b2.ToTable("login_method", (string)null);
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("LoginMethodId")
-                                        .HasConstraintName("fk_login_method_login_method_id");
-                                });
-
                             b1.OwnsOne("ChoicePie.Backend.Shared.Kernel.ValueObjects.HashedPassword", "Password", b2 =>
                                 {
                                     b2.Property<Guid>("LoginMethodId")
@@ -693,7 +672,31 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
 
                                     b2.HasKey("LoginMethodId");
 
-                                    b2.ToTable("login_method", (string)null);
+                                    b2.ToTable("login_method");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("LoginMethodId")
+                                        .HasConstraintName("fk_login_method_login_method_id");
+                                });
+
+                            b1.OwnsOne("ChoicePie.Backend.Domain.Aggregates.AuthAccount.ValueObjects.ExternalIdentity", "External", b2 =>
+                                {
+                                    b2.Property<Guid>("LoginMethodId")
+                                        .HasColumnType("uuid")
+                                        .HasColumnName("id");
+
+                                    b2.Property<int>("Provider")
+                                        .HasColumnType("integer")
+                                        .HasColumnName("Provider");
+
+                                    b2.Property<string>("ProviderUserId")
+                                        .IsRequired()
+                                        .HasColumnType("text")
+                                        .HasColumnName("ProviderUserId");
+
+                                    b2.HasKey("LoginMethodId");
+
+                                    b2.ToTable("login_method");
 
                                     b2.WithOwner()
                                         .HasForeignKey("LoginMethodId")
@@ -815,31 +818,6 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.Quiz.Quiz", b =>
                 {
-                    b.OwnsOne("ChoicePie.Backend.Domain.Aggregates.Quiz.ValueObjects.QuizCover", "Cover", b1 =>
-                        {
-                            b1.Property<Guid>("QuizId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("id");
-
-                            b1.Property<string>("Emoji")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("CoverEmoji");
-
-                            b1.Property<string>("Gradient")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("CoverGradient");
-
-                            b1.HasKey("QuizId");
-
-                            b1.ToTable("quiz", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("QuizId")
-                                .HasConstraintName("fk_quiz_quiz_id");
-                        });
-
                     b.OwnsMany("ChoicePie.Backend.Domain.Aggregates.Quiz.Entities.Question", "Questions", b1 =>
                         {
                             b1.Property<Guid>("Id")
@@ -913,7 +891,7 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
 
                                     b2.HasKey("QuestionId");
 
-                                    b2.ToTable("question", (string)null);
+                                    b2.ToTable("question");
 
                                     b2.WithOwner()
                                         .HasForeignKey("QuestionId")
@@ -940,7 +918,32 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("QuizId");
 
-                            b1.ToTable("quiz", (string)null);
+                            b1.ToTable("quiz");
+
+                            b1.WithOwner()
+                                .HasForeignKey("QuizId")
+                                .HasConstraintName("fk_quiz_quiz_id");
+                        });
+
+                    b.OwnsOne("ChoicePie.Backend.Domain.Aggregates.Quiz.ValueObjects.QuizCover", "Cover", b1 =>
+                        {
+                            b1.Property<Guid>("QuizId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<string>("Emoji")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("CoverEmoji");
+
+                            b1.Property<string>("Gradient")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("CoverGradient");
+
+                            b1.HasKey("QuizId");
+
+                            b1.ToTable("quiz");
 
                             b1.WithOwner()
                                 .HasForeignKey("QuizId")
@@ -1029,7 +1032,7 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("QuizAttemptId");
 
-                            b1.ToTable("quiz_attempt", (string)null);
+                            b1.ToTable("quiz_attempt");
 
                             b1.WithOwner()
                                 .HasForeignKey("QuizAttemptId")

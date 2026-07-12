@@ -10,6 +10,10 @@ public sealed class GameSession : AggregateRoot<Guid>
 
     public string RoomCode { get; private set; } = null!;
     public Guid HostUserId { get; private set; }
+    public Guid QuizId { get; private set; }
+    public string QuizTitle { get; private set; } = null!;
+    public string CoverEmoji { get; private set; } = null!;
+    public string CoverGradient { get; private set; } = null!;
     public DateTime PlayedAtUtc { get; private set; }
 
     public IReadOnlyList<GameSessionQuestion> Questions => _questions.AsReadOnly();
@@ -26,6 +30,10 @@ public sealed class GameSession : AggregateRoot<Guid>
             Id = Guid.NewGuid(),
             RoomCode = room.RoomCode,
             HostUserId = room.HostUserId,
+            QuizId = room.QuizId,
+            QuizTitle = room.QuizTitle,
+            CoverEmoji = room.CoverEmoji,
+            CoverGradient = room.CoverGradient,
             PlayedAtUtc = utcNow
         };
 
@@ -43,7 +51,7 @@ public sealed class GameSession : AggregateRoot<Guid>
                 .ToList();
 
             session._playerResults.Add(new GameSessionPlayerResult(
-                player.Id, player.Nickname, player.Score, Rank: i + 1, answers));
+                player.Id, player.Nickname, player.MemberId, player.Score, Rank: i + 1, answers));
         }
 
         return session;

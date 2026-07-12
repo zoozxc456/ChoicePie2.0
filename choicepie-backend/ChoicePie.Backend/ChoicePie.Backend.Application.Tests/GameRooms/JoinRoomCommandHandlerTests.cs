@@ -27,7 +27,7 @@ public class JoinRoomCommandHandlerTests
         {
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "基本加法")
         };
-        return Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", questions, 20, CreatedAtUtc);
+        return Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
     }
 
     [Test]
@@ -40,11 +40,25 @@ public class JoinRoomCommandHandlerTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(result.Nickname, Is.EqualTo("小明"));
-            Assert.That(result.Score, Is.EqualTo(0));
-            Assert.That(result.SelectedOptionIndex, Is.Null);
+            Assert.That(result.Player.Nickname, Is.EqualTo("小明"));
+            Assert.That(result.Player.Score, Is.EqualTo(0));
+            Assert.That(result.Player.SelectedOptionIndex, Is.Null);
+            Assert.That(result.RoomState.Phase, Is.EqualTo("lobby"));
+            Assert.That(result.RoomState.Room.Status, Is.EqualTo("waiting"));
         });
         await _gameRoomRepository.Received(1).SaveAsync(room, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_GivenMemberId_WhenCalled_ThenJoinedPlayerCarriesMemberId()
+    {
+        var room = CreateLobbyRoom();
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+        var memberId = Guid.NewGuid();
+
+        await _sut.Handle(new JoinRoomCommand("ABC123", "小明", "conn-1", memberId), CancellationToken.None);
+
+        Assert.That(room.Players.Single().MemberId, Is.EqualTo(memberId));
     }
 
     [Test]
