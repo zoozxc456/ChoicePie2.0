@@ -103,7 +103,6 @@
 <script setup lang="ts">
 import QuizCard from '~/components/library/QuizCard.vue'
 import { useQuizStore } from '~/stores/quiz'
-import { mockQuizzes } from '~/mocks/quiz'
 
 definePageMeta({ layout: 'content' })
 
@@ -113,7 +112,8 @@ const quizStore = useQuizStore()
 const search = ref('')
 const activeTag = ref('全部')
 
-const tags = ['全部', 'Kubernetes', 'React', 'AWS', 'SQL', 'TypeScript', 'Go', 'System Design']
+const fetchedTags = ref<string[]>([])
+const tags = computed(() => ['全部', ...fetchedTags.value])
 
 const filteredQuizzes = computed(() => {
   let list = quizStore.quizzes
@@ -131,8 +131,10 @@ const featured = computed(() => filteredQuizzes.value.slice(0, 4))
 const latest = computed(() => filteredQuizzes.value.slice(4))
 
 onMounted(() => {
-  // 暫時用假資料，之後接上真實 API 後移除
-  quizStore.quizzes = mockQuizzes
+  quizStore.fetchQuizzes()
+  quizStore.fetchTags().then((data) => {
+    fetchedTags.value = data
+  })
 })
 </script>
 

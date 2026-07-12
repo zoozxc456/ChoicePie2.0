@@ -526,5 +526,62 @@
     "score": "{score} pts",
     "you": "(you)",
     "loading": "Loading..."
+  },
+  "attempt": {
+    "question": {
+      "questionOf": "Question {current} / {total}",
+      "next": "Next",
+      "finish": "Finish"
+    },
+    "result": {
+      "score": "Score {score}",
+      "reviewTitle": "Review Answers",
+      "questionIndex": "Question {index}",
+      "correct": "✔ Correct",
+      "wrong": "✘ Wrong",
+      "backToQuiz": "Back to Quiz",
+      "backToLibrary": "Back to Library"
+    }
+  },
+  "myQuizzes": {
+    "title": "📚 My Quizzes",
+    "subtitle": "Manage all the quizzes you've created",
+    "empty": "You haven't created any quizzes yet!",
+    "emptyDesc": "Write a set of questions to create your first quiz",
+    "emptyCta": "✨ Create a Quiz",
+    "card": {
+      "questions": "{count} questions"
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "actions": {
+      "edit": "Edit",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "archive": "Archive",
+      "delete": "Delete"
+    },
+    "deleteConfirm": {
+      "title": "Delete this quiz?",
+      "subtitle": "This cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    }
+  },
+  "myQuizzesEdit": {
+    "backToList": "Back to My Quizzes",
+    "title": "✏️ Edit Quiz",
+    "titleLabel": "Quiz Title",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Briefly describe this quiz...",
+    "tagsLabel": "Tags (comma separated)",
+    "tagsPlaceholder": "e.g. History, Beginner",
+    "saveMeta": "Save Details",
+    "questionsTitle": "Questions",
+    "saveQuestion": "Save Question",
+    "addQuestion": "Add Question"
   }
 }

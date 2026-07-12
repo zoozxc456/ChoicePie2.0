@@ -30,6 +30,7 @@ export interface Quiz {
   questions: Question[]
   tags: string[]
   isPublic: boolean
+  status: string
   createdAt: string
   updatedAt: string
 }

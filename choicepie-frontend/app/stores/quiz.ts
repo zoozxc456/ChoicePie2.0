@@ -1,9 +1,63 @@
 import { defineStore } from 'pinia'
+import { useQuizClientApi } from '~/services/quiz/client'
 import type { Quiz, Question, Difficulty } from '~/types/quiz'
+import type { QuizDto, QuizSummaryDto, QuestionDto, CreateQuestionRequestItem } from '~/types/api'
 
 const AI_DAILY_LIMIT = 1
 
+const toQuestion = (dto: QuestionDto): Question => ({
+  id: dto.id,
+  text: dto.text,
+  options: dto.options,
+  answerIndex: dto.answerIndex,
+  explanation: dto.explanation
+})
+
+const toQuiz = (dto: QuizDto): Quiz => ({
+  id: dto.id,
+  title: dto.title,
+  description: dto.description ?? undefined,
+  coverEmoji: dto.coverEmoji,
+  coverGradient: dto.coverGradient,
+  difficulty: dto.difficulty as Difficulty,
+  questionCount: dto.questionCount ?? dto.questions.length,
+  challengeCount: dto.challengeCount,
+  passRate: dto.passRate,
+  creatorId: dto.creatorId,
+  creatorName: dto.creatorName,
+  creatorAvatar: dto.creatorAvatar ?? undefined,
+  questions: dto.questions.map(toQuestion),
+  tags: dto.tags,
+  isPublic: dto.status === 'Published',
+  status: dto.status,
+  createdAt: dto.createdAt,
+  updatedAt: dto.updatedAt
+})
+
+const toQuizFromSummary = (dto: QuizSummaryDto): Quiz => ({
+  id: dto.id,
+  title: dto.title,
+  description: dto.description ?? undefined,
+  coverEmoji: dto.coverEmoji,
+  coverGradient: dto.coverGradient,
+  difficulty: dto.difficulty as Difficulty,
+  questionCount: dto.questionCount,
+  challengeCount: dto.challengeCount,
+  passRate: dto.passRate,
+  creatorId: dto.creatorId,
+  creatorName: dto.creatorName,
+  creatorAvatar: dto.creatorAvatar ?? undefined,
+  questions: [],
+  tags: dto.tags,
+  isPublic: dto.status === 'Published',
+  status: dto.status,
+  createdAt: dto.createdAt,
+  updatedAt: dto.updatedAt
+})
+
 export const useQuizStore = defineStore('quiz', () => {
+  const quizApi = useQuizClientApi()
+
   const quizzes = ref<Quiz[]>([])
   const currentQuiz = ref<Quiz | null>(null)
   const generatedQuestions = ref<Question[]>([])
@@ -22,12 +76,12 @@ export const useQuizStore = defineStore('quiz', () => {
 
   // ── Library ──
 
-  const fetchQuizzes = async (params?: { tag?: string, search?: string }) => {
+  const fetchQuizzes = async (params?: { tag?: string, search?: string, mine?: boolean }) => {
     isLoading.value = true
     error.value = null
     try {
-      const data = await $fetch<Quiz[]>('/api/quizzes', { query: params })
-      quizzes.value = data
+      const data = await quizApi.fetchQuizzes(params)
+      quizzes.value = data.items.map(toQuizFromSummary)
     } catch (e) {
       error.value = '載入題庫失敗，請稍後再試'
       console.error(e)
@@ -40,14 +94,71 @@ export const useQuizStore = defineStore('quiz', () => {
     isLoading.value = true
     error.value = null
     try {
-      const data = await $fetch<Quiz>(`/api/quizzes/${id}`)
-      currentQuiz.value = data
+      const data = await quizApi.fetchQuizById(id)
+      currentQuiz.value = toQuiz(data)
     } catch (e) {
       error.value = '無法載入此題庫'
       console.error(e)
     } finally {
       isLoading.value = false
     }
+  }
+
+  const fetchQuizPreview = (id: string) => quizApi.fetchQuizPreview(id)
+
+  const fetchTags = () => quizApi.fetchTags()
+
+  // ── 題庫管理 ──
+
+  const updateQuiz = async (id: string, payload: { title: string, description: string | null, tags: string[] }) => {
+    const data = await quizApi.updateQuiz(id, payload)
+    const quiz = toQuiz(data)
+    if (currentQuiz.value?.id === id) currentQuiz.value = quiz
+    const index = quizzes.value.findIndex(q => q.id === id)
+    if (index !== -1) quizzes.value[index] = quiz
+    return quiz
+  }
+
+  const deleteQuiz = async (id: string) => {
+    await quizApi.deleteQuiz(id)
+    quizzes.value = quizzes.value.filter(q => q.id !== id)
+    if (currentQuiz.value?.id === id) currentQuiz.value = null
+  }
+
+  const addQuestion = async (quizId: string, question: Omit<Question, 'id'>) => {
+    const data = await quizApi.addQuestion(quizId, question)
+    currentQuiz.value = toQuiz(data)
+    return currentQuiz.value
+  }
+
+  const updateQuestion = async (quizId: string, questionId: string, question: Omit<Question, 'id'>) => {
+    const data = await quizApi.updateQuestion(quizId, questionId, question)
+    currentQuiz.value = toQuiz(data)
+    return currentQuiz.value
+  }
+
+  const removeQuestion = async (quizId: string, questionId: string) => {
+    const data = await quizApi.removeQuestion(quizId, questionId)
+    currentQuiz.value = toQuiz(data)
+    return currentQuiz.value
+  }
+
+  const publishQuiz = async (id: string) => {
+    const data = await quizApi.publishQuiz(id)
+    currentQuiz.value = toQuiz(data)
+    return currentQuiz.value
+  }
+
+  const unpublishQuiz = async (id: string) => {
+    const data = await quizApi.unpublishQuiz(id)
+    currentQuiz.value = toQuiz(data)
+    return currentQuiz.value
+  }
+
+  const archiveQuiz = async (id: string) => {
+    const data = await quizApi.archiveQuiz(id)
+    currentQuiz.value = toQuiz(data)
+    return currentQuiz.value
   }
 
   // ── AI 出題 ──
@@ -71,14 +182,13 @@ export const useQuizStore = defineStore('quiz', () => {
     isGenerating.value = true
     error.value = null
     try {
-      // 暫時用假資料，之後接上真實 API 後移除
-      await new Promise(resolve => setTimeout(resolve, 1200))
-      generatedQuestions.value = Array.from({ length: questionCount }, (_, i) => ({
+      const data = await quizApi.generateQuestions(content, questionCount, difficulty)
+      generatedQuestions.value = data.questions.map((q, i) => ({
         id: `ai-q-${Date.now()}-${i}`,
-        text: `根據你貼上的內容，AI 產生的範例題目 ${i + 1}？`,
-        options: ['選項 A', '選項 B', '選項 C', '選項 D'],
-        answerIndex: 0,
-        explanation: `這是 AI 針對第 ${i + 1} 題產生的解析說明（難易度：${difficulty}）。`
+        text: q.text,
+        options: q.options,
+        answerIndex: q.answerIndex,
+        explanation: q.explanation
       }))
       recordAiUsage()
     } catch (e) {
@@ -91,12 +201,24 @@ export const useQuizStore = defineStore('quiz', () => {
   }
 
   const saveQuiz = async (questions: Question[], title: string, difficulty: Difficulty) => {
-    const data = await $fetch<Quiz>('/api/quizzes', {
-      method: 'POST',
-      body: { questions, title, difficulty }
+    const items: CreateQuestionRequestItem[] = questions.map(q => ({
+      text: q.text,
+      options: q.options,
+      answerIndex: q.answerIndex,
+      explanation: q.explanation
+    }))
+    const data = await quizApi.saveQuiz({
+      title,
+      description: null,
+      coverEmoji: '📝',
+      coverGradient: 'linear-gradient(135deg,#0f3460,#533483)',
+      difficulty,
+      tags: [],
+      questions: items
     })
-    quizzes.value.unshift(data)
-    return data
+    const quiz = toQuiz(data)
+    quizzes.value.unshift(quiz)
+    return quiz
   }
 
   // ── Helpers ──
@@ -118,8 +240,11 @@ export const useQuizStore = defineStore('quiz', () => {
     quizzes, currentQuiz, generatedQuestions,
     isGenerating, isLoading, error,
     aiUsesToday, canUseAiToday,
-    fetchQuizzes, fetchQuizById,
+    fetchQuizzes, fetchQuizById, fetchQuizPreview, fetchTags,
     generateQuestions, saveQuiz,
+    updateQuiz, deleteQuiz,
+    addQuestion, updateQuestion, removeQuestion,
+    publishQuiz, unpublishQuiz, archiveQuiz,
     setCurrentQuiz, updateGeneratedQuestion, clearGenerated
   }
 }, {
