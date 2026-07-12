@@ -21,27 +21,23 @@ public sealed class Quiz : AggregateRoot<Guid>
 
     // Reuses the inherited audit CreatorId (set by SetCreated below) rather than storing the
     // owner twice - the creator IS the owner for authorization purposes in this phase.
-    [NotMapped]
-    public Guid OwnerId => CreatorId!.Value;
+    [NotMapped] public Guid OwnerId => CreatorId!.Value;
 
     // Updated by RecordChallengeOutcome, called from a QuizAttemptCompletedDomainEvent handler.
     // EfUnitOfWork dispatches domain events after commit, outside any transaction, so that
     // handler is at-least-once delivery, not exactly-once - best effort, not deduplicated.
     public ChallengeStats Stats { get; private set; } = ChallengeStats.None;
 
-    [NotMapped]
-    public int ChallengeCount => Stats.Count;
+    [NotMapped] public int ChallengeCount => Stats.Count;
 
-    [NotMapped]
-    public decimal PassRate => Stats.PassRate;
+    [NotMapped] public decimal PassRate => Stats.PassRate;
 
     public IReadOnlyList<Question> Questions => _questions.AsReadOnly();
     public IReadOnlyList<string> Tags => _tags.AsReadOnly();
 
     // Fully derivable from data this aggregate already owns - must stay computed, not persisted,
     // or it becomes a second source of truth alongside Questions.
-    [NotMapped]
-    public int QuestionCount => _questions.Count;
+    [NotMapped] public int QuestionCount => _questions.Count;
 
     private Quiz()
     {
@@ -75,6 +71,12 @@ public sealed class Quiz : AggregateRoot<Guid>
         return quiz;
     }
 
+    public new void Delete(Guid deleterId)
+    {
+        Status = QuizStatus.Deleted;
+        base.Delete(deleterId);
+    }
+
     public void EnsureModifiableBy(Guid userId)
     {
         if (OwnerId != userId)
@@ -105,7 +107,7 @@ public sealed class Quiz : AggregateRoot<Guid>
         EnsureQuestionsEditable();
 
         var question = _questions.SingleOrDefault(q => q.Id == questionId)
-                        ?? throw new InvalidQuestionException("找不到指定的題目。");
+                       ?? throw new InvalidQuestionException("找不到指定的題目。");
 
         question.Update(text, options, answerIndex, explanation);
         Touch();

@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using ChoicePie.Backend.Application.Identity.Commands;
+using ChoicePie.Backend.Application.Identity.Dtos;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Exceptions;
 using ChoicePie.Backend.Shared.Hosting.API.Response;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
@@ -18,33 +19,35 @@ namespace ChoicePie.Backend.WebApi.Controllers;
 public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSettings) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<ActionResult> RegisterAsync([FromBody] RegisterMemberRequest request)
+    public async Task<ActionResult<ApiResponse<MemberDto>>> RegisterAsync([FromBody] RegisterMemberRequest request)
     {
         var result = await mediator.Send(request.ToCommand());
         return Ok(ResponseHelper.Success(result));
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult> LoginAsync([FromBody] LoginRequest request)
+    public async Task<ActionResult<ApiResponse<LoginResultDto>>> LoginAsync([FromBody] LoginRequest request)
     {
         var result = await mediator.Send(request.ToCommand());
-        Response.SetAuthCookies(result.AccessToken, result.RefreshToken, jwtSettings.Value.AccessTokenExpirationSeconds);
+        Response.SetAuthCookies(result.AccessToken, result.RefreshToken,
+            jwtSettings.Value.AccessTokenExpirationSeconds);
         return Ok(ResponseHelper.Success(result.Member));
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult> RefreshAsync()
+    public async Task<ActionResult<ApiResponse<MemberDto>>> RefreshAsync()
     {
         var refreshToken = Request.Cookies[AuthCookieNames.RefreshToken]
-                            ?? throw new InvalidRefreshTokenException();
+                           ?? throw new InvalidRefreshTokenException();
 
         var result = await mediator.Send(new RefreshTokenCommand { RefreshToken = refreshToken });
-        Response.SetAuthCookies(result.AccessToken, result.RefreshToken, jwtSettings.Value.AccessTokenExpirationSeconds);
+        Response.SetAuthCookies(result.AccessToken, result.RefreshToken,
+            jwtSettings.Value.AccessTokenExpirationSeconds);
         return Ok(ResponseHelper.Success(result.Member));
     }
 
     [HttpPost("logout")]
-    public async Task<ActionResult> LogoutAsync()
+    public async Task<ActionResult<ApiResponse>> LogoutAsync()
     {
         if (Request.Cookies.TryGetValue(AuthCookieNames.RefreshToken, out var refreshToken))
         {

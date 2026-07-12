@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using ChoicePie.Backend.Application.AdminUsers.Commands;
+using ChoicePie.Backend.Application.AdminUsers.Dtos;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Exceptions;
 using ChoicePie.Backend.Shared.Hosting.API.Response;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
@@ -18,7 +19,7 @@ namespace ChoicePie.Backend.WebApi.Controllers;
 public class AdminAuthController(IMediator mediator, IOptions<JwtSettings> jwtSettings) : ControllerBase
 {
     [HttpPost("login")]
-    public async Task<ActionResult> LoginAsync([FromBody] AdminLoginRequest request)
+    public async Task<ActionResult<ApiResponse<AdminUserDto>>> LoginAsync([FromBody] AdminLoginRequest request)
     {
         var result = await mediator.Send(request.ToCommand());
         Response.SetAuthCookies(result.AccessToken, result.RefreshToken, jwtSettings.Value.AccessTokenExpirationSeconds);
@@ -26,7 +27,7 @@ public class AdminAuthController(IMediator mediator, IOptions<JwtSettings> jwtSe
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult> RefreshAsync()
+    public async Task<ActionResult<ApiResponse<AdminUserDto>>> RefreshAsync()
     {
         var refreshToken = Request.Cookies[AuthCookieNames.RefreshToken]
                             ?? throw new InvalidRefreshTokenException();
@@ -37,7 +38,7 @@ public class AdminAuthController(IMediator mediator, IOptions<JwtSettings> jwtSe
     }
 
     [HttpPost("logout")]
-    public async Task<ActionResult> LogoutAsync()
+    public async Task<ActionResult<ApiResponse>> LogoutAsync()
     {
         if (Request.Cookies.TryGetValue(AuthCookieNames.RefreshToken, out var refreshToken))
         {

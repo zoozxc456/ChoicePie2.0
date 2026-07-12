@@ -15,26 +15,27 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
     {
         var quiz =
             (from q in readRepository.Query<Quiz>()
-             where q.Id == id
-             join m in readRepository.Query<Member>() on q.CreatorId!.Value equals m.Id into creatorGroup
-             from creator in creatorGroup.DefaultIfEmpty()
-             select new QuizDto(
-                 q.Id,
-                 q.Title,
-                 q.Description,
-                 q.Cover.Emoji,
-                 q.Cover.Gradient,
-                 q.Difficulty.Name,
-                 q.Status.Name,
-                 q.Stats.Count,
-                 q.Stats.PassRate,
-                 q.CreatorId!.Value,
-                 creator != null ? creator.Name : "Unknown",
-                 creator != null ? creator.Avatar : null,
-                 q.Questions.Select(question => new QuestionDto(question.Id, question.Text, question.Choices.Options, question.Choices.AnswerIndex, question.Explanation)).ToList(),
-                 q.Tags,
-                 q.CreatedAt,
-                 q.LastModifiedAt))
+                where q.Id == id
+                join m in readRepository.Query<Member>() on q.CreatorId!.Value equals m.Id into creatorGroup
+                from creator in creatorGroup.DefaultIfEmpty()
+                select new QuizDto(
+                    q.Id,
+                    q.Title,
+                    q.Description,
+                    q.Cover.Emoji,
+                    q.Cover.Gradient,
+                    q.Difficulty.Name,
+                    q.Status.Name,
+                    q.Stats.Count,
+                    q.Stats.PassRate,
+                    q.CreatorId!.Value,
+                    creator != null ? creator.Name : "Unknown",
+                    creator != null ? creator.Avatar : null,
+                    q.Questions.Select(question => new QuestionDto(question.Id, question.Text, question.Choices.Options,
+                        question.Choices.AnswerIndex, question.Explanation)).ToList(),
+                    q.Tags,
+                    q.CreatedAt,
+                    q.LastModifiedAt))
             .FirstOrDefault();
 
         return Task.FromResult(quiz);
@@ -44,21 +45,22 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
     {
         var quiz =
             (from q in readRepository.Query<Quiz>()
-             where q.Id == id
-             join m in readRepository.Query<Member>() on q.CreatorId!.Value equals m.Id into creatorGroup
-             from creator in creatorGroup.DefaultIfEmpty()
-             select new QuizForAttemptDto(
-                 q.Id,
-                 q.Title,
-                 q.Description,
-                 q.Cover.Emoji,
-                 q.Cover.Gradient,
-                 q.Difficulty.Name,
-                 q.CreatorId!.Value,
-                 creator != null ? creator.Name : "Unknown",
-                 creator != null ? creator.Avatar : null,
-                 q.Questions.Select(question => new QuestionForAttemptDto(question.Id, question.Text, question.Choices.Options)).ToList(),
-                 q.Tags))
+                where q.Id == id
+                join m in readRepository.Query<Member>() on q.CreatorId!.Value equals m.Id into creatorGroup
+                from creator in creatorGroup.DefaultIfEmpty()
+                select new QuizForAttemptDto(
+                    q.Id,
+                    q.Title,
+                    q.Description,
+                    q.Cover.Emoji,
+                    q.Cover.Gradient,
+                    q.Difficulty.Name,
+                    q.CreatorId!.Value,
+                    creator != null ? creator.Name : "Unknown",
+                    creator != null ? creator.Avatar : null,
+                    q.Questions.Select(question =>
+                        new QuestionForAttemptDto(question.Id, question.Text, question.Choices.Options)).ToList(),
+                    q.Tags))
             .FirstOrDefault();
 
         return Task.FromResult(quiz);
@@ -67,9 +69,9 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
     public Task<PagedResult<QuizSummaryDto>> ListAsync(
         string? tag, string? search, Guid? ownerId, int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
-        var query = ownerId is { } owner
-            ? readRepository.Query<Quiz>().Where(q => q.CreatorId == owner)
-            : readRepository.Query<Quiz>().Where(q => q.Status == QuizStatus.Published);
+        var query =
+            readRepository.Query<Quiz>().Where(q =>
+                q.Status == QuizStatus.Published || (q.CreatorId == ownerId && q.Status == QuizStatus.Draft));
 
         if (!string.IsNullOrWhiteSpace(tag))
         {
@@ -119,6 +121,7 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
         var tags = readRepository.Query<Quiz>()
             .Where(q => q.Status == QuizStatus.Published)
             .SelectMany(q => q.Tags)
+            .ToList()
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(t => t)
             .ToList();
