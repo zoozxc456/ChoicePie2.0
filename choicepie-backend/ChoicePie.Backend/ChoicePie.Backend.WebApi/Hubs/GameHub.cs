@@ -1,4 +1,5 @@
 using ChoicePie.Backend.Application.GameRooms.Commands;
+using ChoicePie.Backend.Application.GameRooms.Queries;
 using ChoicePie.Backend.Shared.Kernel.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -68,7 +69,7 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
     [Authorize(Policy = "MemberOnly")]
     public async Task RejoinRoom(string roomCode)
     {
-        var sync = await mediator.Send(new RejoinRoomCommand(roomCode, GetHostUserId()));
+        var sync = await mediator.Send(new RejoinRoomQuery(roomCode, GetHostUserId()));
 
         await JoinHostGroupsAsync(roomCode);
 

@@ -1,4 +1,4 @@
-using ChoicePie.Backend.Application.GameRooms.Commands;
+using ChoicePie.Backend.Application.GameRooms.Queries;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.ValueObjects;
@@ -7,10 +7,10 @@ using NSubstitute;
 namespace ChoicePie.Backend.Application.Tests.GameRooms;
 
 [TestFixture]
-public class RejoinRoomCommandHandlerTests
+public class RejoinRoomQueryHandlerTests
 {
     private IGameRoomRepository _gameRoomRepository = null!;
-    private RejoinRoomCommandHandler _sut = null!;
+    private RejoinRoomQueryHandler _sut = null!;
     private readonly Guid _hostUserId = Guid.NewGuid();
     private static readonly DateTime CreatedAtUtc = new(2026, 7, 11, 12, 0, 0, DateTimeKind.Utc);
 
@@ -18,7 +18,7 @@ public class RejoinRoomCommandHandlerTests
     public void SetUp()
     {
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
-        _sut = new RejoinRoomCommandHandler(_gameRoomRepository);
+        _sut = new RejoinRoomQueryHandler(_gameRoomRepository);
     }
 
     private Domain.Aggregates.GameRoom.GameRoom CreateRoom(int questionCount = 1)
@@ -37,7 +37,7 @@ public class RejoinRoomCommandHandlerTests
         var room = CreateRoom();
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomCommand("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
@@ -57,7 +57,7 @@ public class RejoinRoomCommandHandlerTests
         room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomCommand("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
@@ -78,7 +78,7 @@ public class RejoinRoomCommandHandlerTests
         room.EndCurrentQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(5));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomCommand("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
@@ -98,7 +98,7 @@ public class RejoinRoomCommandHandlerTests
         room.AdvanceToNextQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(6));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomCommand("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
@@ -114,9 +114,9 @@ public class RejoinRoomCommandHandlerTests
         _gameRoomRepository.GetByRoomCodeAsync("ZZZZZZ", Arg.Any<CancellationToken>())
             .Returns((Domain.Aggregates.GameRoom.GameRoom?)null);
 
-        var command = new RejoinRoomCommand("ZZZZZZ", _hostUserId);
+        var query = new RejoinRoomQuery("ZZZZZZ", _hostUserId);
 
-        Assert.ThrowsAsync<RoomNotFoundException>(() => _sut.Handle(command, CancellationToken.None));
+        Assert.ThrowsAsync<RoomNotFoundException>(() => _sut.Handle(query, CancellationToken.None));
     }
 
     [Test]
@@ -125,8 +125,8 @@ public class RejoinRoomCommandHandlerTests
         var room = CreateRoom();
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var command = new RejoinRoomCommand("ABC123", Guid.NewGuid());
+        var query = new RejoinRoomQuery("ABC123", Guid.NewGuid());
 
-        Assert.ThrowsAsync<RoomAccessDeniedException>(() => _sut.Handle(command, CancellationToken.None));
+        Assert.ThrowsAsync<RoomAccessDeniedException>(() => _sut.Handle(query, CancellationToken.None));
     }
 }

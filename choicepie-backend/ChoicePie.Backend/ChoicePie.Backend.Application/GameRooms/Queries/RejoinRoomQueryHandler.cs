@@ -1,15 +1,16 @@
+using ChoicePie.Backend.Application.GameRooms.Commands;
 using ChoicePie.Backend.Application.GameRooms.Dtos;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.Enums;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.Exceptions;
 using MediatR;
 
-namespace ChoicePie.Backend.Application.GameRooms.Commands;
+namespace ChoicePie.Backend.Application.GameRooms.Queries;
 
-public sealed class RejoinRoomCommandHandler(IGameRoomRepository gameRoomRepository)
-    : IRequestHandler<RejoinRoomCommand, RoomStateSyncDto>
+public sealed class RejoinRoomQueryHandler(IGameRoomRepository gameRoomRepository)
+    : IRequestHandler<RejoinRoomQuery, RoomStateSyncDto>
 {
-    public async Task<RoomStateSyncDto> Handle(RejoinRoomCommand request, CancellationToken cancellationToken)
+    public async Task<RoomStateSyncDto> Handle(RejoinRoomQuery request, CancellationToken cancellationToken)
     {
         var room = await gameRoomRepository.GetByRoomCodeAsync(request.RoomCode, cancellationToken)
                    ?? throw new RoomNotFoundException(request.RoomCode);
