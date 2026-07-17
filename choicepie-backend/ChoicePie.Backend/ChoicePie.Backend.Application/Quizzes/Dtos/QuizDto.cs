@@ -29,7 +29,7 @@ public sealed record QuizDto(
         quiz.Cover.Emoji,
         quiz.Cover.Gradient,
         quiz.Difficulty.Name,
-        quiz.Status.Name,
+        quiz.Status.Name.ToLowerInvariant(),
         quiz.ChallengeCount,
         quiz.PassRate,
         quiz.OwnerId,
