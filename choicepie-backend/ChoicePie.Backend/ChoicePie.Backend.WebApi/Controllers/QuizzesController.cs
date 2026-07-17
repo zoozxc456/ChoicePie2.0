@@ -113,16 +113,10 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<PagedResult<QuizSummaryDto>>>> ListAsync(
-        [FromQuery] string? tag, [FromQuery] string? search, [FromQuery] bool mine,
-        [FromQuery(Name = "page")] int pageNumber = 1, [FromQuery(Name = "pageSize")] int pageSize = 20)
+    public async Task<ActionResult<ApiResponse<PagedResult<QuizSummaryDto>>>> ListAsync([FromQuery] ListQuizzesRequest request)
     {
-        var ownerId = mine ? currentUserService.UserId : null;
-        var query = new ListQuizzesQuery
-        {
-            Tag = tag, Search = search, OwnerId = ownerId, PageNumber = pageNumber, PageSize = pageSize
-        };
-        var result = await mediator.Send(query);
+        var ownerId = request.Mine ? currentUserService.UserId : null;
+        var result = await mediator.Send(request.ToQuery(ownerId));
         return Ok(ResponseHelper.Success(result));
     }
 
