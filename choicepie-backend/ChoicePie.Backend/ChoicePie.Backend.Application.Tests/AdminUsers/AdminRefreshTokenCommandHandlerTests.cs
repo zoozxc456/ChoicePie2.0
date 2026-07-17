@@ -25,6 +25,7 @@ public class AdminRefreshTokenCommandHandlerTests
     private IAdminTokenService _tokenService = null!;
     private IRefreshTokenGenerator _refreshTokenGenerator = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private TimeProvider _timeProvider = null!;
     private AdminRefreshTokenCommandHandler _sut = null!;
     private AdminUser _adminUser = null!;
     private AdminAuthAccount _adminAuthAccount = null!;
@@ -39,8 +40,10 @@ public class AdminRefreshTokenCommandHandlerTests
         _tokenService = Substitute.For<IAdminTokenService>();
         _refreshTokenGenerator = Substitute.For<IRefreshTokenGenerator>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
         _sut = new AdminRefreshTokenCommandHandler(_refreshTokenRepository, _adminAuthAccountRepository,
-            _adminUserRepository, _tokenService, _refreshTokenGenerator, _unitOfWork);
+            _adminUserRepository, _tokenService, _refreshTokenGenerator, _unitOfWork, _timeProvider);
 
         _adminUser = AdminUser.Create("Ops Name", AdminRole.Staff);
         _adminAuthAccount = AdminAuthAccount.Create(

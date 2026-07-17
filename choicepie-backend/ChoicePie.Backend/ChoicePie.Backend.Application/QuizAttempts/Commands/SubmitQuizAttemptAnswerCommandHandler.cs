@@ -10,7 +10,8 @@ namespace ChoicePie.Backend.Application.QuizAttempts.Commands;
 public sealed class SubmitQuizAttemptAnswerCommandHandler(
     IQuizAttemptRepository quizAttemptRepository,
     ICurrentUserService currentUserService,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<SubmitQuizAttemptAnswerCommand>
 {
     public async Task Handle(SubmitQuizAttemptAnswerCommand request, CancellationToken cancellationToken)
@@ -20,7 +21,7 @@ public sealed class SubmitQuizAttemptAnswerCommandHandler(
                       ?? throw new QuizAttemptNotFoundException(request.AttemptId);
 
         attempt.EnsureOwnedBy(memberId);
-        attempt.SubmitAnswer(request.QuestionId, request.SelectedOptionIndex, DateTime.UtcNow);
+        attempt.SubmitAnswer(request.QuestionId, request.SelectedOptionIndex, timeProvider.GetUtcNow().UtcDateTime);
 
         await quizAttemptRepository.UpdateAsync(attempt, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

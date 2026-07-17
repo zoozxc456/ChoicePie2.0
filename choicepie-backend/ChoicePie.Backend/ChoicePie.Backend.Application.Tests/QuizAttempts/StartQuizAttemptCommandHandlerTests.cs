@@ -21,6 +21,7 @@ public class StartQuizAttemptCommandHandlerTests
     private IMemberRepository _memberRepository = null!;
     private ICurrentUserService _currentUserService = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private TimeProvider _timeProvider = null!;
     private StartQuizAttemptCommandHandler _sut = null!;
     private readonly Guid _memberId = Guid.NewGuid();
     private Quiz _quiz = null!;
@@ -33,8 +34,11 @@ public class StartQuizAttemptCommandHandlerTests
         _memberRepository = Substitute.For<IMemberRepository>();
         _currentUserService = Substitute.For<ICurrentUserService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
         _sut = new StartQuizAttemptCommandHandler(
-            _quizRepository, _quizAttemptRepository, _memberRepository, _currentUserService, _unitOfWork);
+            _quizRepository, _quizAttemptRepository, _memberRepository, _currentUserService, _unitOfWork,
+            _timeProvider);
 
         _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, "⚓", "g", Difficulty.Beginner, []);
         _quiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));

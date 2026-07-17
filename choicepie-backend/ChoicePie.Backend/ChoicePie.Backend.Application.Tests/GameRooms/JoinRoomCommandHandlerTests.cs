@@ -10,6 +10,7 @@ namespace ChoicePie.Backend.Application.Tests.GameRooms;
 public class JoinRoomCommandHandlerTests
 {
     private IGameRoomRepository _gameRoomRepository = null!;
+    private TimeProvider _timeProvider = null!;
     private JoinRoomCommandHandler _sut = null!;
     private readonly Guid _hostUserId = Guid.NewGuid();
     private static readonly DateTime CreatedAtUtc = new(2026, 7, 11, 12, 0, 0, DateTimeKind.Utc);
@@ -18,7 +19,9 @@ public class JoinRoomCommandHandlerTests
     public void SetUp()
     {
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
-        _sut = new JoinRoomCommandHandler(_gameRoomRepository);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(new DateTimeOffset(CreatedAtUtc.AddMinutes(1)));
+        _sut = new JoinRoomCommandHandler(_gameRoomRepository, _timeProvider);
     }
 
     private Domain.Aggregates.GameRoom.GameRoom CreateLobbyRoom()

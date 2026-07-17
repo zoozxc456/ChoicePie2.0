@@ -22,7 +22,8 @@ public sealed class AdminRefreshTokenCommandHandler(
     IAdminUserRepository adminUserRepository,
     IAdminTokenService tokenService,
     IRefreshTokenGenerator refreshTokenGenerator,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<AdminRefreshTokenCommand, AdminLoginResultDto>
 {
     public async Task<AdminLoginResultDto> Handle(AdminRefreshTokenCommand request,
@@ -48,10 +49,11 @@ public sealed class AdminRefreshTokenCommandHandler(
 
         var accessToken = tokenService.GenerateAccessToken(adminUser);
         var (rawRefreshToken, refreshTokenHash) = refreshTokenGenerator.Generate();
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         var newRefreshToken =
-            RefreshTokenAggregate.Issue(adminUser.Id, RefreshTokenOwnerType.Admin, refreshTokenHash, DateTime.UtcNow);
+            RefreshTokenAggregate.Issue(adminUser.Id, RefreshTokenOwnerType.Admin, refreshTokenHash, now);
 
-        existingToken.Revoke(DateTime.UtcNow, newRefreshToken.Id);
+        existingToken.Revoke(now, newRefreshToken.Id);
 
         await refreshTokenRepository.AddAsync(newRefreshToken, cancellationToken);
         await refreshTokenRepository.UpdateAsync(existingToken, cancellationToken);

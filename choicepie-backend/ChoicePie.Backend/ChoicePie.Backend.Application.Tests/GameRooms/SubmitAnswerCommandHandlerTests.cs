@@ -10,6 +10,7 @@ namespace ChoicePie.Backend.Application.Tests.GameRooms;
 public class SubmitAnswerCommandHandlerTests
 {
     private IGameRoomRepository _gameRoomRepository = null!;
+    private TimeProvider _timeProvider = null!;
     private SubmitAnswerCommandHandler _sut = null!;
     private readonly Guid _hostUserId = Guid.NewGuid();
 
@@ -17,7 +18,8 @@ public class SubmitAnswerCommandHandlerTests
     public void SetUp()
     {
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
-        _sut = new SubmitAnswerCommandHandler(_gameRoomRepository);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _sut = new SubmitAnswerCommandHandler(_gameRoomRepository, _timeProvider);
     }
 
     private Domain.Aggregates.GameRoom.GameRoom CreateStartedRoom(DateTime createdAtUtc, DateTime startedAtUtc)
@@ -40,6 +42,7 @@ public class SubmitAnswerCommandHandlerTests
         var room = CreateStartedRoom(createdAt, startedAt);
         var playerId = room.Players[0].Id;
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+        _timeProvider.GetUtcNow().Returns(new DateTimeOffset(startedAt.AddSeconds(2)));
 
         var command = new SubmitAnswerCommand("ABC123", playerId, AnswerIndex: 1);
         var result = await _sut.Handle(command, CancellationToken.None);

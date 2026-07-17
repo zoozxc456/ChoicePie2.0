@@ -18,7 +18,8 @@ public sealed class StartQuizAttemptCommandHandler(
     IQuizAttemptRepository quizAttemptRepository,
     IMemberRepository memberRepository,
     ICurrentUserService currentUserService,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<StartQuizAttemptCommand, StartAttemptResultDto>
 {
     public async Task<StartAttemptResultDto> Handle(StartQuizAttemptCommand request, CancellationToken cancellationToken)
@@ -33,7 +34,7 @@ public sealed class StartQuizAttemptCommandHandler(
         }
 
         var questionIds = quiz.Questions.Select(q => q.Id).ToList();
-        var attempt = QuizAttemptAggregate.Start(quiz.Id, memberId, questionIds, DateTime.UtcNow);
+        var attempt = QuizAttemptAggregate.Start(quiz.Id, memberId, questionIds, timeProvider.GetUtcNow().UtcDateTime);
 
         await quizAttemptRepository.AddAsync(attempt, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

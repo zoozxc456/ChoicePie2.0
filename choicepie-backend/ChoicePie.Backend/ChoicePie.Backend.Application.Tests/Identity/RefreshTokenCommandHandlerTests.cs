@@ -24,6 +24,7 @@ public class RefreshTokenCommandHandlerTests
     private ITokenService _tokenService = null!;
     private IRefreshTokenGenerator _refreshTokenGenerator = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private TimeProvider _timeProvider = null!;
     private RefreshTokenCommandHandler _sut = null!;
     private Member _member = null!;
     private AuthAccount _authAccount = null!;
@@ -38,8 +39,10 @@ public class RefreshTokenCommandHandlerTests
         _tokenService = Substitute.For<ITokenService>();
         _refreshTokenGenerator = Substitute.For<IRefreshTokenGenerator>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
         _sut = new RefreshTokenCommandHandler(_refreshTokenRepository, _authAccountRepository, _memberRepository,
-            _tokenService, _refreshTokenGenerator, _unitOfWork);
+            _tokenService, _refreshTokenGenerator, _unitOfWork, _timeProvider);
 
         _member = Member.Create("Host Name");
         _authAccount = AuthAccount.Register(

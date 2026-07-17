@@ -15,6 +15,7 @@ public class SubmitQuizAttemptAnswerCommandHandlerTests
     private IQuizAttemptRepository _quizAttemptRepository = null!;
     private ICurrentUserService _currentUserService = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private TimeProvider _timeProvider = null!;
     private SubmitQuizAttemptAnswerCommandHandler _sut = null!;
     private readonly Guid _memberId = Guid.NewGuid();
     private readonly Guid _questionId = Guid.NewGuid();
@@ -26,7 +27,9 @@ public class SubmitQuizAttemptAnswerCommandHandlerTests
         _quizAttemptRepository = Substitute.For<IQuizAttemptRepository>();
         _currentUserService = Substitute.For<ICurrentUserService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new SubmitQuizAttemptAnswerCommandHandler(_quizAttemptRepository, _currentUserService, _unitOfWork);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _sut = new SubmitQuizAttemptAnswerCommandHandler(_quizAttemptRepository, _currentUserService, _unitOfWork, _timeProvider);
 
         _attempt = QuizAttemptAggregate.Start(Guid.NewGuid(), _memberId, [_questionId], DateTime.UtcNow);
         _quizAttemptRepository.GetByIdAsync(_attempt.Id, Arg.Any<CancellationToken>()).Returns(_attempt);

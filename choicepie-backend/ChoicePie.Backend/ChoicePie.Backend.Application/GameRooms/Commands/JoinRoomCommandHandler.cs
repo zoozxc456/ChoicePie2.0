@@ -5,7 +5,7 @@ using MediatR;
 
 namespace ChoicePie.Backend.Application.GameRooms.Commands;
 
-public sealed class JoinRoomCommandHandler(IGameRoomRepository gameRoomRepository)
+public sealed class JoinRoomCommandHandler(IGameRoomRepository gameRoomRepository, TimeProvider timeProvider)
     : IRequestHandler<JoinRoomCommand, JoinRoomResult>
 {
     public async Task<JoinRoomResult> Handle(JoinRoomCommand request, CancellationToken cancellationToken)
@@ -13,7 +13,7 @@ public sealed class JoinRoomCommandHandler(IGameRoomRepository gameRoomRepositor
         var room = await gameRoomRepository.GetByRoomCodeAsync(request.RoomCode, cancellationToken)
                    ?? throw new RoomNotFoundException(request.RoomCode);
 
-        var player = room.Join(request.Nickname, request.ConnectionId, DateTime.UtcNow, request.MemberId);
+        var player = room.Join(request.Nickname, request.ConnectionId, timeProvider.GetUtcNow().UtcDateTime, request.MemberId);
 
         await gameRoomRepository.SaveAsync(room, cancellationToken);
 

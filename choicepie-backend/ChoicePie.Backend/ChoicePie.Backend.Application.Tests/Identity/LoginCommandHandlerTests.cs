@@ -23,6 +23,7 @@ public class LoginCommandHandlerTests
     private ITokenService _tokenService = null!;
     private IRefreshTokenGenerator _refreshTokenGenerator = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private TimeProvider _timeProvider = null!;
     private LoginCommandHandler _sut = null!;
     private Member _registeredMember = null!;
     private AuthAccount _registeredAuthAccount = null!;
@@ -37,8 +38,10 @@ public class LoginCommandHandlerTests
         _tokenService = Substitute.For<ITokenService>();
         _refreshTokenGenerator = Substitute.For<IRefreshTokenGenerator>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
         _sut = new LoginCommandHandler(_authAccountRepository, _memberRepository, _refreshTokenRepository,
-            _passwordHasher, _tokenService, _refreshTokenGenerator, _unitOfWork);
+            _passwordHasher, _tokenService, _refreshTokenGenerator, _unitOfWork, _timeProvider);
 
         _registeredMember = Member.Create("Host Name");
         _registeredAuthAccount = AuthAccount.Register(
