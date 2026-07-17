@@ -9,14 +9,12 @@
 
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="6.0.4" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.9" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.9" />
+        <PackageReference Include="ExpectedObjects" Version="3.5.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="NSubstitute" Version="5.3.0" />
         <PackageReference Include="NUnit" Version="4.3.2" />
         <PackageReference Include="NUnit.Analyzers" Version="4.7.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
-        <PackageReference Include="Testcontainers.PostgreSql" Version="4.2.0" />
-        <PackageReference Include="Testcontainers.Redis" Version="4.2.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -24,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ChoicePie.Backend.WebApi\ChoicePie.Backend.WebApi.csproj" />
+        <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Security\ChoicePie.Backend.Shared.Infrastructure.Security.csproj" />
     </ItemGroup>
 
 </Project>

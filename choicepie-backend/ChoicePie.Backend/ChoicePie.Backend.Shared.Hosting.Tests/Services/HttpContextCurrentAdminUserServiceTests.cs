@@ -3,7 +3,7 @@ using ChoicePie.Backend.Shared.Hosting.Services;
 using Microsoft.AspNetCore.Http;
 using NSubstitute;
 
-namespace ChoicePie.Backend.Shared.Application.Tests.Services;
+namespace ChoicePie.Backend.Shared.Hosting.Tests.Services;
 
 [TestFixture]
 public class HttpContextCurrentAdminUserServiceTests

@@ -37,6 +37,7 @@ public class BadRequestExceptionHandler(ILogger<BadRequestExceptionHandler> logg
 
         logger.LogWarning("Bad request exception: {Message}", exception.Message);
 
+        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
         await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
 
         return true;

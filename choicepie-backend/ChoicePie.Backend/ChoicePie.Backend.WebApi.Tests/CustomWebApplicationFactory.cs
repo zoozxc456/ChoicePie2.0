@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 
 namespace ChoicePie.Backend.WebApi.Tests;
 
@@ -17,9 +18,13 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         .WithPassword("choicepie")
         .Build();
 
+    private readonly RedisContainer _redis = new RedisBuilder()
+        .WithImage("redis:7-alpine")
+        .Build();
+
     public async Task InitializeAsync()
     {
-        await _postgres.StartAsync();
+        await Task.WhenAll(_postgres.StartAsync(), _redis.StartAsync());
 
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
@@ -30,6 +35,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
+        await _redis.DisposeAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -40,7 +46,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             {
                 ["DatabaseConnections:0:Type"] = "NPGSQL",
                 ["DatabaseConnections:0:ConnectionString"] = _postgres.GetConnectionString(),
-                ["RedisConnection:ConnectionString"] = "localhost:6379,abortConnect=false",
+                ["RedisConnection:ConnectionString"] = _redis.GetConnectionString(),
                 ["Jwt:SigningKey"] = "test-signing-key-used-only-for-integration-tests-0123456789"
             });
         });

@@ -21,17 +21,18 @@ public static class PersistenceServiceCollectionExtensions
         public IServiceCollection AddSharedDbContextPool<TContext>(IConfiguration configuration)
             where TContext : DbContext
         {
-            var connection = GetValidConnection(configuration);
-            RegisterDatabaseProvider<TContext>(services, connection);
+            var type = GetValidConnectionType(configuration);
+            RegisterDatabaseProvider<TContext>(services, type);
 
             return services;
         }
     }
 
     /// <summary>
-    /// 配置的讀取與基本驗證
+    /// 只在註冊當下驗證「有沒有設定、Provider 類型是什麼」，實際連線字串留給
+    /// <see cref="DbContextExtensions.AddNpgsqlServerPool{TContext}"/> 在 DbContextOptions 建構當下才讀取。
     /// </summary>
-    private static DatabaseInstance GetValidConnection(IConfiguration configuration)
+    private static string GetValidConnectionType(IConfiguration configuration)
     {
         var connections = configuration.GetSection(DatabaseSettings.SectionName).Get<DatabaseSettings>();
 
@@ -40,11 +41,7 @@ public static class PersistenceServiceCollectionExtensions
             throw new InvalidOperationException("無法找到 'DatabaseConnections' 設定，請檢查 appsettings.json。");
         }
 
-        var conn = connections.First();
-
-        return string.IsNullOrWhiteSpace(conn.ConnectionString)
-            ? throw new ArgumentException($"連線字串 '{conn.Type}' 不能為空。")
-            : conn;
+        return connections.First().Type.ToUpperInvariant();
     }
 
     /// <summary>
@@ -52,15 +49,13 @@ public static class PersistenceServiceCollectionExtensions
     /// </summary>
     private static IServiceCollection RegisterDatabaseProvider<TContext>(
         this IServiceCollection services,
-        DatabaseInstance connection)
+        string type)
         where TContext : DbContext
     {
-        var type = connection.Type.ToUpperInvariant();
-        
         return type switch
         {
-            "NPGSQL" => services.AddNpgsqlServerPool<TContext>(connection.ConnectionString),
-            _ => throw new NotSupportedException($"目前不支援資料庫類型: {connection.Type}")
+            "NPGSQL" => services.AddNpgsqlServerPool<TContext>(),
+            _ => throw new NotSupportedException($"目前不支援資料庫類型: {type}")
         };
     }
 }

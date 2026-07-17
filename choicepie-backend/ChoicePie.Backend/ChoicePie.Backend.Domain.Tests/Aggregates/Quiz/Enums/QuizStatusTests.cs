@@ -16,15 +16,15 @@ public class QuizStatusTests
     [Test]
     public void FromName_GivenUnknownName_WhenCalled_ThenReturnsNull()
     {
-        Assert.That(QuizStatus.FromName("deleted"), Is.Null);
+        Assert.That(QuizStatus.FromName("nonexistent"), Is.Null);
     }
 
     [Test]
-    public void Enumerations_WhenRead_ThenContainsExactlyThreeStatuses()
+    public void Enumerations_WhenRead_ThenContainsExactlyFourStatuses()
     {
         Assert.That(QuizStatus.Enumerations.Values, Is.EquivalentTo(new[]
         {
-            QuizStatus.Draft, QuizStatus.Published, QuizStatus.Archived
+            QuizStatus.Draft, QuizStatus.Published, QuizStatus.Archived, QuizStatus.Deleted
         }));
     }
 }

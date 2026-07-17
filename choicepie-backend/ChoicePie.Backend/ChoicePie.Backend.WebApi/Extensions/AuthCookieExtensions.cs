@@ -42,7 +42,9 @@ public static class AuthCookieExtensions
             SameSite = SameSiteMode.Lax,
             Path = CookiePath,
             Expires = expires,
-            Domain = "minjie.demo"
+            // Domain 沒指定時瀏覽器會用 request host（含 localhost）本身，開發/測試環境才收得到 cookie；
+            // 正式環境固定在 minjie.demo，讓子網域（例如 api.minjie.demo）也能共用同一顆 cookie。
+            Domain = isDevelopment ? null : "minjie.demo"
         };
     }
 }

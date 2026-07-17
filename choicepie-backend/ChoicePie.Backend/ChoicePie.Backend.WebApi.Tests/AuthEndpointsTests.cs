@@ -45,6 +45,68 @@ public sealed class AuthEndpointsTests
     }
 
     [Test]
+    public async Task RegisterAsync_GivenNewEmail_WhenCalled_ThenReturnsCreatedMember()
+    {
+        using var client = CreateClient();
+        var email = $"{Guid.NewGuid()}@example.com";
+
+        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            Email = email,
+            Name = "Test Member",
+            Password = "Password123!",
+            ConfirmPassword = "Password123!"
+        });
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<MemberDto>>();
+        Assert.That(result!.Data!.Email, Is.EqualTo(email));
+        Assert.That(result.Data.Name, Is.EqualTo("Test Member"));
+    }
+
+    [Test]
+    public async Task RegisterAsync_GivenAlreadyRegisteredEmail_WhenCalled_ThenReturnsConflict()
+    {
+        using var client = CreateClient();
+        var email = $"{Guid.NewGuid()}@example.com";
+        await client.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            Email = email,
+            Name = "Test Member",
+            Password = "Password123!",
+            ConfirmPassword = "Password123!"
+        });
+
+        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            Email = email,
+            Name = "Another Name",
+            Password = "Password123!",
+            ConfirmPassword = "Password123!"
+        });
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+        var body = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
+        Assert.That(body!.Code, Is.EqualTo("EMAIL_ALREADY_REGISTERED"));
+    }
+
+    [Test]
+    public async Task RegisterAsync_GivenMismatchedPasswordConfirmation_WhenCalled_ThenReturnsBadRequest()
+    {
+        using var client = CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            Email = $"{Guid.NewGuid()}@example.com",
+            Name = "Test Member",
+            Password = "Password123!",
+            ConfirmPassword = "SomethingElse123!"
+        });
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
     public async Task LoginAsync_GivenValidCredentials_WhenCalled_ThenSetsHttpOnlyCookiesAndOmitsTokensFromBody()
     {
         using var client = CreateClient();

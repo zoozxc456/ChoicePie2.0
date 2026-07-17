@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
-namespace ChoicePie.Backend.Shared.Application.Tests.Handlers;
+namespace ChoicePie.Backend.Shared.Hosting.Tests.Exceptions.Handlers;
 
 [TestFixture]
 public class BadRequestExceptionHandlerTests
@@ -57,6 +57,41 @@ public class BadRequestExceptionHandlerTests
         var response = await ReadResponseAsync();
         Assert.That(response.Errors, Is.Not.Null);
         Assert.That(response.Errors!["Email"], Is.EquivalentTo(new[] { "Email is invalid" }));
+    }
+
+    [Test]
+    public async Task TryHandleAsync_GivenValidationException_WhenCalled_ThenSetsStatusCode400()
+    {
+        var validationResult = new ValidationResult("Email is invalid", ["Email"]);
+        var exception = new ValidationException(validationResult, null, null);
+
+        await _sut.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+
+        Assert.That(_httpContext.Response.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
+    }
+
+    [Test]
+    public async Task TryHandleAsync_GivenInvalidOperationException_WhenCalled_ThenReturnsBadRequestWithExceptionMessage()
+    {
+        var exception = new InvalidOperationException("something went wrong");
+
+        var handled = await _sut.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+
+        Assert.That(handled, Is.True);
+        Assert.That(_httpContext.Response.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
+        var response = await ReadResponseAsync();
+        Assert.That(response.Message, Is.EqualTo("something went wrong"));
+    }
+
+    [Test]
+    public async Task TryHandleAsync_GivenUnrelatedException_WhenCalled_ThenReturnsFalseAndDoesNotWriteResponse()
+    {
+        var exception = new NotImplementedException();
+
+        var handled = await _sut.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+
+        Assert.That(handled, Is.False);
+        Assert.That(_responseBody.Length, Is.EqualTo(0));
     }
 
     private async Task<ApiErrorResponse> ReadResponseAsync()
