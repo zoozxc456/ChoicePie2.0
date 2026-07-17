@@ -28,7 +28,7 @@ public class SubmitAnswerCommandHandlerTests
         };
         var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, createdAtUtc);
         room.Join("小明", "conn-1", createdAtUtc.AddSeconds(1));
-        room.StartGame(startedAtUtc);
+        room.StartGame(_hostUserId, startedAtUtc);
         return room;
     }
 

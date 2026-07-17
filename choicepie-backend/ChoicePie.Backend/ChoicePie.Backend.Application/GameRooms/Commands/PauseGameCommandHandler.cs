@@ -12,9 +12,7 @@ public sealed class PauseGameCommandHandler(IGameRoomRepository gameRoomReposito
         var room = await gameRoomRepository.GetByRoomCodeAsync(request.RoomCode, cancellationToken)
                    ?? throw new RoomNotFoundException(request.RoomCode);
 
-        GameRoomCommandGuards.EnsureHost(room, request.HostUserId);
-
-        room.TogglePause(DateTime.UtcNow);
+        room.TogglePause(request.HostUserId, DateTime.UtcNow);
 
         await gameRoomRepository.SaveAsync(room, cancellationToken);
 

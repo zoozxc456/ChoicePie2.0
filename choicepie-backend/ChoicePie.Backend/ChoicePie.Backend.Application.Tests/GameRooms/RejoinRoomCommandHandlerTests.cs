@@ -54,7 +54,7 @@ public class RejoinRoomCommandHandlerTests
     public async Task Handle_GivenRoomInQuestionPhase_WhenCalled_ThenReturnsCurrentQuestionAndAnsweredCount()
     {
         var room = CreateRoom(2);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new RejoinRoomCommand("ABC123", _hostUserId), CancellationToken.None);
@@ -74,8 +74,8 @@ public class RejoinRoomCommandHandlerTests
     public async Task Handle_GivenRoomInRevealPhase_WhenCalled_ThenReturnsQuestionEndPayload()
     {
         var room = CreateRoom(2);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
-        room.EndCurrentQuestion(CreatedAtUtc.AddMinutes(1).AddSeconds(5));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
+        room.EndCurrentQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(5));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new RejoinRoomCommand("ABC123", _hostUserId), CancellationToken.None);
@@ -93,9 +93,9 @@ public class RejoinRoomCommandHandlerTests
     public async Task Handle_GivenRoomEnded_WhenCalled_ThenReturnsFinalRankings()
     {
         var room = CreateRoom(1);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
-        room.EndCurrentQuestion(CreatedAtUtc.AddMinutes(1).AddSeconds(5));
-        room.AdvanceToNextQuestion(CreatedAtUtc.AddMinutes(1).AddSeconds(6));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
+        room.EndCurrentQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(5));
+        room.AdvanceToNextQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(6));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new RejoinRoomCommand("ABC123", _hostUserId), CancellationToken.None);

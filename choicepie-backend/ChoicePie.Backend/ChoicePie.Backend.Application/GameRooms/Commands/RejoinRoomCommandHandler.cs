@@ -14,7 +14,7 @@ public sealed class RejoinRoomCommandHandler(IGameRoomRepository gameRoomReposit
         var room = await gameRoomRepository.GetByRoomCodeAsync(request.RoomCode, cancellationToken)
                    ?? throw new RoomNotFoundException(request.RoomCode);
 
-        GameRoomCommandGuards.EnsureHost(room, request.HostUserId);
+        room.EnsureHost(request.HostUserId);
 
         var players = room.Players
             .OrderByDescending(p => p.Score)

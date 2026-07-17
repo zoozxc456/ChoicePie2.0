@@ -28,7 +28,7 @@ public class PauseGameCommandHandlerTests
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "基本加法")
         };
         var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         return room;
     }
 
@@ -49,7 +49,7 @@ public class PauseGameCommandHandlerTests
     public async Task Handle_GivenAlreadyPaused_WhenCalledAgain_ThenResumesRoomAndReturnsFalse()
     {
         var room = CreateStartedRoom();
-        room.TogglePause(CreatedAtUtc.AddMinutes(1).AddSeconds(2));
+        room.TogglePause(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(2));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new PauseGameCommand("ABC123", _hostUserId), CancellationToken.None);

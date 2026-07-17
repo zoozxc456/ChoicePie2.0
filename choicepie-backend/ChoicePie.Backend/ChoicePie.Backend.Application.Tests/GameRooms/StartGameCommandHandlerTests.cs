@@ -75,7 +75,7 @@ public class StartGameCommandHandlerTests
     public void Handle_GivenGameAlreadyStarted_WhenCalled_ThenThrowsInvalidGamePhaseException()
     {
         var room = CreateLobbyRoom();
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var command = new StartGameCommand("ABC123", _hostUserId);

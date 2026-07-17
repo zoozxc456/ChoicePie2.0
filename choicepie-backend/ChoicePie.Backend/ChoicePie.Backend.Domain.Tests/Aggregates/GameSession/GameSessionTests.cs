@@ -21,11 +21,11 @@ public class GameSessionTests
         var startedAt = CreatedAtUtc.AddMinutes(1);
         var winner = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30), winnerMemberId);
         var loser = room.Join("小華", "connection-2", CreatedAtUtc.AddSeconds(35));
-        room.StartGame(startedAt);
+        room.StartGame(HostUserId, startedAt);
         room.SubmitAnswer(winner.Id, answerIndex: 1, startedAt.AddSeconds(2));
         room.SubmitAnswer(loser.Id, answerIndex: 0, startedAt.AddSeconds(2));
-        room.EndCurrentQuestion(startedAt.AddSeconds(20));
-        room.AdvanceToNextQuestion(startedAt.AddSeconds(25));
+        room.EndCurrentQuestion(HostUserId, startedAt.AddSeconds(20));
+        room.AdvanceToNextQuestion(HostUserId, startedAt.AddSeconds(25));
 
         return room;
     }

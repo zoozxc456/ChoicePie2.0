@@ -45,7 +45,7 @@ public class SkipQuestionCommandHandlerTests
     public async Task Handle_GivenRoomInQuestionPhase_WhenCalled_ThenEndsQuestionWithoutPersistingSession()
     {
         var room = CreateRoom(2);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new SkipQuestionCommand("ABC123", _hostUserId), CancellationToken.None);
@@ -59,8 +59,8 @@ public class SkipQuestionCommandHandlerTests
     public async Task Handle_GivenLastQuestionInRevealPhase_WhenCalled_ThenPersistsGameSessionAndReturnsGameEnded()
     {
         var room = CreateRoom(1);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
-        room.EndCurrentQuestion(CreatedAtUtc.AddMinutes(1).AddSeconds(5));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
+        room.EndCurrentQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(5));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new SkipQuestionCommand("ABC123", _hostUserId), CancellationToken.None);
@@ -76,7 +76,7 @@ public class SkipQuestionCommandHandlerTests
     public void Handle_GivenCallerIsNotHost_WhenCalled_ThenThrowsRoomAccessDeniedException()
     {
         var room = CreateRoom(1);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var command = new SkipQuestionCommand("ABC123", Guid.NewGuid());

@@ -76,7 +76,7 @@ public class JoinRoomCommandHandlerTests
     public void Handle_GivenRoomAlreadyStarted_WhenCalled_ThenThrowsRoomAlreadyStartedException()
     {
         var room = CreateLobbyRoom();
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var command = new JoinRoomCommand("ABC123", "小明", "conn-1");

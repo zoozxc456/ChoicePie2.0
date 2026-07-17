@@ -102,8 +102,9 @@ public sealed class GameRoom : AggregateRoot<Guid>
         return player;
     }
 
-    public void StartGame(DateTime utcNow)
+    public void StartGame(Guid callerUserId, DateTime utcNow)
     {
+        EnsureHost(callerUserId);
         EnsurePhase(GamePhase.Lobby);
 
         Phase = GamePhase.Question;
@@ -133,8 +134,9 @@ public sealed class GameRoom : AggregateRoot<Guid>
         return new AnswerOutcome(score, isCorrect, question.AnswerIndex);
     }
 
-    public IReadOnlyList<RankEntrySnapshot> EndCurrentQuestion(DateTime utcNow)
+    public IReadOnlyList<RankEntrySnapshot> EndCurrentQuestion(Guid callerUserId, DateTime utcNow)
     {
+        EnsureHost(callerUserId);
         EnsurePhase(GamePhase.Question);
 
         Phase = GamePhase.Reveal;
@@ -142,8 +144,9 @@ public sealed class GameRoom : AggregateRoot<Guid>
         return BuildRankings();
     }
 
-    public bool AdvanceToNextQuestion(DateTime utcNow)
+    public bool AdvanceToNextQuestion(Guid callerUserId, DateTime utcNow)
     {
+        EnsureHost(callerUserId);
         EnsurePhase(GamePhase.Reveal);
 
         if (CurrentQuestionIndex + 1 < _questions.Count)
@@ -167,8 +170,10 @@ public sealed class GameRoom : AggregateRoot<Guid>
         return true;
     }
 
-    public void TogglePause(DateTime utcNow)
+    public void TogglePause(Guid callerUserId, DateTime utcNow)
     {
+        EnsureHost(callerUserId);
+
         if (PausedAtUtc is null)
         {
             EnsurePhase(GamePhase.Question);
@@ -181,6 +186,14 @@ public sealed class GameRoom : AggregateRoot<Guid>
     }
 
     public IReadOnlyList<RankEntrySnapshot> GetRankings() => BuildRankings();
+
+    public void EnsureHost(Guid callerUserId)
+    {
+        if (HostUserId != callerUserId)
+        {
+            throw new RoomAccessDeniedException(RoomCode);
+        }
+    }
 
     private void EnsurePhase(GamePhase expected)
     {
