@@ -114,7 +114,6 @@ export const useGameRoom = () => {
 
     _connection.on('GameEnd', (rankings: RankEntry[]) => {
       gameStore.endGame(rankings)
-      navigateTo(`/room/${gameStore.roomCode}/result`)
     })
 
     // ── Reconnect Sync ──

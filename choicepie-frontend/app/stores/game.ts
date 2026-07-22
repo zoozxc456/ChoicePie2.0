@@ -20,6 +20,9 @@ export const useGameStore = defineStore('game', () => {
   const timeLimitTotal = ref(20)
   let _timerInterval: ReturnType<typeof setInterval> | null = null
 
+  /** 公布答案畫面停留秒數，時間到由 Host 端自動呼叫 SkipQuestion 推進下一題 */
+  const REVEAL_DURATION_SECONDS = 5
+
   // ── 排名 ──
   const rankings = ref<RankEntry[]>([])
 
@@ -115,7 +118,7 @@ export const useGameStore = defineStore('game', () => {
       correctAnswerIndex.value = payload.questionEnd.answerIndex
       currentExplanation.value = payload.questionEnd.explanation
       rankings.value = payload.questionEnd.rankings
-      _stopTimer()
+      _startTimer(REVEAL_DURATION_SECONDS)
     } else if (mappedPhase === 'ended' && payload.rankings) {
       rankings.value = payload.rankings
       _stopTimer()
@@ -175,7 +178,7 @@ export const useGameStore = defineStore('game', () => {
     currentExplanation.value = payload.explanation
     rankings.value = payload.rankings
     phase.value = 'result'
-    _stopTimer()
+    _startTimer(REVEAL_DURATION_SECONDS)
 
     const me = payload.rankings.find(r => r.nickname === myNickname.value)
     if (me) {
