@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ChoicePie.Backend.Domain\ChoicePie.Backend.Domain.csproj" />
+      <ProjectReference Include="..\ChoicePie.Backend.Shared.Application\ChoicePie.Backend.Shared.Application.csproj" />
+    </ItemGroup>
+
+</Project>

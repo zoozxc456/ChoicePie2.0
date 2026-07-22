@@ -1,0 +1,548 @@
+{
+  "nav": {
+    "join": "加入遊戲",
+    "createGame": "建立遊戲",
+    "history": "歷史紀錄",
+    "howToUse": "如何使用",
+    "about": "關於我們",
+    "login": "登入 / 註冊",
+    "logout": "登出"
+  },
+  "join": {
+    "title": "加入遊戲",
+    "subtitle": "不需要帳號，輸入暱稱即可",
+    "roomCode": "房間碼",
+    "roomCodePlaceholder": "房間碼（6 碼）",
+    "nickname": "你的暱稱",
+    "nicknamePlaceholder": "輸入暱稱（2～12 字）",
+    "submit": "加入遊戲",
+    "roomNotFound": "找不到此房間，請確認房間碼是否正確",
+    "validation": {
+      "roomCodeLength": "房間碼必須為 6 位",
+      "nicknameMin": "暱稱至少需要 2 個字元",
+      "nicknameMax": "暱稱最多 12 個字元"
+    },
+    "steps": {
+      "title": "加入流程",
+      "step1Title": "掃描 QR Code",
+      "step1Desc": "或手動輸入 6 位房間碼",
+      "step2Title": "輸入暱稱",
+      "step2Desc": "2～12 個字，不需要帳號",
+      "step3Title": "等待開始",
+      "step3Desc": "Host 按下開始後自動進入"
+    }
+  },
+  "room": {
+    "waiting": {
+      "title": "遊戲即將開始",
+      "subtitle": "等待 Host 開始遊戲",
+      "yourNickname": "你的暱稱",
+      "roomCode": "房間碼",
+      "playerCount": "目前已有 {count} 位玩家",
+      "waitingHost": "等待 Host 開始..."
+    },
+    "question": {
+      "questionOf": "題目 {current} / {total}",
+      "answered": "已作答，等待結果..."
+    },
+    "result": {
+      "correct": "答對了！",
+      "wrong": "答錯了",
+      "points": "+{points} 分",
+      "explanation": "💡 解析",
+      "currentRank": "目前排名",
+      "rank": "第 {rank} 名",
+      "waitingNext": "等待下一題..."
+    },
+    "ended": {
+      "title": "遊戲結束！",
+      "yourResult": "你的成績",
+      "exit": "離開遊戲"
+    }
+  },
+  "host": {
+    "questionEditor": {
+      "untitled": "（尚未輸入題目）",
+      "complete": "已完成",
+      "incomplete": "未完成",
+      "questionLabel": "題目",
+      "questionPlaceholder": "輸入題目...",
+      "optionsLabel": "選項（點擊 ○ 設為正確答案）",
+      "optionPlaceholder": "選項...",
+      "explanationLabel": "解析",
+      "explanationPlaceholder": "解析（選填）..."
+    },
+    "previewModal": {
+      "title": "確認題目內容",
+      "subtitle": "請再次確認題目與答案，建立後將產生房間碼",
+      "quizTitleLabel": "題庫名稱",
+      "confirm": "🚀 確認並建立遊戲房間",
+      "cancel": "返回編輯"
+    },
+    "waiting": {
+      "title": "等待玩家加入",
+      "subtitle": "讓玩家掃描 QR Code 或輸入房間碼",
+      "bigscreen": "🖥️ 投影大螢幕",
+      "roomCode": "房間碼",
+      "joinedPlayers": "已加入的玩家",
+      "playerCount": "{count} 人",
+      "noPlayers": "等待玩家加入中...",
+      "startGame": "▶ 開始遊戲（{count} 人）",
+      "waitMore": "再等等，還有人要加入",
+      "scanToJoin": "掃碼加入"
+    },
+    "playing": {
+      "questionOf": "題目 {current} / {total}",
+      "answerProgress": "作答進度",
+      "skipQuestion": "跳過此題",
+      "pause": "暫停",
+      "liveRank": "即時排名",
+      "voteCount": "{count} 人",
+      "waitingForAnswers": "等待玩家作答中...",
+      "answeredSoFar": "已作答 {answered} / {total} 人"
+    },
+    "ended": {
+      "title": "🏆 遊戲結束！",
+      "finalRank": "最終排名",
+      "hostAgain": "再開一場"
+    },
+    "reconnecting": "正在連線房間...",
+    "rejoinFailed": {
+      "title": "找不到這個房間",
+      "desc": "房間可能已經結束或房間碼有誤",
+      "backToLibrary": "返回題庫"
+    }
+  },
+  "bigscreen": {
+    "waiting": {
+      "scanQR": "掃描 QR Code 加入",
+      "orEnterCode": "或輸入房間碼",
+      "joinUrl": "choicepie.app/join",
+      "playerCount": "已加入 {count} 位玩家"
+    },
+    "playing": {
+      "questionOf": "題目 {current} / {total}",
+      "answeredOf": "{answered} / {total} 已作答"
+    },
+    "ended": {
+      "title": "🏆 最終排名",
+      "rankSuffix": "名"
+    }
+  },
+  "login": {
+    "title": "登入 ChoicePie",
+    "googleLogin": "使用 Google 登入",
+    "orDivider": "或",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "密碼",
+    "loginBtn": "登入",
+    "guestHint": "只是要加入遊戲？",
+    "noLoginNeeded": "不需要登入 →",
+    "noAccount": "還沒有帳號？",
+    "registerLink": "註冊",
+    "loginError": "帳號或密碼錯誤，請再試一次",
+    "validation": {
+      "emailInvalid": "請輸入有效的 Email",
+      "passwordMin": "密碼至少需要 6 個字元"
+    },
+    "hostBenefits": {
+      "title": "🎮 想主持遊戲？",
+      "desc": "登入後即可建立自己的題庫、AI 自動出題，並追蹤每一場遊戲的成績紀錄。"
+    }
+  },
+  "library": {
+    "searchPlaceholder": "搜尋題庫...",
+    "featured": "🔥 精選題庫",
+    "latest": "🆕 最新上架",
+    "noResults": "找不到符合的題庫",
+    "aiBanner": {
+      "title": "✨ 沒有現成題庫？讓 AI 幫你在幾秒內出題",
+      "subtitle": "貼上文字或網址，AI 自動生成 4 選 1 問答遊戲",
+      "cta": "開始出題 →"
+    },
+    "card": {
+      "questions": "{count} 道題"
+    }
+  },
+  "history": {
+    "title": "🎉 歷史紀錄",
+    "subtitle": "回顧每一場搶答派對的高光時刻",
+    "roles": {
+      "host": "🎤 我主持的",
+      "player": "🎮 我玩過的"
+    },
+    "host": {
+      "empty": "還沒主持過任何一場派對耶！",
+      "emptyDesc": "出一組題目，馬上開一場屬於你的搶答派對吧",
+      "emptyCta": "✨ 建立第一場遊戲",
+      "card": {
+        "players": "{count} 位玩家同樂",
+        "questions": "{count} 道題",
+        "topPlayer": "🏆 冠軍：{name}（{score} 分）"
+      }
+    },
+    "player": {
+      "empty": "還沒加入過任何一場派對耶！",
+      "emptyDesc": "輸入房間碼，馬上加入搶答戰場",
+      "emptyCta": "🎉 加入遊戲",
+      "card": {
+        "players": "{count} 位玩家同場競技",
+        "questions": "{count} 道題",
+        "myRank": "第 {rank} 名",
+        "myScore": "{score} 分"
+      }
+    },
+    "detail": {
+      "back": "返回歷史紀錄",
+      "notFound": "找不到這場遊戲紀錄",
+      "hostBadge": "🎤 我主持的遊戲",
+      "playerBadge": "🎮 我參加的遊戲",
+      "podiumTitle": "🏆 頒獎台",
+      "fullRanking": "完整排名",
+      "you": "（你）",
+      "meta": {
+        "players": "{count} 位玩家",
+        "questions": "{count} 道題",
+        "playedAt": "遊玩時間：{date}"
+      },
+      "review": {
+        "title": "📝 複習錯題",
+        "subtitle": "{count} 題答錯，來看看正確答案吧",
+        "empty": "🎉 全對！這場沒有錯題可以複習",
+        "yourAnswer": "你的答案",
+        "correctAnswer": "正確答案",
+        "explanation": "詳解"
+      },
+      "hostNote": {
+        "title": "更多主持數據，敬請期待",
+        "desc": "答題正確率、每題平均作答時間等分析功能正在路上"
+      }
+    }
+  },
+  "libraryDetail": {
+    "backToLibrary": "返回題庫",
+    "knowledgePack": "知識包",
+    "creatorLine": "{name} 出題",
+    "questionList": "題目列表",
+    "questions": "{count} 道題",
+    "challenges": "{count} 人挑戰",
+    "passRate": "平均答對率 {rate}%",
+    "passRateBadge": "答對率 {rate}%",
+    "bookmark": "♥ 收藏",
+    "favorited": "♥ 已收藏",
+    "share": "📤 分享",
+    "useForGame": "⚡ 用於遊戲",
+    "questionTable": {
+      "index": "#",
+      "question": "題目",
+      "passRate": "答對率",
+      "timeLimit": "限時",
+      "singleChoice": "單選題 · 4 個選項",
+      "timeApprox": "~20s"
+    },
+    "comments": {
+      "title": "💬 評論（{count}）",
+      "placeholder": "寫下你的想法...",
+      "submit": "送出",
+      "daysAgo": "{days} 天前",
+      "justNow": "剛剛"
+    },
+    "creator": {
+      "title": "關於創作者",
+      "verified": "認證創作者",
+      "quizCount": "題庫",
+      "challengeCount": "挑戰次數",
+      "follow": "關注創作者",
+      "following": "已關注"
+    },
+    "related": "你可能也喜歡",
+    "modal": {
+      "title": "用此題庫開遊戲",
+      "subtitle": "確認後系統會立即產生房間碼和 QR Code",
+      "settings": "遊戲設定",
+      "allQuestions": "使用全部題目",
+      "allQuestionsValue": "所有題目",
+      "timeLimit": "每題限時",
+      "timeLimitSeconds": "{seconds} 秒",
+      "joinMethod": "玩家加入方式",
+      "joinMethodValue": "QR Code ＋ 房間碼，無需帳號",
+      "createRoom": "▶ 立即建立房間",
+      "cancel": "取消"
+    }
+  },
+  "signIn": {
+    "title": "建立帳號",
+    "googleRegister": "使用 Google 快速註冊",
+    "orDivider": "或",
+    "namePlaceholder": "暱稱（2 字以上）",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "密碼（8 字以上）",
+    "confirmPasswordPlaceholder": "確認密碼",
+    "submitBtn": "建立帳號",
+    "haveAccount": "已有帳號？",
+    "loginLink": "直接登入",
+    "registerError": "此 Email 可能已被使用",
+    "passwordMismatch": "密碼不一致",
+    "strength": {
+      "tooShort": "太短",
+      "weak": "弱",
+      "medium": "中",
+      "strong": "強"
+    },
+    "validation": {
+      "nameMin": "名稱至少需要 2 個字元",
+      "emailInvalid": "請輸入有效的 Email",
+      "passwordMin": "密碼至少需要 8 個字元",
+      "confirmPasswordMatch": "密碼不一致"
+    }
+  },
+  "about": {
+    "hero": {
+      "eyebrow": "關於 ChoicePie",
+      "title": "如果學習可以像玩遊戲一樣有趣，會是什麼樣子？",
+      "desc": "這個問題，就是 ChoicePie 誕生的原因。"
+    },
+    "story": {
+      "label": "起點",
+      "p1": "在一個資訊爆炸、卻又充滿被動學習的世界裡，知識常常停在投影片上、書本裡，從沒真正被吸收。",
+      "p2": "ChoicePie 不只是一個答題應用程式，而是一個讓知識活起來的舞台。在這裡，每個人都可以是老師，也能是學生。"
+    },
+    "scenarios": {
+      "title": "知識，本該被分享",
+      "history": {
+        "icon": "📚",
+        "title": "你對冷門的歷史事件有深入研究？",
+        "desc": "只需幾分鐘，就能把這些知識轉化成一場精彩的問答遊戲。朋友不只學到新知，還能挑戰高分，享受競爭的樂趣。"
+      },
+      "exam": {
+        "icon": "🎯",
+        "title": "準備考試，卻覺得教科書枯燥無味？",
+        "desc": "透過「遊戲紀錄」和「逐題回顧」，用更主動、更有效的方式複習。你做的每一道題，都會成為你進步的軌跡。"
+      }
+    },
+    "belief": {
+      "text": "打破學習的疆界，讓知識從書本中解放，流動在人與人之間。",
+      "subtext": "讓學習成為一場冒險、一場挑戰，一場充滿驚喜的派對。"
+    },
+    "vmv": {
+      "vision": {
+        "label": "願景 VISION",
+        "text": "成為全球最有趣、最具創造力的知識分享與學習平台，讓每個人都能成為知識的創作者和探索者。"
+      },
+      "mission": {
+        "label": "使命 MISSION",
+        "text": "提供一個極簡且強大的工具，讓任何主題的知識都能轉化為引人入勝的問答遊戲。"
+      }
+    },
+    "values": {
+      "title": "我們相信",
+      "userCentric": { "title": "使用者為中心", "desc": "傾聽用戶的聲音，所有設計決策都以提升體驗為核心。" },
+      "funLearning": { "title": "樂趣與學習", "desc": "遊戲化是激發學習熱情最有效的方式，讓知識吸收充滿樂趣。" },
+      "createShare": { "title": "創造與分享", "desc": "賦予用戶自由創作的能力，建立一個互助互惠的社群。" },
+      "growth": { "title": "持續成長", "desc": "不只關注功能，更關心每位用戶的成長與個人化回饋。" }
+    },
+    "cta": {
+      "title": "準備好了嗎？",
+      "subtitle": "把你的知識，變成一場遊戲",
+      "createGame": "✨ 建立遊戲",
+      "howToUse": "如何使用"
+    }
+  },
+  "howToUse": {
+    "title": "如何使用 ChoicePie",
+    "subtitle": "從出題到搶答，5 分鐘內完成一場互動遊戲",
+    "roles": {
+      "host": "🎮 我是出題者（Host）",
+      "player": "📱 我是參與者（Player）"
+    },
+    "firstStepBadge": "先從這裡開始",
+    "hostSteps": [
+      { "title": "貼上學習內容", "desc": "把你的技術文章、讀書筆記或 YouTube 連結直接貼上，系統支援純文字和 URL 輸入，上限 5000 字。" },
+      { "title": "AI 自動出題", "desc": "選擇題數（3 / 5 / 10 題）和難易度，AI 30 秒內生成選擇題。你可以預覽並自由修改每道題目、選項和解析。" },
+      { "title": "建立遊戲房間", "desc": "確認題目後點擊「建立房間」，系統立即產生 6 位數房間碼和 QR Code，把 QR Code 投影到螢幕讓大家掃描。" },
+      { "title": "開始搶答", "desc": "確認玩家都加入後，點擊「開始遊戲」。遊戲進行中可以看到即時答題進度，並手動跳過題目或暫停。" }
+    ],
+    "hostStepIcons": ["📝", "✨", "🚪", "🏁"],
+    "playerSteps": [
+      { "title": "掃描 QR Code", "desc": "用手機掃描 Host 投影出來的 QR Code，或是直接前往 choicepie.app/join 輸入 6 位數房間碼。" },
+      { "title": "輸入暱稱", "desc": "輸入 2～12 字的暱稱，不需要帳號，直接加入。加入後會看到等待畫面和其他玩家的暱稱。" },
+      { "title": "搶答搶分", "desc": "題目出現後倒數 20 秒，越快答對分數越高。每題結束後立即顯示正確答案、解析和當前排名。" },
+      { "title": "最終排名", "desc": "所有題目結束後揭曉完整排名，可以看到自己的總分和名次。" }
+    ],
+    "playerStepIcons": ["📷", "✏️", "⚡", "🏆"],
+    "hostCta": "✨ 立即建立遊戲",
+    "playerCta": "加入遊戲 →",
+    "scoring": {
+      "title": "⚡ 計分機制",
+      "footer": "答錯得 0 分・每題限時 20 秒",
+      "unit": "分",
+      "rules": [
+        { "time": "0 ～ 3 秒", "points": 1000 },
+        { "time": "3 ～ 6 秒", "points": 800 },
+        { "time": "6 ～ 10 秒", "points": 600 },
+        { "time": "10 秒以上", "points": 400 }
+      ]
+    },
+    "faq": {
+      "title": "常見問題",
+      "items": [
+        { "q": "Player 需要帳號嗎？", "a": "不需要。Player 只需要輸入暱稱就能直接加入，完全不用註冊帳號。只有 Host（出題者）需要登入才能建立遊戲。" },
+        { "q": "一個房間最多幾個人？", "a": "目前 MVP 版本支援 30 人同時在線，足夠應付一般技術分享會的場景。未來版本會擴大上限。" },
+        { "q": "AI 生成的題目品質如何？", "a": "AI 會根據你提供的內容生成與主題高度相關的選擇題，並附上知識解析。你可以在建立房間前預覽並自由修改每道題目。" },
+        { "q": "房間碼有效多久？", "a": "房間建立後有效 24 小時，遊戲結束後進入唯讀狀態（可查看題目與排名），48 小時後自動清除。" },
+        { "q": "可以重複使用同一份題庫嗎？", "a": "可以。Host 登入後可以在歷史紀錄中找到以前建立的題庫，直接重新開房間使用。" }
+      ]
+    }
+  },
+  "hostNew": {
+    "backToChoice": "返回出題方式",
+    "choice": {
+      "title": "選擇出題方式",
+      "subtitle": "手動輸入題目，或讓 AI 幫你自動生成",
+      "manual": {
+        "title": "手動出題",
+        "desc": "自行輸入題目、選項與正確答案，完全掌控內容",
+        "cta": "開始編輯 →"
+      },
+      "ai": {
+        "title": "AI 協助出題",
+        "desc": "貼上文字或網址，AI 幾秒內自動生成題目",
+        "quotaAvailable": "今日尚有 1 次額度",
+        "quotaUsed": "今日額度已用完",
+        "cta": "開始出題 →",
+        "ctaLocked": "額度已用完"
+      }
+    },
+    "manual": {
+      "title": "✍️ 手動出題",
+      "titleLabel": "題庫名稱",
+      "titlePlaceholder": "例如：新人教育訓練 Q&A",
+      "titleRequired": "請輸入題庫名稱",
+      "addQuestion": "新增題目",
+      "readyTitle": "準備好了？",
+      "readySubtitle": "確認題目後即可建立遊戲房間",
+      "questionCount": "{count} 題",
+      "createRoomBtn": "🚀 建立遊戲房間"
+    },
+    "ai": {
+      "title": "✨ AI 出題",
+      "locked": {
+        "title": "今日 AI 出題次數已用完",
+        "desc": "AI 協助出題每天限用 1 次，今日額度已使用完畢。\n明天再回來試試，或現在手動出題。",
+        "switchToManual": "✍️ 改為手動出題"
+      },
+      "contentPlaceholder": "貼上一段文字、簡報重點，或直接貼網址連結...",
+      "urlHint": "🔗 系統將自動擷取頁面內容",
+      "charCount": "{count} / 5000 字",
+      "minCharsHint": "請輸入至少 30 字",
+      "questionCountLabel": "題數",
+      "questionCountUnit": "{count} 題",
+      "difficultyLabel": "難易度",
+      "difficulty": {
+        "beginner": "入門",
+        "intermediate": "進階",
+        "expert": "專家"
+      },
+      "generateBtn": "✨ 開始生成題目",
+      "generatingBtn": "✨ AI 出題中，請稍候...",
+      "readyTitle": "準備好了？",
+      "readySubtitle": "確認題目後即可建立遊戲房間",
+      "questionCount": "{count} 題",
+      "createRoomBtn": "🚀 建立遊戲房間"
+    }
+  },
+  "terms": {
+    "title": "服務條款",
+    "updatedAt": "最後更新：{date}",
+    "sections": {
+      "acceptance": {
+        "title": "1. 條款接受",
+        "body": "使用 ChoicePie 即表示你同意本服務條款。如果你不同意這些條款，請不要使用本服務。"
+      },
+      "accounts": {
+        "title": "2. 帳號註冊",
+        "body": "建立遊戲需要註冊帳號；加入遊戲則不需要帳號。你有責任保管好自己的登入憑證，並對帳號下的所有活動負責。"
+      },
+      "content": {
+        "title": "3. 使用者內容",
+        "body": "你上傳或建立的題庫內容（包含 AI 生成的題目）歸你所有，但你同意授權 ChoicePie 為了提供服務目的而儲存、處理與展示這些內容。"
+      },
+      "conduct": {
+        "title": "4. 使用規範",
+        "body": "請勿利用本服務發布違法、侵權、騷擾或惡意內容。ChoicePie 保留移除違規內容或終止帳號的權利。"
+      },
+      "termination": {
+        "title": "5. 服務終止",
+        "body": "我們可能因違反本條款而暫停或終止你的帳號。你也可以隨時停止使用本服務。"
+      },
+      "disclaimer": {
+        "title": "6. 免責聲明",
+        "body": "本服務目前為 MVP 開發階段，以「現況」提供，不保證不中斷或無錯誤。AI 生成內容的正確性亦不作保證。"
+      },
+      "changes": {
+        "title": "7. 條款修改",
+        "body": "我們可能不定期更新本條款，重大變更會透過網站公告。持續使用本服務即代表你接受修改後的條款。"
+      },
+      "contact": {
+        "title": "8. 聯絡我們",
+        "body": "若對本條款有任何疑問，歡迎透過「關於我們」頁面與我們聯繫。"
+      }
+    }
+  },
+  "privacy": {
+    "title": "隱私權政策",
+    "updatedAt": "最後更新：{date}",
+    "sections": {
+      "collection": {
+        "title": "1. 我們收集哪些資料",
+        "body": "註冊帳號時，我們會收集你的姓名與電子郵件（或透過 Google 登入取得的基本資料）。加入遊戲的玩家僅需提供暱稱，不需註冊。"
+      },
+      "usage": {
+        "title": "2. 資料用途",
+        "body": "我們使用這些資料來提供帳號登入、儲存你建立的題庫，以及維運遊戲房間功能。我們不會將你的資料用於與服務無關的用途。"
+      },
+      "sharing": {
+        "title": "3. 資料分享",
+        "body": "我們不會出售你的個人資料。僅在法律要求，或為提供服務所必要（例如驗證服務商）時，才會與第三方分享必要資訊。"
+      },
+      "cookies": {
+        "title": "4. Cookie 與追蹤技術",
+        "body": "我們使用必要的 Cookie 來維持登入狀態與遊戲房間連線，不會用於跨網站廣告追蹤。"
+      },
+      "retention": {
+        "title": "5. 資料保存",
+        "body": "你的帳號資料會保存至你主動刪除帳號為止。遊戲房間的暫時性資料（例如答題紀錄）會在遊戲結束後的一段時間內清除。"
+      },
+      "rights": {
+        "title": "6. 你的權利",
+        "body": "你可以隨時要求查看、修改或刪除你的個人資料，請透過「關於我們」頁面與我們聯繫。"
+      },
+      "changes": {
+        "title": "7. 政策修改",
+        "body": "我們可能不定期更新本政策，重大變更會透過網站公告。"
+      },
+      "contact": {
+        "title": "8. 聯絡我們",
+        "body": "若對本政策有任何疑問，歡迎透過「關於我們」頁面與我們聯繫。"
+      }
+    }
+  },
+  "error": {
+    "notFound": {
+      "title": "找不到這個頁面",
+      "desc": "你要找的頁面可能已經被移動或不存在了，回首頁看看有什麼好玩的吧！"
+    },
+    "generic": {
+      "title": "發生了一點問題",
+      "desc": "系統出了點狀況，請稍後再試一次。"
+    },
+    "backHome": "🏠 回首頁"
+  },
+  "common": {
+    "players": "{count} 位玩家",
+    "rank": "第 {rank} 名",
+    "score": "{score} 分",
+    "you": "(你)",
+    "loading": "載入中..."
+  }
+}
