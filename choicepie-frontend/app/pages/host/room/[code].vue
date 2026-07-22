@@ -260,18 +260,18 @@
             class="flex flex-col gap-2"
           >
             <div
-              v-for="(entry, i) in gameStore.rankings.slice(0, 8)"
+              v-for="entry in gameStore.rankings.slice(0, 8)"
               :key="entry.nickname"
               class="flex items-center gap-3 p-2 rounded-xl"
-              :class="i < 3 ? 'bg-cp-surface-muted' : ''"
+              :class="entry.rank <= 3 ? 'bg-cp-surface-muted' : ''"
             >
               <span
                 class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                :class="i === 0 ? 'bg-cp-primary text-white'
-                  : i === 1 ? 'bg-cp-info text-white'
-                    : i === 2 ? 'bg-cp-warning text-white'
+                :class="entry.rank === 1 ? 'bg-cp-primary text-white'
+                  : entry.rank === 2 ? 'bg-cp-info text-white'
+                    : entry.rank === 3 ? 'bg-cp-warning text-white'
                       : 'bg-cp-surface-muted text-cp-text-muted'"
-              >{{ i + 1 }}</span>
+              >{{ entry.rank }}</span>
               <span class="flex-1 text-sm font-medium truncate">{{ entry.nickname }}</span>
               <span class="text-sm font-bold tabular-nums text-cp-primary">
                 {{ entry.score.toLocaleString() }}
@@ -330,7 +330,7 @@
           class="flex items-center gap-4 px-5 py-3"
           :class="i < gameStore.rankings.length - 1 ? 'border-b border-cp-border' : ''"
         >
-          <span class="w-8 text-center font-bold text-cp-text-muted">{{ i + 1 }}</span>
+          <span class="w-8 text-center font-bold text-cp-text-muted">{{ entry.rank }}</span>
           <span class="flex-1 font-medium">{{ entry.nickname }}</span>
           <span class="font-bold tabular-nums text-cp-primary">
             {{ entry.score.toLocaleString() }}
@@ -414,14 +414,18 @@ const optionVotePercent = (index: number) => {
 
 // 頒獎台名次視覺（依原始名次 0=金 1=銀 2=銅）
 const PODIUM_META = [
-  { medal: '🥇', place: 2, colorClass: 'bg-cp-primary', glowClass: 'rank-1', height: '80px' },
-  { medal: '🥈', place: 1, colorClass: 'bg-cp-info', glowClass: 'rank-2', height: '60px' },
+  { medal: '🥇', place: 1, colorClass: 'bg-cp-primary', glowClass: 'rank-1', height: '80px' },
+  { medal: '🥈', place: 2, colorClass: 'bg-cp-info', glowClass: 'rank-2', height: '60px' },
   { medal: '🥉', place: 3, colorClass: 'bg-cp-warning', glowClass: 'rank-3', height: '40px' }
 ]
-// 版面呈現順序為 銀/金/銅（原始名次 1/0/2）
+// 版面呈現順序為 銀/金/銅（名次 2/1/3）
 const podiumEntries = computed(() =>
   [1, 0, 2]
-    .map(rank => ({ rank, entry: gameStore.rankings[rank], meta: PODIUM_META[rank]! }))
+    .map(rank => ({
+      rank,
+      entry: gameStore.rankings.find(r => r.rank === rank + 1),
+      meta: PODIUM_META[rank]!
+    }))
     .filter(p => p.entry)
 )
 

@@ -11,9 +11,9 @@
     >
       <span
         class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-white"
-        :class="rankBadgeClass(i)"
+        :class="rankBadgeClass(entry.rank)"
       >
-        {{ i + 1 }}
+        {{ entry.rank }}
       </span>
       <span
         class="flex-1 font-medium text-sm"
@@ -36,8 +36,8 @@ const gameStore = useGameStore()
 
 const rankBadgeClasses = ['bg-primary-500', 'bg-info-500', 'bg-warning-500']
 
-const rankBadgeClass = (index: number): string =>
-  rankBadgeClasses[index] ?? 'bg-neutral-200 text-neutral-400'
+const rankBadgeClass = (rank: number): string =>
+  rankBadgeClasses[rank - 1] ?? 'bg-neutral-200 text-neutral-400'
 </script>
 
 <style scoped lang="scss"></style>
