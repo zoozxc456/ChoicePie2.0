@@ -46,6 +46,13 @@ export const useGameStore = defineStore('game', () => {
   const myRankEntry = computed(() =>
     rankings.value.find(r => r.nickname === myNickname.value)
   )
+  /** 作答階段內，所有人提前送出答案（尚未倒數結束）即可提前結算 */
+  const isAllAnsweredEarly = computed(() =>
+    phase.value === 'question'
+    && timeLeft.value > 0
+    && totalCount.value > 0
+    && answeredCount.value >= totalCount.value
+  )
   /** 各選項目前已選人數（僅計入已作答者，公布答案前僅 Host 頁面使用） */
   const optionVoteCounts = computed(() => {
     const optionCount = currentQuestion.value?.options.length ?? 0
@@ -230,6 +237,7 @@ export const useGameStore = defineStore('game', () => {
     answeredCount, totalCount,
     // computed
     players, roomCode, playerCount, isTimerUrgent, timerPercent, myRankEntry, optionVoteCounts,
+    isAllAnsweredEarly,
     // actions
     setRoom, setRoomState, addPlayer, removePlayer,
     setQuestion, selectAnswer,
