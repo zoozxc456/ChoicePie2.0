@@ -198,6 +198,24 @@
           <p class="text-sm font-bold flex items-center gap-1">
             {{ quiz.creatorName }}
           </p>
+          <p
+            v-if="creatorStore.profile"
+            class="text-xs text-neutral-400"
+          >
+            {{ t('libraryDetail.creator.quizCount', { count: creatorStore.profile.quizCount }) }} ·
+            {{ t('libraryDetail.creator.challengeCount', { count: creatorStore.profile.challengeCount }) }}
+          </p>
+          <button
+            v-if="!isOwner && creatorStore.profile"
+            class="h-8 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap disabled:opacity-60"
+            :class="creatorStore.profile.isFollowing
+              ? 'border-neutral-200 bg-white'
+              : 'border-transparent bg-primary-500 text-white'"
+            :disabled="creatorStore.isTogglingFollow"
+            @click="handleToggleFollow"
+          >
+            {{ creatorStore.profile.isFollowing ? t('libraryDetail.creator.following') : t('libraryDetail.creator.follow') }}
+          </button>
         </div>
       </div>
     </div>
@@ -323,6 +341,7 @@ const { t } = useI18n()
 const route = useRoute()
 const quizStore = useQuizStore()
 const quizAttemptStore = useQuizAttemptStore()
+const creatorStore = useCreatorStore()
 const gameRoom = useGameRoom()
 const auth = useAuthStore()
 
@@ -339,6 +358,9 @@ const timeLimit = ref<typeof timeLimitOptions[number]>(20)
 const quizId = route.params.id as string
 await quizStore.fetchQuizById(quizId)
 await quizStore.fetchComments(quizId)
+if (quiz.value) {
+  await creatorStore.fetchCreatorProfile(quiz.value.creatorId)
+}
 if (auth.isLoggedIn) {
   await quizStore.fetchFavoriteStatus(quizId)
 }
@@ -438,6 +460,19 @@ const handleAddComment = async () => {
     commentText.value = ''
   } catch {
     // 錯誤已寫入 quizStore.error，這裡不需要額外處理
+  }
+}
+
+const handleToggleFollow = async () => {
+  if (!quiz.value) return
+  if (!auth.isLoggedIn) {
+    await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    return
+  }
+  try {
+    await creatorStore.toggleFollow(quiz.value.creatorId)
+  } catch {
+    // 錯誤已寫入 creatorStore.error，這裡不需要額外處理
   }
 }
 </script>

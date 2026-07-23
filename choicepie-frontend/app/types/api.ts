@@ -257,3 +257,12 @@ export interface CommentDto {
   text: string
   createdAt: string
 }
+
+export interface CreatorProfileDto {
+  id: string
+  name: string
+  avatar: string | null
+  quizCount: number
+  challengeCount: number
+  isFollowing: boolean
+}

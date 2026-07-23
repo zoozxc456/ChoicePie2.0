@@ -255,6 +255,12 @@
       "add": "Favorite",
       "remove": "Favorited"
     },
+    "creator": {
+      "quizCount": "{count} quizzes",
+      "challengeCount": "{count} plays",
+      "follow": "Follow",
+      "following": "Following"
+    },
     "comments": {
       "title": "Comments",
       "empty": "No comments yet, be the first!",
