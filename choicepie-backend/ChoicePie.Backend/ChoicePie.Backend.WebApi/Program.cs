@@ -1,14 +1,19 @@
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Hosting.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Extensions;
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Abstractions;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Extensions;
+using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
 using ChoicePie.Backend.WebApi.Extensions;
 using ChoicePie.Backend.WebApi.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.Configure<AdminBootstrapSettings>(
+    builder.Configuration.GetSection(AdminBootstrapSettings.SectionName));
 
 builder.Services
     .AddEndpointsApiExplorer()
@@ -43,6 +48,18 @@ builder.Services.AddSignalR(options =>
 });
 
 var app = builder.Build();
+
+using (var startupScope = app.Services.CreateScope())
+{
+    var dbContext = startupScope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
+    await dbContext.Database.MigrateAsync();
+
+    var seeders = startupScope.ServiceProvider.GetServices<IDataSeeder>().OrderBy(s => s.Order);
+    foreach (var seeder in seeders)
+    {
+        await seeder.SeedAsync();
+    }
+}
 
 // dev server 偶爾出現的「連不上、process 已重啟」現象，若源自未被任何 middleware
 // 攔到的背景執行緒例外，只有這裡能記下真正的崩潰原因與時間點。

@@ -38,8 +38,9 @@ public sealed class AdminAuthControllerTests
         });
 
     /// <summary>
-    /// AdminAuthController 沒有 register 端點（唯一的建立路徑 CreateAdminUserCommandHandler 需要已登入的
-    /// admin，且從沒被接到任何 controller），所以測試帳號只能直接透過 DbContext 種資料，繞過 HTTP。
+    /// AdminAuthController 沒有 register 端點（CreateAdminUserCommandHandler 要求呼叫者已經是登入中的
+    /// admin，用來新增「非第一個」admin；第一個帳號改由 AdminUserSeeder 在啟動時建立），所以測試帳號
+    /// 直接透過 DbContext 種資料，繞過 HTTP。
     /// </summary>
     private async Task<string> SeedAdminAsync(string email, string password = SeededPassword)
     {
@@ -165,5 +166,49 @@ public sealed class AdminAuthControllerTests
 
         var refreshAfterLogout = await client.PostAsync("/api/v1/admin/auth/refresh", null);
         Assert.That(refreshAfterLogout.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
+    public async Task GetCurrentAdminUserAsync_GivenLoggedInSession_WhenCalled_ThenReturnsCurrentAdminUser()
+    {
+        var email = $"{Guid.NewGuid()}@example.com";
+        await SeedAdminAsync(email);
+        using var client = CreateClient();
+        await client.PostAsJsonAsync("/api/v1/admin/auth/login", new { Email = email, Password = SeededPassword });
+
+        var response = await client.GetAsync("/api/v1/admin/auth/me");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<AdminUserDto>>();
+        Assert.That(result!.Data!.Email, Is.EqualTo(email));
+    }
+
+    [Test]
+    public async Task GetCurrentAdminUserAsync_GivenNoSession_WhenCalled_ThenReturnsUnauthorized()
+    {
+        using var client = CreateClient();
+
+        var response = await client.GetAsync("/api/v1/admin/auth/me");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
+    public async Task GetCurrentAdminUserAsync_GivenMemberOwnedSession_WhenCalled_ThenReturnsForbidden()
+    {
+        using var client = CreateClient();
+        var email = $"{Guid.NewGuid()}@example.com";
+        await client.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            Email = email,
+            Name = "Test Member",
+            Password = "Password123!",
+            ConfirmPassword = "Password123!"
+        });
+        await client.PostAsJsonAsync("/api/v1/auth/login", new { Email = email, Password = "Password123!" });
+
+        var response = await client.GetAsync("/api/v1/admin/auth/me");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
 }

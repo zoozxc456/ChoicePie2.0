@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using ChoicePie.Backend.Application.AdminUsers.Commands;
 using ChoicePie.Backend.Application.AdminUsers.Dtos;
+using ChoicePie.Backend.Application.AdminUsers.Queries;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Exceptions;
 using ChoicePie.Backend.Shared.Hosting.API.Response;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
@@ -8,6 +9,7 @@ using ChoicePie.Backend.Shared.Kernel.Auth;
 using ChoicePie.Backend.WebApi.Extensions;
 using ChoicePie.Backend.WebApi.Requests.AdminAuth;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -47,5 +49,13 @@ public class AdminAuthController(IMediator mediator, IOptions<JwtSettings> jwtSe
 
         Response.ClearAuthCookies();
         return Ok(ResponseHelper.Success());
+    }
+
+    [HttpGet("me")]
+    [Authorize(Policy = "AdminOnly")]
+    public async Task<ActionResult<ApiResponse<AdminUserDto>>> GetCurrentAdminUserAsync()
+    {
+        var result = await mediator.Send(new GetCurrentAdminUserQuery());
+        return Ok(ResponseHelper.Success(result));
     }
 }
