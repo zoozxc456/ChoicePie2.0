@@ -6,6 +6,7 @@ using ChoicePie.Backend.Domain.Aggregates.Quiz.Entities;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt;
+using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
@@ -65,6 +66,23 @@ public class StartQuizAttemptCommandHandlerTests
             Arg.Is<QuizAttemptAggregate>(a => a.QuizId == _quiz.Id && a.MemberId == _memberId),
             Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_GivenExistingInProgressAttempt_WhenCalled_ThenReusesItInsteadOfCreatingNew()
+    {
+        var existingAttempt = QuizAttemptAggregate.Start(_quiz.Id, _memberId, [_quiz.Questions[0].Id], DateTime.UtcNow);
+        _quizAttemptRepository
+            .FirstOrDefaultAsync(
+                Arg.Any<QuizAttemptInProgressByQuizAndMemberSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(existingAttempt);
+
+        var result = await _sut.Handle(new StartQuizAttemptCommand(_quiz.Id), CancellationToken.None);
+
+        Assert.That(result.AttemptId, Is.EqualTo(existingAttempt.Id));
+        await _quizAttemptRepository.DidNotReceive().AddAsync(
+            Arg.Any<QuizAttemptAggregate>(), Arg.Any<CancellationToken>());
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Test]

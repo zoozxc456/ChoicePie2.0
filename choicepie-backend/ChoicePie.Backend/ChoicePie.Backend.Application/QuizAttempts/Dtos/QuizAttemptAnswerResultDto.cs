@@ -4,6 +4,6 @@ public sealed record QuizAttemptAnswerResultDto(
     Guid QuestionId,
     string QuestionText,
     int? SelectedOptionIndex,
-    int CorrectOptionIndex,
+    int? CorrectOptionIndex,
     bool IsCorrect,
-    string Explanation);
+    string? Explanation);

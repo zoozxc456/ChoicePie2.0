@@ -51,7 +51,9 @@ export const useQuizAttemptStore = defineStore('quizAttempt', () => {
     error.value = null
     try {
       const data = await quizAttemptApi.fetchAttemptById(attemptId)
-      result.value = data
+      if (data.completedAt) {
+        result.value = data
+      }
       return data
     } catch (e) {
       error.value = '無法載入作答結果'

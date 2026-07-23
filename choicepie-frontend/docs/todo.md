@@ -81,19 +81,32 @@
 需要規劃：選定寄信服務（SendGrid/SMTP 等）、忘記密碼的 token 產生與過期機制、email 驗證流程與觸發時機
 （註冊時自動寄送？）、對應前端頁面（忘記密碼表單、重設密碼表單、「請查收信箱」提示頁）。
 
-## 單人練習 (`/attempt/[id]`) — 待補功能
+## 單人練習 (`/attempt/[id]`) — 續作限制決策已完成，其餘待補功能
 
 2026-07-24 新增：核心作答流程（開始挑戰 → 逐題作答 → 完成計分 → 結果頁逐題檢討）已完整串接前後端，
 可正常遊玩，但以下功能尚未實作：
 
 - **計時功能**：完全沒有。`QuizAttempt.cs` 有記錄 `StartedAt`/`CompletedAt`，但前端沒有倒數 UI，
   後端也沒有任何時限機制或逾時計分邏輯。
-- **中途離開無法續作**：作答進度只存在前端本地 `ref`，重新整理頁面即遺失。後端 `GetQuizAttemptByIdQuery`
-  對 `Status == InProgress` 的 attempt 沒有回傳「目前作答到第幾題/已選答案」的可續作狀態，
-  `app/pages/attempt/[id].vue` 對這種情況直接 fall through 到找不到頁面。需要規劃續作用的 DTO 與前端邏輯。
 - **無作答歷史記錄**：沒有任何頁面或 API 可以列出會員在某份題庫的過去挑戰紀錄（分數、時間）。
-- **無重複挑戰限制**：`StartQuizAttemptCommandHandler` 沒有檢查是否已挑戰過，同一份題庫可無限次重新開始，
-  每次都建立獨立的 `QuizAttempt` 記錄。需要規劃是否要限制次數/加上冷卻時間，或維持現況為刻意設計。
+
+2026-07-24：**中途離開無法續作 / 無重複挑戰限制**已一併處理完成，決策為「同一題庫同一會員最多只有一個
+進行中的 attempt，重新開始會續用而非產生新記錄；已完成的挑戰不限制次數」（練習性質題庫，允許重複挑戰
+以求進步，但避免中途離開造成的 `InProgress` 記錄無限累積）。實作：
+
+- 後端新增 `QuizAttemptInProgressByQuizAndMemberSpecification`
+  （`ChoicePie.Backend.Domain/Aggregates/QuizAttempt/Specifications/`），`StartQuizAttemptCommandHandler`
+  改為先查詢是否已有進行中的 attempt，若有則直接複用（回傳同一個 `attemptId` 與完整題目資料），
+  沒有才建立新的 `QuizAttempt`。
+- 修正一併發現的安全性問題：`GetQuizAttemptByIdQuery`（`GET /api/v1/quiz-attempts/{id}`）先前對進行中的
+  attempt 也會回傳每題的 `CorrectOptionIndex`/`IsCorrect`/`Explanation`，等於作答途中就能從 API 回應看到正確答案。
+  現在 `QuizAttemptQueryService.GetByIdAsync` 會在 `Status == InProgress` 時將這三個欄位遮蔽為 `null`/`false`
+  （`QuizAttemptAnswerResultDto` 的 `CorrectOptionIndex`/`Explanation` 因此改為可為 `null`）。
+- 前端 `app/pages/attempt/[id].vue`：直接連到 `/attempt/[id]`（重新整理或分享連結）且 store 內沒有對應
+  `currentAttempt` 時，改為呼叫 `fetchAttemptById` 判斷是否為進行中的 attempt，若是則呼叫 `startAttempt`
+  取回完整題目資料以續作（同一 attempt id，不會建立新記錄），並依已作答數量跳到對應題目；
+  `quizAttempt.ts` store 的 `fetchAttemptById` 也只在 `completedAt` 存在時才寫入 `result`，避免進行中的
+  attempt 誤觸發結果頁畫面。
 
 ## 題庫檢舉功能 — 待規劃，需從零開始
 

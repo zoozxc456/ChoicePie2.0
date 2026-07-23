@@ -6,6 +6,7 @@ using ChoicePie.Backend.Domain.Aggregates.Quiz;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt;
+using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using MediatR;
@@ -33,12 +34,19 @@ public sealed class StartQuizAttemptCommandHandler(
             throw new QuizNotPublishedException(quiz.Id);
         }
 
-        var questionIds = quiz.Questions.Select(q => q.Id).ToList();
-        var attempt = QuizAttemptAggregate.Start(quiz.Id, memberId, questionIds, timeProvider.GetUtcNow().UtcDateTime);
+        var existingAttempt = await quizAttemptRepository.FirstOrDefaultAsync(
+            new QuizAttemptInProgressByQuizAndMemberSpecification(quiz.Id, memberId), cancellationToken);
 
-        await quizAttemptRepository.AddAsync(attempt, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (existingAttempt is null)
+        {
+            var questionIds = quiz.Questions.Select(q => q.Id).ToList();
+            existingAttempt = QuizAttemptAggregate.Start(quiz.Id, memberId, questionIds, timeProvider.GetUtcNow().UtcDateTime);
 
+            await quizAttemptRepository.AddAsync(existingAttempt, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        var attempt = existingAttempt;
         var creator = await memberRepository.GetByIdAsync(quiz.OwnerId, cancellationToken);
         var quizDto = QuizForAttemptDto.FromDomain(quiz, creator?.Name ?? "Unknown", creator?.Avatar);
 

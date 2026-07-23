@@ -53,6 +53,25 @@ public class QuizAttemptQueryServiceTests
     }
 
     [Test]
+    public async Task GetByIdAsync_GivenInProgressAttempt_WhenCalled_ThenMasksCorrectAnswerAndExplanation()
+    {
+        var attempt = QuizAttemptAggregate.Start(_quiz.Id, _member.Id, [_question.Id], DateTime.UtcNow);
+        attempt.SubmitAnswer(_question.Id, 1, DateTime.UtcNow);
+        _readRepository.Query<QuizAttemptAggregate>().Returns(new List<QuizAttemptAggregate> { attempt }.AsQueryable());
+
+        var result = await _sut.GetByIdAsync(attempt.Id, CancellationToken.None);
+
+        var answer = result!.Answers.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(answer.SelectedOptionIndex, Is.EqualTo(1));
+            Assert.That(answer.CorrectOptionIndex, Is.Null);
+            Assert.That(answer.IsCorrect, Is.False);
+            Assert.That(answer.Explanation, Is.Null);
+        });
+    }
+
+    [Test]
     public async Task GetByIdAsync_GivenUnknownId_WhenCalled_ThenReturnsNull()
     {
         _readRepository.Query<QuizAttemptAggregate>().Returns(new List<QuizAttemptAggregate>().AsQueryable());

@@ -185,9 +185,9 @@ export interface QuizAttemptAnswerResultDto {
   questionId: string
   questionText: string
   selectedOptionIndex: number | null
-  correctOptionIndex: number
+  correctOptionIndex: number | null
   isCorrect: boolean
-  explanation: string
+  explanation: string | null
 }
 
 export interface QuizAttemptResultDto {

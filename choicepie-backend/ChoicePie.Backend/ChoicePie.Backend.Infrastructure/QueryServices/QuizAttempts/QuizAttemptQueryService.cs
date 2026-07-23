@@ -1,6 +1,7 @@
 using ChoicePie.Backend.Application.QuizAttempts.Contracts;
 using ChoicePie.Backend.Application.QuizAttempts.Dtos;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
+using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Enums;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Dependencies;
 using QuizAttemptAggregate = ChoicePie.Backend.Domain.Aggregates.QuizAttempt.QuizAttempt;
@@ -27,6 +28,7 @@ public sealed class QuizAttemptQueryService(IReadRepository readRepository) : IQ
         var attempt = joined.Attempt;
         var owningQuiz = joined.Quiz;
 
+        var isInProgress = attempt.Status == AttemptStatus.InProgress;
         var selectedOptionByQuestionId = attempt.Answers.ToDictionary(a => a.QuestionId, a => a.SelectedOptionIndex);
         var questions = owningQuiz?.Questions ?? [];
         var answers = questions
@@ -37,9 +39,9 @@ public sealed class QuizAttemptQueryService(IReadRepository readRepository) : IQ
                     question.Id,
                     question.Text,
                     selected == -1 ? null : selected,
-                    question.AnswerIndex,
-                    selected == question.AnswerIndex,
-                    question.Explanation);
+                    isInProgress ? null : question.AnswerIndex,
+                    !isInProgress && selected == question.AnswerIndex,
+                    isInProgress ? null : question.Explanation);
             })
             .ToList();
 

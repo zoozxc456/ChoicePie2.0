@@ -133,9 +133,17 @@ onMounted(async () => {
   }
   quizAttemptStore.reset()
   try {
-    await quizAttemptStore.fetchAttemptById(attemptId)
+    const attempt = await quizAttemptStore.fetchAttemptById(attemptId)
+    if (!attempt.completedAt) {
+      // In-progress attempt fetched by id lacks per-question options needed to render
+      // the question UI — resume it via startAttempt, which reuses the same attempt
+      // and returns the full quiz payload.
+      await quizAttemptStore.startAttempt(attempt.quizId)
+      const answeredCount = attempt.answers.filter(a => a.selectedOptionIndex !== null).length
+      questionIndex.value = Math.min(answeredCount, attempt.answers.length - 1)
+    }
   } catch {
-    // Attempt still in progress or invalid — no way to resume, fall through to not-found view.
+    // Attempt not found or not owned by the current user — fall through to not-found view.
   } finally {
     isChecking.value = false
   }

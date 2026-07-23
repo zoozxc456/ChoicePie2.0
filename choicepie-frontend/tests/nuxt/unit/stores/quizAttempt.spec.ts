@@ -120,6 +120,17 @@ describe('useQuizAttemptStore', () => {
       expect(store.result).toEqual(attemptResult)
     })
 
+    it('作答中（尚未 completedAt）時不寫入 result，避免顯示過期的結果畫面', async () => {
+      const inProgressResult: QuizAttemptResultDto = { ...attemptResult, completedAt: null }
+      fetchAttemptById.mockResolvedValue(inProgressResult)
+      const store = useQuizAttemptStore()
+
+      const result = await store.fetchAttemptById('attempt-1')
+
+      expect(result).toEqual(inProgressResult)
+      expect(store.result).toBeNull()
+    })
+
     it('失敗時設定對應的 error 訊息', async () => {
       fetchAttemptById.mockRejectedValue(new Error('boom'))
       const store = useQuizAttemptStore()
