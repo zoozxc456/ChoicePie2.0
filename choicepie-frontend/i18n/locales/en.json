@@ -297,7 +297,11 @@
     },
     "share": {
       "action": "Share",
-      "copied": "Link copied"
+      "copied": "Link copied",
+      "copyLink": "Copy link",
+      "line": "Share to Line",
+      "facebook": "Share to Facebook",
+      "x": "Share to X"
     }
   },
   "signIn": {

@@ -66,20 +66,10 @@
         {{ quizStore.isFavorited ? `♥ ${t('libraryDetail.favorite.remove')}` : `♡ ${t('libraryDetail.favorite.add')}` }}
       </button>
 
-      <div class="relative">
-        <button
-          class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap"
-          @click="handleShare"
-        >
-          {{ t('libraryDetail.share.action') }}
-        </button>
-        <span
-          v-if="isShareCopied"
-          class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[11px] text-white bg-neutral-800 px-2 py-1 rounded-lg whitespace-nowrap"
-        >
-          {{ t('libraryDetail.share.copied') }}
-        </span>
-      </div>
+      <ShareMenu
+        :quiz-id="quiz.id"
+        :quiz-title="quiz.title"
+      />
 
       <div class="ml-auto flex gap-2 items-center">
         <button
@@ -339,7 +329,6 @@ const isStartModalOpen = ref(false)
 const isCreatingRoom = ref(false)
 const isStartingAttempt = ref(false)
 const isTogglingStatus = ref(false)
-const isShareCopied = ref(false)
 
 const timeLimitOptions = [10, 20, 30, 60] as const
 const timeLimit = ref<typeof timeLimitOptions[number]>(20)
@@ -354,6 +343,14 @@ if (quiz.value) {
 if (auth.isLoggedIn) {
   await quizStore.fetchFavoriteStatus(quizId)
 }
+
+useSeoMeta({
+  title: () => quiz.value?.title,
+  ogTitle: () => quiz.value?.title,
+  description: () => quiz.value?.description ?? undefined,
+  ogDescription: () => quiz.value?.description ?? undefined,
+  ogType: 'website'
+})
 
 const difficultyClass = computed(() => ({
   beginner: 'bg-success-100 text-success-800',
@@ -441,21 +438,6 @@ const handleToggleFavorite = async () => {
   } catch {
     // 錯誤已寫入 quizStore.error，這裡不需要額外處理
   }
-}
-
-const handleShare = async () => {
-  if (!quiz.value) return
-  const url = `${window.location.origin}/library/${quiz.value.id}`
-  try {
-    await navigator.clipboard.writeText(url)
-    isShareCopied.value = true
-    setTimeout(() => {
-      isShareCopied.value = false
-    }, 2000)
-  } catch {
-    // 剪貼簿權限被拒絕時不阻擋使用者，僅不顯示已複製提示
-  }
-  await quizStore.recordShare(quiz.value.id)
 }
 
 const handleToggleFollow = async () => {

@@ -297,7 +297,11 @@
     },
     "share": {
       "action": "分享",
-      "copied": "已複製連結"
+      "copied": "已複製連結",
+      "copyLink": "複製連結",
+      "line": "分享到 Line",
+      "facebook": "分享到 Facebook",
+      "x": "分享到 X"
     }
   },
   "signIn": {

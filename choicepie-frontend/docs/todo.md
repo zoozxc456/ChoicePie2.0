@@ -116,15 +116,23 @@
 需要規劃：檢舉原因分類、檢舉後的處理流程（進入 Admin 審核佇列？直接下架？）、
 與已規劃中的「Admin：題庫下架 / 會員管理」是否共用同一套審核機制、前端檢舉按鈕與表單 UI。
 
-## 分享連結功能補強 — 待規劃
+## 分享連結功能補強 — 已完成
 
-2026-07-24 新增：目前分享功能（見上方題庫詳情頁段落）只是複製題庫本身的頁面網址並累加 `Quiz.ShareCount`
-（`QuizzesController.cs` `POST /api/v1/quizzes/{id}/share` → `RecordQuizShareCommandHandler`），沒有：
+2026-07-24：決定範圍為「分享代碼但不做真正短網址」——沿用 `/library/{id}` 原頁面網址，
+不另外產生短碼/redirect endpoint。已完成：
 
-- **獨立的短連結/分享專用連結**：目前直接重用 `/library/{id}` 原頁面網址，沒有產生短連結或可追蹤的分享代碼。
-- **社群分享整合**：沒有分享到 Line/Facebook/X 等平台的預填文字/連結按鈕，只有一個複製到剪貼簿的按鈕。
-- **連結預覽 OG meta 標籤**：`app/pages/library/*.vue` 與 `nuxt.config.ts` 都沒有設定 `useSeoMeta`/`useHead`/
-  Open Graph 標籤，分享到聊天軟體或社群平台時不會有自訂標題/圖片/描述預覽。
+- **分享來源追蹤代碼**：所有分享連結改為附加 `?ref={channel}` 查詢參數（`copy`/`line`/`facebook`/`x`），
+  可從網址判斷使用者是從哪個管道點進來，但不落地成後端分析資料表——後端 `RecordQuizShareCommandHandler`
+  維持原本的 `Quiz.ShareCount` 純計數，不記錄管道。
+- **社群分享整合**：題庫詳情頁的分享按鈕改為下拉選單（`app/components/library/ShareMenu.vue`，
+  使用 `UDropdownMenu`），提供複製連結／分享到 Line／分享到 Facebook／分享到 X 四個選項，
+  各平台使用官方 web share intent 網址（`social-plugins.line.me/lineit/share`、
+  `facebook.com/sharer/sharer.php`、`twitter.com/intent/tweet`）開新視窗分享。圖示沿用專案既有的
+  `@iconify-json/lucide`（未安裝 `simple-icons` 之類的品牌圖示集，故用近似的 lucide 圖示代替）。
+- **OG meta 標籤**：`app/pages/library/[id].vue` 新增 `useSeoMeta`（`title`/`ogTitle`/`description`/
+  `ogDescription`/`ogType`），分享到聊天軟體或社群平台時會顯示題庫標題與描述。**沒有加上 `ogImage`**——
+  題庫本身沒有真正的封面圖片欄位（只有 `coverEmoji` + `coverGradient` CSS 漸層，不是圖片網址），
+  專案目前也只有一個 favicon，沒有符合 OG 建議尺寸（1200×630）的靜態圖，之後若要做圖片預覽需要另外
+  設計（例如伺服器端產生的動態卡片圖）。
 
-需要規劃：是否要產生短連結（含追蹤來源用的分享代碼）、社群分享按鈕要接哪些平台、
-題庫詳情頁補上 OG meta 標籤（標題、描述、封面圖）。
+`app/stores/quiz.ts` 的 `recordShare` action 與後端 API 皆未變動。
