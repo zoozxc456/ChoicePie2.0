@@ -114,7 +114,11 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
         if (!isHost && Context.Items.TryGetValue(RoomCodeItemKey, out var roomCodeValue) &&
             roomCodeValue is string roomCode)
         {
-            await Clients.Group(RoomGroup(roomCode)).PlayerLeft(Context.ConnectionId);
+            var playerId = Context.Items.TryGetValue(PlayerIdItemKey, out var playerIdValue) && playerIdValue is Guid id
+                ? id.ToString()
+                : Context.ConnectionId;
+
+            await Clients.Group(RoomGroup(roomCode)).PlayerLeft(playerId);
         }
 
         await base.OnDisconnectedAsync(exception);

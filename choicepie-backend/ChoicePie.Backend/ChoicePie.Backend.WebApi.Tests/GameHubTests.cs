@@ -102,7 +102,7 @@ public sealed class GameHubTests
         Assert.That(playerJoinedOnHost.Nickname, Is.EqualTo("Alice"));
     }
 
-    private async Task<(HubConnection Host, HubConnection Player, string RoomCode)> CreateRoomWithOnePlayerAsync()
+    private async Task<(HubConnection Host, HubConnection Player, string RoomCode, Guid PlayerId)> CreateRoomWithOnePlayerAsync()
     {
         var (hostClient, hostCookies, _) = await GameHubTestClient.CreateAuthenticatedHostClientAsync(_factory);
         using var _1 = hostClient;
@@ -111,6 +111,8 @@ public sealed class GameHubTests
         var hostConnection = await GameHubTestClient.CreateHostHubConnectionAsync(_factory, hostCookies);
         var roomCreatedTcs = new TaskCompletionSource<string>();
         hostConnection.On<string>("RoomCreated", roomCode => roomCreatedTcs.TrySetResult(roomCode));
+        var playerJoinedOnHostTcs = new TaskCompletionSource<PlayerDto>();
+        hostConnection.On<PlayerDto>("PlayerJoined", player => playerJoinedOnHostTcs.TrySetResult(player));
         await hostConnection.InvokeAsync("CreateRoom", new CreateRoomRequest(quizId, null, null));
         var roomCode = await roomCreatedTcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
@@ -119,14 +121,15 @@ public sealed class GameHubTests
         playerConnection.On<RoomStateSyncDto>("RoomStateSync", state => roomStateSyncTcs.TrySetResult(state));
         await playerConnection.InvokeAsync("JoinRoom", roomCode, "Alice");
         await roomStateSyncTcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        var playerJoined = await playerJoinedOnHostTcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
-        return (hostConnection, playerConnection, roomCode);
+        return (hostConnection, playerConnection, roomCode, playerJoined.Id);
     }
 
     [Test]
     public async Task StartGame_GivenRoomWithPlayer_WhenHostStarts_ThenGameStartedAndQuestionStartAreBroadcast()
     {
-        var (hostConnection, playerConnection, roomCode) = await CreateRoomWithOnePlayerAsync();
+        var (hostConnection, playerConnection, roomCode, _) = await CreateRoomWithOnePlayerAsync();
         await using var _1 = hostConnection;
         await using var _2 = playerConnection;
 
@@ -147,7 +150,7 @@ public sealed class GameHubTests
     [Test]
     public async Task SubmitAnswer_GivenStartedGame_WhenPlayerAnswers_ThenPlayerGetsResultAndHostGetsProgress()
     {
-        var (hostConnection, playerConnection, roomCode) = await CreateRoomWithOnePlayerAsync();
+        var (hostConnection, playerConnection, roomCode, _) = await CreateRoomWithOnePlayerAsync();
         await using var _1 = hostConnection;
         await using var _2 = playerConnection;
 
@@ -175,7 +178,7 @@ public sealed class GameHubTests
     [Test]
     public async Task SkipQuestion_GivenSingleQuestionQuizAlreadyStarted_WhenHostSkipsTwice_ThenQuestionEndThenGameEndAreBroadcast()
     {
-        var (hostConnection, playerConnection, roomCode) = await CreateRoomWithOnePlayerAsync();
+        var (hostConnection, playerConnection, roomCode, _) = await CreateRoomWithOnePlayerAsync();
         await using var _1 = hostConnection;
         await using var _2 = playerConnection;
 
@@ -205,7 +208,7 @@ public sealed class GameHubTests
     [Test]
     public async Task PauseGame_GivenHostOfExistingRoom_WhenCalledTwice_ThenBothCallsSucceed()
     {
-        var (hostConnection, playerConnection, roomCode) = await CreateRoomWithOnePlayerAsync();
+        var (hostConnection, playerConnection, roomCode, _) = await CreateRoomWithOnePlayerAsync();
         await using var _1 = hostConnection;
         await using var _2 = playerConnection;
         await hostConnection.InvokeAsync("StartGame", roomCode);
@@ -217,7 +220,7 @@ public sealed class GameHubTests
     [Test]
     public async Task PauseGame_GivenNonHostConnection_WhenCalled_ThenThrowsHubException()
     {
-        var (hostConnection, playerConnection, roomCode) = await CreateRoomWithOnePlayerAsync();
+        var (hostConnection, playerConnection, roomCode, _) = await CreateRoomWithOnePlayerAsync();
         await using var _1 = hostConnection;
         await using var _2 = playerConnection;
 
@@ -254,15 +257,15 @@ public sealed class GameHubTests
     [Test]
     public async Task OnDisconnected_GivenPlayerInRoom_WhenPlayerConnectionStops_ThenOtherClientsReceivePlayerLeft()
     {
-        var (hostConnection, playerConnection, roomCode) = await CreateRoomWithOnePlayerAsync();
+        var (hostConnection, playerConnection, roomCode, playerId) = await CreateRoomWithOnePlayerAsync();
         await using var _1 = hostConnection;
 
         var playerLeftTcs = new TaskCompletionSource<string>();
-        hostConnection.On<string>("PlayerLeft", connectionId => playerLeftTcs.TrySetResult(connectionId));
+        hostConnection.On<string>("PlayerLeft", leftPlayerId => playerLeftTcs.TrySetResult(leftPlayerId));
 
         await playerConnection.DisposeAsync();
 
-        var connectionId = await playerLeftTcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        Assert.That(connectionId, Is.Not.Null.And.Not.Empty);
+        var leftPlayerId = await playerLeftTcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.That(leftPlayerId, Is.EqualTo(playerId.ToString()));
     }
 }
