@@ -19,6 +19,7 @@ export const quizClientMock = {
   fetchComments: vi.fn(),
   addComment: vi.fn(),
   fetchRelatedQuizzes: vi.fn(),
+  recordShare: vi.fn(),
   generateQuestions: vi.fn(),
   saveQuiz: vi.fn()
 }

@@ -9,6 +9,7 @@ const {
   fetchFavoriteStatus, addFavorite, removeFavorite,
   fetchComments, addComment,
   fetchRelatedQuizzes,
+  recordShare,
   generateQuestions, saveQuiz
 } = quizClientMock
 
@@ -29,6 +30,7 @@ const makeQuizDto = (overrides: Partial<QuizDto> = {}): QuizDto => ({
   creatorAvatar: null,
   questions: [],
   tags: [],
+  shareCount: 0,
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
   ...overrides
@@ -274,6 +276,29 @@ describe('useQuizStore', () => {
 
       expect(store.relatedQuizzes).toEqual([])
       expect(store.isLoadingRelated).toBe(false)
+    })
+  })
+
+  describe('recordShare', () => {
+    it('成功時更新 currentQuiz 的 shareCount', async () => {
+      fetchQuizById.mockResolvedValue(makeQuizDto({ id: 'quiz-1', shareCount: 0 }))
+      recordShare.mockResolvedValue(1)
+      const store = useQuizStore()
+      await store.fetchQuizById('quiz-1')
+
+      await store.recordShare('quiz-1')
+
+      expect(store.currentQuiz?.shareCount).toBe(1)
+    })
+
+    it('失敗時記錄錯誤且不拋出', async () => {
+      fetchQuizById.mockResolvedValue(makeQuizDto({ id: 'quiz-1', shareCount: 0 }))
+      recordShare.mockRejectedValue(new Error('boom'))
+      const store = useQuizStore()
+      await store.fetchQuizById('quiz-1')
+
+      await expect(store.recordShare('quiz-1')).resolves.toBeUndefined()
+      expect(store.currentQuiz?.shareCount).toBe(0)
     })
   })
 

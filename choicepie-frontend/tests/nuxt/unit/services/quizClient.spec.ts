@@ -164,4 +164,12 @@ describe('useQuizClientApi', () => {
 
     expect(apiMock.get).toHaveBeenCalledWith('/api/v1/quizzes/q1/related')
   })
+
+  it('recordShare 呼叫正確路徑', () => {
+    const client = useQuizClientApi()
+
+    client.recordShare('q1')
+
+    expect(apiMock.post).toHaveBeenCalledWith('/api/v1/quizzes/q1/share')
+  })
 })

@@ -31,6 +31,7 @@ export interface Quiz {
   tags: string[]
   isPublic: boolean
   status: string
+  shareCount?: number
   createdAt: string
   updatedAt: string
 }

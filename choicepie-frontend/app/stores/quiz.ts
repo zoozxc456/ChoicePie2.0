@@ -30,6 +30,7 @@ const toQuiz = (dto: QuizDto): Quiz => ({
   tags: dto.tags,
   isPublic: dto.status === 'Published',
   status: dto.status,
+  shareCount: dto.shareCount,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt
 })
@@ -245,6 +246,17 @@ export const useQuizStore = defineStore('quiz', () => {
     }
   }
 
+  // ── 分享 ──
+
+  const recordShare = async (id: string) => {
+    try {
+      const shareCount = await quizApi.recordShare(id)
+      if (currentQuiz.value?.id === id) currentQuiz.value = { ...currentQuiz.value, shareCount }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   // ── AI 出題 ──
 
   const recordAiUsage = () => {
@@ -335,6 +347,7 @@ export const useQuizStore = defineStore('quiz', () => {
     fetchFavoriteStatus, toggleFavorite,
     fetchComments, addComment,
     fetchRelatedQuizzes,
+    recordShare,
     setCurrentQuiz, updateGeneratedQuestion, clearGenerated
   }
 }, {
