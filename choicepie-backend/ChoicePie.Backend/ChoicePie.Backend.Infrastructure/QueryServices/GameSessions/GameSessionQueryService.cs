@@ -50,10 +50,14 @@ public sealed class GameSessionQueryService(IReadRepository readRepository) : IG
             ? []
             : BuildWrongAnswers(session, myResult);
 
+        var questionBreakdown = isHost
+            ? BuildQuestionBreakdown(session)
+            : [];
+
         var dto = new GameSessionDetailDto(
             session.Id, session.RoomCode, session.QuizId, session.QuizTitle, session.CoverEmoji, session.CoverGradient,
             session.PlayedAtUtc, session.PlayerResults.Count, session.Questions.Count, isHost,
-            rankings, myResult?.Rank, myResult?.FinalScore, wrongAnswers);
+            rankings, myResult?.Rank, myResult?.FinalScore, wrongAnswers, questionBreakdown);
 
         return Task.FromResult<GameSessionDetailDto?>(dto);
     }
@@ -73,6 +77,29 @@ public sealed class GameSessionQueryService(IReadRepository readRepository) : IG
                 var question = questionsByIndex[a.QuestionIndex];
                 return new GameSessionWrongAnswerDto(
                     question.Text, question.Options, a.SelectedOptionIndex, question.AnswerIndex, question.Explanation);
+            })
+            .ToList();
+    }
+
+    private static IReadOnlyList<GameSessionQuestionBreakdownDto> BuildQuestionBreakdown(GameSessionAggregate session)
+    {
+        var answersByQuestionIndex = session.PlayerResults
+            .SelectMany(r => r.Answers)
+            .ToLookup(a => a.QuestionIndex);
+
+        return session.Questions
+            .Select((question, index) =>
+            {
+                var answers = answersByQuestionIndex[index].ToList();
+                var optionStats = question.Options
+                    .Select((text, optionIndex) => new GameSessionOptionStatDto(
+                        text,
+                        answers.Count(a => a.SelectedOptionIndex == optionIndex),
+                        optionIndex == question.AnswerIndex))
+                    .ToList();
+
+                return new GameSessionQuestionBreakdownDto(
+                    question.Text, optionStats, answers.Count(a => a.IsCorrect), answers.Count);
             })
             .ToList();
     }

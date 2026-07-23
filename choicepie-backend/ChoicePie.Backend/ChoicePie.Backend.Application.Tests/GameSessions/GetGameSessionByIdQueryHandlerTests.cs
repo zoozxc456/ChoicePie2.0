@@ -28,7 +28,7 @@ public class GetGameSessionByIdQueryHandlerTests
 
     private static GameSessionDetailDto MakeDto(Guid sessionId, bool isHost, int? myRank) => new(
         sessionId, "ABCDEF", Guid.NewGuid(), "Quiz Title", "🎯", "grad",
-        DateTime.UtcNow, 2, 1, isHost, [], myRank, myRank is null ? null : 100, []);
+        DateTime.UtcNow, 2, 1, isHost, [], myRank, myRank is null ? null : 100, [], []);
 
     [Test]
     public async Task Handle_GivenHost_WhenCalled_ThenReturnsSession()

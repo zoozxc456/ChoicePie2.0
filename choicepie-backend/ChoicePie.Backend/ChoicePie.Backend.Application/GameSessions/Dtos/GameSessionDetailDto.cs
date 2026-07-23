@@ -14,4 +14,5 @@ public sealed record GameSessionDetailDto(
     IReadOnlyList<GameSessionRankEntryDto> Rankings,
     int? MyRank,
     int? MyScore,
-    IReadOnlyList<GameSessionWrongAnswerDto> MyWrongAnswers);
+    IReadOnlyList<GameSessionWrongAnswerDto> MyWrongAnswers,
+    IReadOnlyList<GameSessionQuestionBreakdownDto> QuestionBreakdown);
