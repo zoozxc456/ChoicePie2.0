@@ -157,6 +157,22 @@ describe('useQuizClientApi', () => {
     expect(apiMock.post).toHaveBeenCalledWith('/api/v1/quizzes/q1/comments', { text: 'nice quiz' })
   })
 
+  it('updateComment 呼叫正確路徑與 body', () => {
+    const client = useQuizClientApi()
+
+    client.updateComment('q1', 'c1', 'updated text')
+
+    expect(apiMock.put).toHaveBeenCalledWith('/api/v1/quizzes/q1/comments/c1', { text: 'updated text' })
+  })
+
+  it('deleteComment 呼叫正確路徑', () => {
+    const client = useQuizClientApi()
+
+    client.deleteComment('q1', 'c1')
+
+    expect(apiMock.del).toHaveBeenCalledWith('/api/v1/quizzes/q1/comments/c1')
+  })
+
   it('fetchRelatedQuizzes 呼叫正確路徑', () => {
     const client = useQuizClientApi()
 

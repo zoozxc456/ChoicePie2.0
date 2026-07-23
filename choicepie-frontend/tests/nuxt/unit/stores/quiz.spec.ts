@@ -7,7 +7,7 @@ const {
   fetchQuizzes, fetchQuizById,
   updateQuiz, deleteQuiz,
   fetchFavoriteStatus, addFavorite, removeFavorite,
-  fetchComments, addComment,
+  fetchComments, addComment, updateComment, deleteComment,
   fetchRelatedQuizzes,
   recordShare,
   generateQuestions, saveQuiz
@@ -253,6 +253,53 @@ describe('useQuizStore', () => {
 
       expect(store.error).toBe('留言送出失敗，請稍後再試')
       expect(store.isPostingComment).toBe(false)
+    })
+
+    it('updateComment 成功時取代原本的留言', async () => {
+      const original = makeComment({ id: 'comment-1', text: 'first' })
+      updateComment.mockResolvedValue(makeComment({ id: 'comment-1', text: 'edited' }))
+      const store = useQuizStore()
+      store.comments.push(original)
+
+      const result = await store.updateComment('quiz-1', 'comment-1', 'edited')
+
+      expect(result.text).toBe('edited')
+      expect(store.comments[0]?.text).toBe('edited')
+      expect(store.isUpdatingComment).toBe(false)
+    })
+
+    it('updateComment 失敗時設定 error 並往外拋出', async () => {
+      updateComment.mockRejectedValue(new Error('boom'))
+      const store = useQuizStore()
+
+      await expect(store.updateComment('quiz-1', 'comment-1', 'edited')).rejects.toThrow('boom')
+
+      expect(store.error).toBe('留言更新失敗，請稍後再試')
+      expect(store.isUpdatingComment).toBe(false)
+    })
+
+    it('deleteComment 成功時移除該留言', async () => {
+      const keep = makeComment({ id: 'comment-0', text: 'keep' })
+      const remove = makeComment({ id: 'comment-1', text: 'remove' })
+      deleteComment.mockResolvedValue(undefined)
+      const store = useQuizStore()
+      store.comments.push(keep, remove)
+
+      await store.deleteComment('quiz-1', 'comment-1')
+
+      expect(store.comments).toHaveLength(1)
+      expect(store.comments[0]?.id).toBe('comment-0')
+      expect(store.isDeletingComment).toBe(false)
+    })
+
+    it('deleteComment 失敗時設定 error 並往外拋出', async () => {
+      deleteComment.mockRejectedValue(new Error('boom'))
+      const store = useQuizStore()
+
+      await expect(store.deleteComment('quiz-1', 'comment-1')).rejects.toThrow('boom')
+
+      expect(store.error).toBe('留言刪除失敗，請稍後再試')
+      expect(store.isDeletingComment).toBe(false)
     })
   })
 

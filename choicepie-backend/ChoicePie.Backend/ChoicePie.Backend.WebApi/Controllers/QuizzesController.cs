@@ -183,4 +183,20 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
         var result = await mediator.Send(request.ToCommand(id));
         return Ok(ResponseHelper.Success(result));
     }
+
+    [HttpPut("{id:guid}/comments/{commentId:guid}")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse<CommentDto>>> UpdateCommentAsync(Guid id, Guid commentId, [FromBody] UpdateCommentRequest request)
+    {
+        var result = await mediator.Send(request.ToCommand(commentId));
+        return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpDelete("{id:guid}/comments/{commentId:guid}")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse>> DeleteCommentAsync(Guid id, Guid commentId)
+    {
+        await mediator.Send(new DeleteCommentCommand(commentId));
+        return Ok(ResponseHelper.Success());
+    }
 }

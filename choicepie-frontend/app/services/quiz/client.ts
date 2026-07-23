@@ -43,6 +43,10 @@ export const useQuizClientApi = () => {
       api.get<CommentDto[]>(`/api/v1/quizzes/${id}/comments`),
     addComment: (id: string, text: string) =>
       api.post<CommentDto>(`/api/v1/quizzes/${id}/comments`, { text }),
+    updateComment: (id: string, commentId: string, text: string) =>
+      api.put<CommentDto>(`/api/v1/quizzes/${id}/comments/${commentId}`, { text }),
+    deleteComment: (id: string, commentId: string) =>
+      api.del(`/api/v1/quizzes/${id}/comments/${commentId}`),
     fetchRelatedQuizzes: (id: string) =>
       api.get<QuizSummaryDto[]>(`/api/v1/quizzes/${id}/related`),
     recordShare: (id: string) =>

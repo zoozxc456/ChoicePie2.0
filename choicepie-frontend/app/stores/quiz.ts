@@ -74,6 +74,8 @@ export const useQuizStore = defineStore('quiz', () => {
   const comments = ref<CommentDto[]>([])
   const isLoadingComments = ref(false)
   const isPostingComment = ref(false)
+  const isUpdatingComment = ref(false)
+  const isDeletingComment = ref(false)
 
   // ── 相關題庫 ──
   const relatedQuizzes = ref<Quiz[]>([])
@@ -232,6 +234,35 @@ export const useQuizStore = defineStore('quiz', () => {
     }
   }
 
+  const updateComment = async (id: string, commentId: string, text: string) => {
+    isUpdatingComment.value = true
+    try {
+      const updated = await quizApi.updateComment(id, commentId, text)
+      comments.value = comments.value.map(c => c.id === commentId ? updated : c)
+      return updated
+    } catch (e) {
+      error.value = '留言更新失敗，請稍後再試'
+      console.error(e)
+      throw e
+    } finally {
+      isUpdatingComment.value = false
+    }
+  }
+
+  const deleteComment = async (id: string, commentId: string) => {
+    isDeletingComment.value = true
+    try {
+      await quizApi.deleteComment(id, commentId)
+      comments.value = comments.value.filter(c => c.id !== commentId)
+    } catch (e) {
+      error.value = '留言刪除失敗，請稍後再試'
+      console.error(e)
+      throw e
+    } finally {
+      isDeletingComment.value = false
+    }
+  }
+
   // ── 相關題庫 ──
 
   const fetchRelatedQuizzes = async (id: string) => {
@@ -337,7 +368,7 @@ export const useQuizStore = defineStore('quiz', () => {
     isGenerating, isLoading, error,
     aiUsesToday, canUseAiToday,
     isFavorited, isTogglingFavorite,
-    comments, isLoadingComments, isPostingComment,
+    comments, isLoadingComments, isPostingComment, isUpdatingComment, isDeletingComment,
     relatedQuizzes, isLoadingRelated,
     fetchQuizzes, fetchQuizById, fetchQuizPreview, fetchTags,
     generateQuestions, saveQuiz,
@@ -345,7 +376,7 @@ export const useQuizStore = defineStore('quiz', () => {
     addQuestion, updateQuestion, removeQuestion,
     publishQuiz, unpublishQuiz, archiveQuiz,
     fetchFavoriteStatus, toggleFavorite,
-    fetchComments, addComment,
+    fetchComments, addComment, updateComment, deleteComment,
     fetchRelatedQuizzes,
     recordShare,
     setCurrentQuiz, updateGeneratedQuestion, clearGenerated

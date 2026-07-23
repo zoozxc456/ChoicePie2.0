@@ -35,4 +35,25 @@ public sealed class Comment : AggregateRoot<Guid>
 
         return comment;
     }
+
+    public void EnsureModifiableBy(Guid userId)
+    {
+        if (UserId != userId)
+        {
+            throw new CommentForbiddenException(Id, userId);
+        }
+    }
+
+    public void UpdateText(string text)
+    {
+        var trimmed = text?.Trim() ?? string.Empty;
+
+        if (trimmed.Length == 0 || trimmed.Length > MaxTextLength)
+        {
+            throw new InvalidCommentTextException(trimmed.Length, MaxTextLength);
+        }
+
+        Text = trimmed;
+        Touch();
+    }
 }

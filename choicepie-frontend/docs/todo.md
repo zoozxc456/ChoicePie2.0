@@ -41,10 +41,18 @@
 `loginWithGoogle()` 是一行 `// TODO: redirect to /api/auth/google` 的前端空殼，後端完全沒有對應的 OAuth route。需要規劃：
 後端串接 Google OAuth（取得 email 建立/綁定既有帳號）、前端登入頁加上「使用 Google 繼續」按鈕、既有 email 帳號與 Google 帳號的綁定/合併規則。
 
-## 留言功能補強 — 待規劃
+## 留言功能補強 — 編輯/刪除已完成，分頁仍待規劃
 
-尚未開始。目前 `POST/GET /api/v1/quizzes/{id}/comments` 只支援新增與（無分頁）查詢，沒有編輯/刪除留言的
-command/query/endpoint，前端也沒有對應 UI。
+2026-07-24：留言的編輯/刪除已完成並接回前端。後端新增 `Comment.UpdateText()`/`EnsureModifiableBy()` 網域方法
+（僅留言作者可編輯/刪除，比照 `Quiz.EnsureModifiableBy` 的模式，違反時丟出 `CommentForbiddenException`），
+新增 `UpdateCommentCommand`/`DeleteCommentCommand` 與對應 handler，controller 補上
+`PUT/DELETE /api/v1/quizzes/{id}/comments/{commentId}`（`[Authorize(Policy = "MemberOnly")]`）。刪除採沿用
+`AuditableEntity.Delete(userId)` 的軟刪除。前端將留言區塊從 `library/[id].vue` 抽出為
+`app/components/library/CommentList.vue` + `CommentItem.vue`，僅留言本人（`auth.user.id === comment.userId`）
+會看到編輯/刪除按鈕，`app/stores/quiz.ts` 新增 `updateComment`/`deleteComment` actions。
+
+**仍待規劃**：查詢目前仍無分頁（`ListCommentsByQuizIdQuery` 回傳完整 `IReadOnlyList<CommentDto>`），留言數量多時
+需要補上分頁或無限捲動。
 
 ## Admin：題庫下架 / 會員管理 — 待規劃，需從零開始
 

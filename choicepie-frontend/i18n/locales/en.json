@@ -286,7 +286,11 @@
       "empty": "No comments yet, be the first!",
       "placeholder": "Share your thoughts…",
       "submit": "Post Comment",
-      "loginToComment": "Log in to comment"
+      "loginToComment": "Log in to comment",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel"
     },
     "related": {
       "title": "Related Quizzes"
