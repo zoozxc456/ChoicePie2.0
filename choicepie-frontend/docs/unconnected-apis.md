@@ -29,13 +29,6 @@ interface ApiEnvelope<T> {
   接上 `app/pages/library/[id].vue`（「📝 單人練習」進入點）、`app/pages/attempt/[id].vue`、
   `app/components/attempt/AttemptResult.vue`。
 
-已知瑕疵（非「未接 API」，而是既有串接的行為缺口，記錄於此以便追蹤）：
-
-- `app/pages/attempt/[id].vue` 重新整理或直接開啟連結時，不會呼叫
-  `quizAttemptStore.fetchAttemptById(attemptId)` 復原狀態，導致頁面空白（`currentAttempt`/`result`
-  皆為 `null`）。且 `fetchAttemptById` 回傳的是 `QuizAttemptResultDto`（結算後的完整結果），並非
-  `StartAttemptResultDto`，本身也無法用來復原「作答中」的題目進度，只能復原「已完成」的結果畫面。
-
 ---
 
 ## 刻意排除（非本清單範圍）

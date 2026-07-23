@@ -138,9 +138,9 @@ export const useGameStore = defineStore('game', () => {
     if (!exists) room.value.players.push(player)
   }
 
-  /** 後端 PlayerLeft 事件目前傳的是 SignalR connectionId，不是 player id，故無法在此比對移除玩家（已知後端缺口） */
-  const removePlayer = (_connectionId: string) => {
+  const removePlayer = (playerId: string) => {
     if (!room.value) return
+    room.value.players = room.value.players.filter(p => p.id !== playerId)
   }
 
   const setQuestion = (q: QuestionPayload) => {

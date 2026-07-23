@@ -87,8 +87,8 @@ export const useGameRoom = () => {
       gameStore.addPlayer(player)
     })
 
-    _connection.on('PlayerLeft', (playerConnectionId: string) => {
-      gameStore.removePlayer(playerConnectionId)
+    _connection.on('PlayerLeft', (playerId: string) => {
+      gameStore.removePlayer(playerId)
     })
 
     _connection.on('AnswerProgress', (payload: AnswerProgressPayload) => {

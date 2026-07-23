@@ -16,16 +16,17 @@ solo-attempt quizzes). Backend is a separate .NET project at `../choicepie-backe
 - **@microsoft/signalr** for the real-time game hub (no socket.io)
 - **@nuxtjs/i18n** — default locale `zh-TW`, `strategy: 'no_prefix'`
 - **pnpm** package manager (`pnpm-lock.yaml`)
-- No test framework is configured (no vitest/jest/playwright, no test files)
+- **Vitest** (`@nuxt/test-utils`) — unit tests under `tests/nuxt/unit/**/*.spec.ts`, see Commands
 
 ## Commands
 
-There is no `lint`/`typecheck`/`test` script in `package.json`. Use these directly:
+There is no `lint`/`typecheck` script in `package.json`. Use these directly:
 
 ```bash
 npx eslint <files>          # lint specific files (fast, preferred over linting the whole repo)
 npx eslint --fix <files>    # auto-fix (e.g. operator-linebreak)
 npx vue-tsc --noEmit        # typecheck
+npx vitest run              # run unit tests (tests/nuxt/unit/**/*.spec.ts)
 ```
 
 **Do not run `nuxi build` / `nuxi dev` to verify changes** — use typecheck + lint only.
@@ -35,7 +36,8 @@ npx vue-tsc --noEmit        # typecheck
 - `pages/` — file-based routing (see Routing below)
 - `components/` — feature-scoped subfolders, not flat: `gameRoom/` (+ `gameRoom/host/`,
   `gameRoom/result/`), `library/`, `home/`, `host/`, `attempt/`, `common/`
-- `stores/` — 5 Pinia stores: `auth.ts`, `game.ts`, `gameSession.ts`, `quiz.ts`, `quizAttempt.ts`
+- `stores/` — 6 Pinia stores: `auth.ts`, `game.ts`, `gameSession.ts`, `quiz.ts`, `quizAttempt.ts`,
+  `creator.ts`
 - `composables/` — only `useApi.ts` (REST) and `useGameRoom.ts` (SignalR)
 - `services/{domain}/client.ts` — typed API-client layer between stores and `useApi()`
   (e.g. `services/quiz/client.ts`). Non-standard Nuxt convention but consistently used.
@@ -64,9 +66,6 @@ one is the canonical entry point when touching auth pages.
 401 by deduping a single in-flight refresh + retry via `useAuthStore().fetchMe()`. Store code
 should go through `app/services/{domain}/client.ts` wrappers, not call `useApi()` directly.
 
-There is a dead/unused `app/services/serverInstance.ts` that shadows `useApi` via `useFetch` —
-nothing imports it. Don't use it as a reference; it should eventually be deleted.
-
 Requests go **directly cross-origin** to `runtimeConfig.public.apiBaseUrl`
 (`NUXT_PUBLIC_API_BASE_URL` env var). The comment in `.env.example` about a `nitro.devProxy` is
 stale — no such proxy exists in `nuxt.config.ts`.
@@ -75,8 +74,7 @@ stale — no such proxy exists in `nuxt.config.ts`.
 `HubConnection` to `${apiBaseUrl}/api/gamehub`. Server→client events (`RoomCreated`,
 `PlayerJoined`, `QuestionStart`, `AnswerResult`, `GameEnd`, `RoomStateSync`, etc.) are routed
 into `useGameStore()` mutators; client→server calls include `CreateRoom`, `StartGame`,
-`SkipQuestion`, `SubmitAnswer`. Known gap: `PlayerLeft` sends SignalR connectionId not player
-id, so `removePlayer` is currently a no-op stub (documented inline in the composable).
+`SkipQuestion`, `SubmitAnswer`.
 
 Before assuming a backend feature is wired to UI, check `docs/unconnected-apis.md` (endpoints
 implemented but not yet used by any page — quiz management actions, the entire solo
@@ -92,6 +90,8 @@ object) — follow this pattern for new stores, not the options API.
   `skipQuestion()` via timers/watchers (see `host/room/[code].vue`). Not persisted.
 - `auth.ts`, `quiz.ts` — persisted via `pinia-plugin-persistedstate` (selective `pick`, not the
   whole store)
+- `creator.ts` — creator profile page state (profile data + follow/unfollow toggle). Not
+  persisted.
 - Ranking data: the backend sends an explicit `rank` field per player
   (`GameRoom.cs: BuildRankings()`). **Always render/derive rank from `entry.rank`, never from
   `v-for` array index** — array order and rank can diverge under tied scores. This has caused
@@ -115,8 +115,7 @@ object) — follow this pattern for new stores, not the options API.
 - Respond to the user in Traditional Chinese.
 - When committing, stage only the files relevant to the requested change — don't sweep in
   unrelated pending edits without asking.
-- Write unit tests for new code going forward (note: no test framework is set up yet — this
-  needs to be picked/added; see Commands above).
+- Write unit tests for new code going forward (Vitest, see Commands above).
 - Favor splitting into components, composables, or stores whenever it improves reuse and
   single-responsibility — do this proactively, not just when asked (see Component conventions
   above for the established pattern).
