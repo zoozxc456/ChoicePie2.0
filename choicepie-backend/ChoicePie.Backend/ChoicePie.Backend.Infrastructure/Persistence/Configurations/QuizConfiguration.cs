@@ -20,6 +20,8 @@ public sealed class QuizConfiguration : AuditableEntityConfiguration<Quiz>
 
         builder.Property(q => q.Title).IsRequired().HasMaxLength(200);
 
+        builder.Property(q => q.ShareCount).IsRequired();
+
         builder.Property(q => q.Difficulty)
             .HasConversion(new EnumerationValueConverter<Difficulty>())
             .IsRequired();

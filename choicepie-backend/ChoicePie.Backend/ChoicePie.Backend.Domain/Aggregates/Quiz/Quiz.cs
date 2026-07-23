@@ -28,6 +28,10 @@ public sealed class Quiz : AggregateRoot<Guid>
     // handler is at-least-once delivery, not exactly-once - best effort, not deduplicated.
     public ChallengeStats Stats { get; private set; } = ChallengeStats.None;
 
+    // Incremented each time a client records a share action (RecordShare). Best-effort counter,
+    // not deduplicated per user - mirrors the same at-least-once tolerance as ChallengeStats.
+    public int ShareCount { get; private set; }
+
     [NotMapped] public int ChallengeCount => Stats.Count;
 
     [NotMapped] public decimal PassRate => Stats.PassRate;
@@ -168,6 +172,11 @@ public sealed class Quiz : AggregateRoot<Guid>
     public void RecordChallengeOutcome(bool passed)
     {
         Stats = Stats.RecordOutcome(passed);
+    }
+
+    public void RecordShare()
+    {
+        ShareCount++;
     }
 
     private void EnsureEditable()

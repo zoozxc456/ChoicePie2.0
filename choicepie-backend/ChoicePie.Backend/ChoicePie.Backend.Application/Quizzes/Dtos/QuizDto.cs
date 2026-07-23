@@ -17,6 +17,7 @@ public sealed record QuizDto(
     string? CreatorAvatar,
     IReadOnlyList<QuestionDto> Questions,
     IReadOnlyList<string> Tags,
+    int ShareCount,
     DateTime CreatedAt,
     DateTime UpdatedAt)
 {
@@ -37,6 +38,7 @@ public sealed record QuizDto(
         creatorAvatar,
         quiz.Questions.Select(QuestionDto.FromDomain).ToList(),
         quiz.Tags,
+        quiz.ShareCount,
         quiz.CreatedAt,
         quiz.LastModifiedAt);
 }

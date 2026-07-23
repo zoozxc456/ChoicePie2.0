@@ -27,7 +27,7 @@ public class GetQuizByIdQueryHandlerTests
     }
 
     private QuizDto MakeDto(Guid quizId) => new(
-        quizId, "Kubernetes 101", null, "⚓", "g", "beginner", "draft", 0, 0, _ownerId, "Host Name", null, [], [],
+        quizId, "Kubernetes 101", null, "⚓", "g", "beginner", "draft", 0, 0, _ownerId, "Host Name", null, [], [], 0,
         DateTime.UtcNow, DateTime.UtcNow);
 
     [Test]

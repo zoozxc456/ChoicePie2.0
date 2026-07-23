@@ -34,6 +34,7 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
                     q.Questions.Select(question => new QuestionDto(question.Id, question.Text, question.Choices.Options,
                         question.Choices.AnswerIndex, question.Explanation)).ToList(),
                     q.Tags,
+                    q.ShareCount,
                     q.CreatedAt,
                     q.LastModifiedAt))
             .FirstOrDefault();

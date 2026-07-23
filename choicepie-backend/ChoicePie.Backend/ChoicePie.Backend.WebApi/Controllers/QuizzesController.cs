@@ -132,6 +132,13 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
         return Ok(ResponseHelper.Success(result));
     }
 
+    [HttpPost("{id:guid}/share")]
+    public async Task<ActionResult<ApiResponse<int>>> RecordShareAsync(Guid id)
+    {
+        var result = await mediator.Send(new RecordQuizShareCommand(id));
+        return Ok(ResponseHelper.Success(result));
+    }
+
     [HttpGet("{id:guid}/related")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<QuizSummaryDto>>>> GetRelatedAsync(Guid id, [FromQuery] int limit = 6)
     {
