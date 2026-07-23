@@ -2,7 +2,7 @@
   <div class="max-w-2xl mx-auto px-4 py-8">
     <!-- Loading -->
     <div
-      v-if="isLoading && !quiz"
+      v-if="isChecking || (isLoading && !quiz)"
       class="flex justify-center py-20"
     >
       <UIcon
@@ -57,6 +57,26 @@
     <template v-else-if="result">
       <AttemptResult :result="result" />
     </template>
+
+    <!-- Not found / unresumable -->
+    <div
+      v-else-if="!isChecking && !isLoading"
+      class="flex flex-col items-center gap-4 py-20 text-center"
+    >
+      <p class="text-lg font-bold">
+        {{ t('attempt.notFound.title') }}
+      </p>
+      <p class="text-sm text-neutral-400">
+        {{ t('attempt.notFound.desc') }}
+      </p>
+      <UButton
+        color="primary"
+        class="rounded-xl font-bold"
+        to="/library"
+      >
+        {{ t('attempt.notFound.backToLibrary') }}
+      </UButton>
+    </div>
   </div>
 </template>
 
@@ -80,6 +100,7 @@ const isLoading = computed(() => quizAttemptStore.isLoading)
 const questionIndex = ref(0)
 const selectedOptionIndex = ref<number | null>(null)
 const isSubmitting = ref(false)
+const isChecking = ref(true)
 
 const currentQuestion = computed(() => quiz.value?.questions[questionIndex.value] ?? null)
 const isLastQuestion = computed(() => !!quiz.value && questionIndex.value === quiz.value.questions.length - 1)
@@ -105,9 +126,18 @@ const handleNext = async () => {
   }
 }
 
-onMounted(() => {
-  if (!quizAttemptStore.currentAttempt || quizAttemptStore.currentAttempt.attemptId !== attemptId) {
-    quizAttemptStore.reset()
+onMounted(async () => {
+  if (quizAttemptStore.currentAttempt?.attemptId === attemptId) {
+    isChecking.value = false
+    return
+  }
+  quizAttemptStore.reset()
+  try {
+    await quizAttemptStore.fetchAttemptById(attemptId)
+  } catch {
+    // Attempt still in progress or invalid — no way to resume, fall through to not-found view.
+  } finally {
+    isChecking.value = false
   }
 })
 </script>

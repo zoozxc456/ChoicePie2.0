@@ -558,6 +558,11 @@
       "wrong": "✘ Wrong",
       "backToQuiz": "Back to Quiz",
       "backToLibrary": "Back to Library"
+    },
+    "notFound": {
+      "title": "Attempt progress not found",
+      "desc": "Refreshing or opening this link directly loses in-progress answers. Please go back and start again.",
+      "backToLibrary": "Back to Library"
     }
   },
   "myQuizzes": {

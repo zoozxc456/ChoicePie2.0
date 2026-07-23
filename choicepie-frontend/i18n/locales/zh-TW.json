@@ -558,6 +558,11 @@
       "wrong": "✘ 答錯了",
       "backToQuiz": "返回題庫",
       "backToLibrary": "回題庫首頁"
+    },
+    "notFound": {
+      "title": "找不到作答進度",
+      "desc": "重新整理或直接開啟連結會遺失作答中的進度，請回到題庫重新開始。",
+      "backToLibrary": "回題庫首頁"
     }
   },
   "myQuizzes": {
