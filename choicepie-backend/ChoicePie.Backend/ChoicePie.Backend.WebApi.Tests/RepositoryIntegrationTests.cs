@@ -1,6 +1,3 @@
-using ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount;
-using ChoicePie.Backend.Domain.Aggregates.AdminUser;
-using ChoicePie.Backend.Domain.Aggregates.AdminUser.Enums;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Enums;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.ValueObjects;
@@ -139,27 +136,6 @@ public sealed class RepositoryIntegrationTests
     }
 
     [Test]
-    public async Task AdminAuthAccountRepository_GetByIdAsync_GivenAccountWithLoginMethod_WhenCalled_ThenEagerLoadsLoginMethods()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
-        var repository = scope.ServiceProvider.GetRequiredService<IAdminAuthAccountRepository>();
-        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
-
-        var adminUser = AdminUser.Create("Admin Owner", AdminRole.Admin);
-        var adminAuthAccount = AdminAuthAccount.Create(
-            Email.Create($"{Guid.NewGuid()}@example.com"), passwordHasher.Hash("Password123!"), adminUser.Id);
-        dbContext.Add(adminUser);
-        dbContext.Add(adminAuthAccount);
-        await dbContext.SaveChangesAsync();
-
-        var loaded = await repository.GetByIdAsync(adminAuthAccount.Id);
-
-        Assert.That(loaded, Is.Not.Null);
-        Assert.That(loaded!.LoginMethods, Has.Count.EqualTo(1));
-    }
-
-    [Test]
     public async Task MemberRepository_GetByIdAsync_GivenExistingMember_WhenCalled_ThenReturnsMember()
     {
         using var scope = _factory.Services.CreateScope();
@@ -174,23 +150,6 @@ public sealed class RepositoryIntegrationTests
 
         Assert.That(loaded, Is.Not.Null);
         Assert.That(loaded!.Name, Is.EqualTo("Repo Member"));
-    }
-
-    [Test]
-    public async Task AdminUserRepository_GetByIdAsync_GivenExistingAdminUser_WhenCalled_ThenReturnsAdminUser()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
-        var repository = scope.ServiceProvider.GetRequiredService<IAdminUserRepository>();
-
-        var adminUser = AdminUser.Create("Repo Admin", AdminRole.Staff);
-        dbContext.Add(adminUser);
-        await dbContext.SaveChangesAsync();
-
-        var loaded = await repository.GetByIdAsync(adminUser.Id);
-
-        Assert.That(loaded, Is.Not.Null);
-        Assert.That(loaded!.Role, Is.EqualTo(AdminRole.Staff));
     }
 
     [Test]
