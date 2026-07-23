@@ -214,9 +214,10 @@
         "correctAnswer": "Correct answer",
         "explanation": "Explanation"
       },
-      "hostNote": {
-        "title": "More host analytics coming soon",
-        "desc": "Accuracy breakdowns and average answer time per question are on the way"
+      "breakdown": {
+        "title": "📊 Question Breakdown",
+        "correctRate": "{rate}% correct",
+        "noAnswers": "No one answered this question"
       }
     }
   },
@@ -270,6 +271,10 @@
     },
     "related": {
       "title": "Related Quizzes"
+    },
+    "share": {
+      "action": "Share",
+      "copied": "Link copied"
     }
   },
   "signIn": {

@@ -116,22 +116,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Host: placeholder for future analytics -->
-        <div
-          v-else-if="isHost"
-          class="rounded-2xl bg-cp-surface-muted border border-dashed border-cp-border p-5 text-center"
-        >
-          <div class="text-2xl mb-2">
-            🚧
-          </div>
-          <p class="text-sm font-bold mb-1">
-            {{ t('history.detail.hostNote.title') }}
-          </p>
-          <p class="text-xs text-cp-text-muted leading-relaxed">
-            {{ t('history.detail.hostNote.desc') }}
-          </p>
-        </div>
       </div>
 
       <!-- ─── Right: Podium + ranking ─── -->
@@ -219,6 +203,64 @@
             </span>
           </div>
         </div>
+
+        <!-- Host: per-question breakdown -->
+        <div
+          v-if="isHost && game.questionBreakdown.length"
+          class="rounded-2xl bg-white overflow-hidden border border-cp-border p-5"
+        >
+          <h2 class="text-sm font-bold mb-4">
+            {{ t('history.detail.breakdown.title') }}
+          </h2>
+          <div class="flex flex-col gap-4">
+            <div
+              v-for="(q, qi) in game.questionBreakdown"
+              :key="qi"
+              class="rounded-xl border border-cp-border p-4"
+            >
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <p class="text-sm font-semibold leading-relaxed">
+                  {{ qi + 1 }}. {{ q.questionText }}
+                </p>
+                <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-cp-primary-light text-cp-primary whitespace-nowrap">
+                  {{ t('history.detail.breakdown.correctRate', { rate: correctRatePercent(q) }) }}
+                </span>
+              </div>
+
+              <p
+                v-if="!q.answeredCount"
+                class="text-xs text-cp-text-muted"
+              >
+                {{ t('history.detail.breakdown.noAnswers') }}
+              </p>
+              <div
+                v-else
+                class="flex flex-col gap-2"
+              >
+                <div
+                  v-for="(opt, oi) in q.options"
+                  :key="oi"
+                  class="relative rounded-lg border overflow-hidden px-3 py-2"
+                  :class="opt.isCorrect ? 'border-cp-success' : 'border-cp-border'"
+                >
+                  <div
+                    class="absolute inset-y-0 left-0"
+                    :class="opt.isCorrect ? 'bg-cp-success-bg' : 'bg-cp-surface-muted'"
+                    :style="{ width: `${optionPercent(opt, q)}%` }"
+                  />
+                  <div class="relative flex items-center justify-between gap-3 text-xs">
+                    <span :class="opt.isCorrect ? 'font-semibold text-[#2e7d32]' : 'text-cp-text-secondary'">
+                      {{ opt.text }}
+                    </span>
+                    <span class="shrink-0 tabular-nums text-cp-text-muted">
+                      {{ opt.pickedCount }} · {{ optionPercent(opt, q) }}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -226,6 +268,7 @@
 
 <script setup lang="ts">
 import { useGameSessionStore } from '~/stores/gameSession'
+import type { GameSessionOptionStatDto, GameSessionQuestionBreakdownDto } from '~/types/api'
 
 definePageMeta({ layout: 'content', middleware: ['auth'] })
 
@@ -247,7 +290,8 @@ const game = computed(() => {
     playerCount: session.value.playerCount,
     questionCount: session.value.questionCount,
     playedAt: session.value.playedAtUtc,
-    rankings: session.value.rankings
+    rankings: session.value.rankings,
+    questionBreakdown: session.value.questionBreakdown
   }
 })
 
@@ -315,6 +359,12 @@ const reviewOptionClass = (qa: { myAnswerIndex: number, correctAnswerIndex: numb
   if (optionIndex === qa.myAnswerIndex) return 'border-cp-danger bg-cp-danger-bg text-cp-danger'
   return 'border-cp-border text-cp-text-secondary'
 }
+
+const correctRatePercent = (q: GameSessionQuestionBreakdownDto) =>
+  q.answeredCount ? Math.round((q.correctCount / q.answeredCount) * 100) : 0
+
+const optionPercent = (opt: GameSessionOptionStatDto, q: GameSessionQuestionBreakdownDto) =>
+  q.answeredCount ? Math.round((opt.pickedCount / q.answeredCount) * 100) : 0
 </script>
 
 <script lang="ts">

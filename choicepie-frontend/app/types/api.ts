@@ -64,6 +64,7 @@ export interface QuizDto {
   creatorAvatar: string | null
   questions: QuestionDto[]
   tags: string[]
+  shareCount: number
   createdAt: string
   updatedAt: string
   questionCount?: number
@@ -231,6 +232,19 @@ export interface GameSessionWrongAnswerDto {
   explanation: string
 }
 
+export interface GameSessionOptionStatDto {
+  text: string
+  pickedCount: number
+  isCorrect: boolean
+}
+
+export interface GameSessionQuestionBreakdownDto {
+  questionText: string
+  options: GameSessionOptionStatDto[]
+  correctCount: number
+  answeredCount: number
+}
+
 export interface GameSessionDetailDto {
   id: string
   roomCode: string
@@ -246,6 +260,7 @@ export interface GameSessionDetailDto {
   myRank: number | null
   myScore: number | null
   myWrongAnswers: GameSessionWrongAnswerDto[]
+  questionBreakdown: GameSessionQuestionBreakdownDto[]
 }
 
 export interface CommentDto {

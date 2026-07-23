@@ -44,7 +44,8 @@ const detail: GameSessionDetailDto = {
   rankings: [{ rank: 1, nickname: 'Alice', score: 500 }],
   myRank: 1,
   myScore: 500,
-  myWrongAnswers: []
+  myWrongAnswers: [],
+  questionBreakdown: []
 }
 
 describe('useGameSessionStore', () => {

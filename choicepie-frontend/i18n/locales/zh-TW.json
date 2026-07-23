@@ -214,9 +214,10 @@
         "correctAnswer": "正確答案",
         "explanation": "詳解"
       },
-      "hostNote": {
-        "title": "更多主持數據，敬請期待",
-        "desc": "答題正確率、每題平均作答時間等分析功能正在路上"
+      "breakdown": {
+        "title": "📊 逐題數據分析",
+        "correctRate": "答對率 {rate}%",
+        "noAnswers": "這題沒有人作答"
       }
     }
   },
@@ -270,6 +271,10 @@
     },
     "related": {
       "title": "相關題庫"
+    },
+    "share": {
+      "action": "分享",
+      "copied": "已複製連結"
     }
   },
   "signIn": {
