@@ -1,6 +1,5 @@
 <template>
   <div class="max-w-md mx-auto px-4 py-6">
-    {{ gameStore.phase }}
     <p
       v-if="joinError"
       class="text-center text-sm text-error-500"
@@ -8,7 +7,7 @@
       {{ joinError }}
     </p>
     <WaitingRoom
-      v-else-if="gameStore.phase === 'idle'"
+      v-else-if="gameStore.phase === 'waiting'"
       :code="code"
     />
     <GamingRoom
