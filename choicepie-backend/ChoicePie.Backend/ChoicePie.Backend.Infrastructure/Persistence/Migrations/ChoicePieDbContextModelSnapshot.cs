@@ -22,6 +22,107 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.AdminAuthAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AdminUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_user_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_verified");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_admin_auth_account");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_admin_auth_account_email");
+
+                    b.ToTable("admin_auth_account", (string)null);
+                });
+
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.AdminUser.AdminUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.HasKey("Id")
+                        .HasName("pk_admin_user");
+
+                    b.ToTable("admin_user", (string)null);
+                });
+
             modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.AuthAccount.AuthAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -541,6 +642,111 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                     b.ToTable("refresh_token", (string)null);
                 });
 
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.AdminAuthAccount", b =>
+                {
+                    b.OwnsMany("ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.Entities.AdminLoginMethod", "LoginMethods", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<Guid>("AdminAuthAccountId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("admin_auth_account_id");
+
+                            b1.Property<DateTime>("CreatedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("created_at");
+
+                            b1.Property<Guid?>("CreatorId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("creator_id");
+
+                            b1.Property<DateTime?>("DeletedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("deleted_at");
+
+                            b1.Property<Guid?>("DeleterId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("deleter_id");
+
+                            b1.Property<Guid?>("LastModiferId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("last_modifer_id");
+
+                            b1.Property<DateTime>("LastModifiedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("last_modified_at");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("AdminAuthAccountId")
+                                .HasDatabaseName("ix_admin_login_method_admin_auth_account_id");
+
+                            b1.ToTable("admin_login_method", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("AdminAuthAccountId")
+                                .HasConstraintName("fk_admin_login_method_admin_auth_account_admin_auth_account_id");
+
+                            b1.OwnsOne("ChoicePie.Backend.Shared.Kernel.ValueObjects.HashedPassword", "Password", b2 =>
+                                {
+                                    b2.Property<Guid>("AdminLoginMethodId")
+                                        .HasColumnType("uuid")
+                                        .HasColumnName("id");
+
+                                    b2.Property<string>("Hash")
+                                        .IsRequired()
+                                        .HasColumnType("text")
+                                        .HasColumnName("PasswordHash");
+
+                                    b2.Property<string>("Salt")
+                                        .IsRequired()
+                                        .HasColumnType("text")
+                                        .HasColumnName("Salt");
+
+                                    b2.HasKey("AdminLoginMethodId");
+
+                                    b2.ToTable("admin_login_method");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AdminLoginMethodId")
+                                        .HasConstraintName("fk_admin_login_method_admin_login_method_id");
+                                });
+
+                            b1.OwnsOne("ChoicePie.Backend.Domain.Aggregates.AdminAuthAccount.ValueObjects.AdminExternalIdentity", "External", b2 =>
+                                {
+                                    b2.Property<Guid>("AdminLoginMethodId")
+                                        .HasColumnType("uuid")
+                                        .HasColumnName("id");
+
+                                    b2.Property<int>("Provider")
+                                        .HasColumnType("integer")
+                                        .HasColumnName("Provider");
+
+                                    b2.Property<string>("ProviderUserId")
+                                        .IsRequired()
+                                        .HasColumnType("text")
+                                        .HasColumnName("ProviderUserId");
+
+                                    b2.HasKey("AdminLoginMethodId");
+
+                                    b2.ToTable("admin_login_method");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AdminLoginMethodId")
+                                        .HasConstraintName("fk_admin_login_method_admin_login_method_id");
+                                });
+
+                            b1.Navigation("External");
+
+                            b1.Navigation("Password");
+                        });
+
+                    b.Navigation("LoginMethods");
+                });
+
             modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.AuthAccount.AuthAccount", b =>
                 {
                     b.OwnsMany("ChoicePie.Backend.Domain.Aggregates.AuthAccount.Entities.LoginMethod", "LoginMethods", b1 =>
@@ -589,30 +795,6 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                                 .HasForeignKey("AuthAccountId")
                                 .HasConstraintName("fk_login_method_auth_account_auth_account_id");
 
-                            b1.OwnsOne("ChoicePie.Backend.Domain.Aggregates.AuthAccount.ValueObjects.ExternalIdentity", "External", b2 =>
-                                {
-                                    b2.Property<Guid>("LoginMethodId")
-                                        .HasColumnType("uuid")
-                                        .HasColumnName("id");
-
-                                    b2.Property<int>("Provider")
-                                        .HasColumnType("integer")
-                                        .HasColumnName("Provider");
-
-                                    b2.Property<string>("ProviderUserId")
-                                        .IsRequired()
-                                        .HasColumnType("text")
-                                        .HasColumnName("ProviderUserId");
-
-                                    b2.HasKey("LoginMethodId");
-
-                                    b2.ToTable("login_method");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("LoginMethodId")
-                                        .HasConstraintName("fk_login_method_login_method_id");
-                                });
-
                             b1.OwnsOne("ChoicePie.Backend.Shared.Kernel.ValueObjects.HashedPassword", "Password", b2 =>
                                 {
                                     b2.Property<Guid>("LoginMethodId")
@@ -628,6 +810,30 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                                         .IsRequired()
                                         .HasColumnType("text")
                                         .HasColumnName("Salt");
+
+                                    b2.HasKey("LoginMethodId");
+
+                                    b2.ToTable("login_method");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("LoginMethodId")
+                                        .HasConstraintName("fk_login_method_login_method_id");
+                                });
+
+                            b1.OwnsOne("ChoicePie.Backend.Domain.Aggregates.AuthAccount.ValueObjects.ExternalIdentity", "External", b2 =>
+                                {
+                                    b2.Property<Guid>("LoginMethodId")
+                                        .HasColumnType("uuid")
+                                        .HasColumnName("id");
+
+                                    b2.Property<int>("Provider")
+                                        .HasColumnType("integer")
+                                        .HasColumnName("Provider");
+
+                                    b2.Property<string>("ProviderUserId")
+                                        .IsRequired()
+                                        .HasColumnType("text")
+                                        .HasColumnName("ProviderUserId");
 
                                     b2.HasKey("LoginMethodId");
 

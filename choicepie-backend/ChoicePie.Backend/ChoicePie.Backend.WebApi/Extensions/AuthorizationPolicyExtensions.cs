@@ -10,7 +10,9 @@ public static class AuthorizationPolicyExtensions
         {
             services.AddAuthorizationBuilder()
                 .AddPolicy("MemberOnly",
-                    policy => policy.RequireClaim(JwtClaimValues.RoleClaimType, JwtClaimValues.MemberRole));
+                    policy => policy.RequireClaim(JwtClaimValues.RoleClaimType, JwtClaimValues.MemberRole))
+                .AddPolicy("AdminOnly",
+                    policy => policy.RequireClaim(JwtClaimValues.RoleClaimType, JwtClaimValues.AdminRole));
 
             return services;
         }

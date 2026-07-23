@@ -33,6 +33,5 @@ interface ApiEnvelope<T> {
 
 ## 刻意排除（非本清單範圍）
 
+- **Admin Auth**（`AdminAuthController`，3 個 endpoint）：依先前決議暫不接。
 - **SignalR `GameHub`**：已於另一輪工作接上（`useGameRoom.ts`），不屬於「未接 REST API」範圍。
-
-2026-07-23：`AdminAuthController` 與整條 Admin（`AdminUser`/`AdminAuthAccount`）後端切片經確認為完全孤立的死代碼——沒有建立第一個 admin 帳號的路徑、`AdminOnly` policy 從未被套用到任何 endpoint、前端完全沒有對應介面，已整段刪除（含資料庫 migration 移除 `admin_user`/`admin_auth_account`/`admin_login_method` 三張表）。
