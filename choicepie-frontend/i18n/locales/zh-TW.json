@@ -250,6 +250,10 @@
       "joinMethodValue": "QR Code ＋ 房間碼，無需帳號",
       "createRoom": "▶ 立即建立房間",
       "cancel": "取消"
+    },
+    "favorite": {
+      "add": "收藏",
+      "remove": "已收藏"
     }
   },
   "signIn": {

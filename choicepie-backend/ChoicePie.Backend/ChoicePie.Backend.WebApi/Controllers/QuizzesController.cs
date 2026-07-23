@@ -1,4 +1,6 @@
 using Asp.Versioning;
+using ChoicePie.Backend.Application.QuizFavorites.Commands;
+using ChoicePie.Backend.Application.QuizFavorites.Queries;
 using ChoicePie.Backend.Application.Quizzes.Commands;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
 using ChoicePie.Backend.Application.Quizzes.Queries;
@@ -125,5 +127,28 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     {
         var result = await mediator.Send(new GetQuizTagsQuery());
         return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpGet("{id:guid}/favorite")]
+    public async Task<ActionResult<ApiResponse<bool>>> GetFavoriteStatusAsync(Guid id)
+    {
+        var result = await mediator.Send(new GetQuizFavoriteStatusQuery(id));
+        return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpPut("{id:guid}/favorite")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse>> AddFavoriteAsync(Guid id)
+    {
+        await mediator.Send(new AddQuizFavoriteCommand(id));
+        return Ok(ResponseHelper.Success());
+    }
+
+    [HttpDelete("{id:guid}/favorite")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse>> RemoveFavoriteAsync(Guid id)
+    {
+        await mediator.Send(new RemoveQuizFavoriteCommand(id));
+        return Ok(ResponseHelper.Success());
     }
 }

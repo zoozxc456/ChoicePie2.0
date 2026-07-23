@@ -65,6 +65,10 @@ export const useQuizStore = defineStore('quiz', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
+  // ── 收藏 ──
+  const isFavorited = ref(false)
+  const isTogglingFavorite = ref(false)
+
   // ── AI 每日額度 ──
   const aiUsedDate = ref<string | null>(null)
   const aiUsedCount = ref(0)
@@ -161,6 +165,35 @@ export const useQuizStore = defineStore('quiz', () => {
     return currentQuiz.value
   }
 
+  // ── 收藏 ──
+
+  const fetchFavoriteStatus = async (id: string) => {
+    try {
+      isFavorited.value = await quizApi.fetchFavoriteStatus(id)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const toggleFavorite = async (id: string) => {
+    isTogglingFavorite.value = true
+    const next = !isFavorited.value
+    try {
+      if (next) {
+        await quizApi.addFavorite(id)
+      } else {
+        await quizApi.removeFavorite(id)
+      }
+      isFavorited.value = next
+    } catch (e) {
+      error.value = '操作失敗，請稍後再試'
+      console.error(e)
+      throw e
+    } finally {
+      isTogglingFavorite.value = false
+    }
+  }
+
   // ── AI 出題 ──
 
   const recordAiUsage = () => {
@@ -240,11 +273,13 @@ export const useQuizStore = defineStore('quiz', () => {
     quizzes, currentQuiz, generatedQuestions,
     isGenerating, isLoading, error,
     aiUsesToday, canUseAiToday,
+    isFavorited, isTogglingFavorite,
     fetchQuizzes, fetchQuizById, fetchQuizPreview, fetchTags,
     generateQuestions, saveQuiz,
     updateQuiz, deleteQuiz,
     addQuestion, updateQuestion, removeQuestion,
     publishQuiz, unpublishQuiz, archiveQuiz,
+    fetchFavoriteStatus, toggleFavorite,
     setCurrentQuiz, updateGeneratedQuestion, clearGenerated
   }
 }, {

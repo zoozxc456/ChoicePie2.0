@@ -250,6 +250,10 @@
       "joinMethodValue": "QR Code or room code, no account needed",
       "createRoom": "▶ Create Room Now",
       "cancel": "Cancel"
+    },
+    "favorite": {
+      "add": "Favorite",
+      "remove": "Favorited"
     }
   },
   "signIn": {

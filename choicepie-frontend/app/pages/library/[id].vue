@@ -55,6 +55,17 @@
         {{ t('libraryDetail.soloPractice') }}
       </button>
 
+      <button
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap disabled:opacity-60"
+        :class="quizStore.isFavorited
+          ? 'border-error-200 bg-error-100 text-error-800'
+          : 'border-neutral-200 bg-white'"
+        :disabled="quizStore.isTogglingFavorite"
+        @click="handleToggleFavorite"
+      >
+        {{ quizStore.isFavorited ? `♥ ${t('libraryDetail.favorite.remove')}` : `♡ ${t('libraryDetail.favorite.add')}` }}
+      </button>
+
       <div class="ml-auto flex gap-2 items-center">
         <button
           v-if="isOwner && quiz.status !== 'Published'"
@@ -262,7 +273,11 @@ const isTogglingStatus = ref(false)
 const timeLimitOptions = [10, 20, 30, 60] as const
 const timeLimit = ref<typeof timeLimitOptions[number]>(20)
 
-await quizStore.fetchQuizById(route.params.id as string)
+const quizId = route.params.id as string
+await quizStore.fetchQuizById(quizId)
+if (auth.isLoggedIn) {
+  await quizStore.fetchFavoriteStatus(quizId)
+}
 
 const difficultyClass = computed(() => ({
   beginner: 'bg-success-100 text-success-800',
@@ -338,6 +353,19 @@ const gameSettings = computed(() => [
   { label: t('libraryDetail.modal.allQuestions'), value: t('libraryDetail.modal.allQuestionsValue') },
   { label: t('libraryDetail.modal.joinMethod'), value: t('libraryDetail.modal.joinMethodValue') }
 ])
+
+const handleToggleFavorite = async () => {
+  if (!quiz.value) return
+  if (!auth.isLoggedIn) {
+    await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    return
+  }
+  try {
+    await quizStore.toggleFavorite(quiz.value.id)
+  } catch {
+    // 錯誤已寫入 quizStore.error，這裡不需要額外處理
+  }
+}
 </script>
 
 <script lang="ts">
