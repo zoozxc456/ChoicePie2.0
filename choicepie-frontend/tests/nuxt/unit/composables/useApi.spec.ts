@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { ApiEnvelope } from '~/types/api'
-import { fetchMock, useAuthStoreMock } from './mocks/useApi.mock'
+import { fetchMock, useAuthStoreMock, useAdminAuthStoreMock } from './mocks/useApi.mock'
 
 const importUseApi = async () => {
   vi.resetModules()
@@ -198,6 +198,50 @@ describe('useApi', () => {
       expect(resultA).toEqual({ id: 'a' })
       expect(resultB).toEqual({ id: 'b' })
       expect(fetchMe).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('admin 401 refresh 流程', () => {
+    it('admin 路徑 401 時使用 useAdminAuthStore 而非 useAuthStore', async () => {
+      const fetchMe = vi.fn().mockResolvedValue(true)
+      const memberFetchMe = vi.fn()
+      useAdminAuthStoreMock.mockReturnValue({ fetchMe, logout: vi.fn() })
+      useAuthStoreMock.mockReturnValue({ fetchMe: memberFetchMe, logout: vi.fn() })
+      fetchMock
+        .mockRejectedValueOnce(fetchError(401))
+        .mockResolvedValueOnce(envelope({ id: '1' }))
+      const { useApi } = await importUseApi()
+      const api = useApi()
+
+      const result = await api.get<{ id: string }>('/api/v1/admin/users/1')
+
+      expect(result).toEqual({ id: '1' })
+      expect(fetchMe).toHaveBeenCalledTimes(1)
+      expect(memberFetchMe).not.toHaveBeenCalled()
+    })
+
+    it('admin refresh 失敗時呼叫 admin logout 並導向 /admin/login', async () => {
+      const fetchMe = vi.fn().mockResolvedValue(false)
+      const logout = vi.fn().mockResolvedValue(undefined)
+      useAdminAuthStoreMock.mockReturnValue({ fetchMe, logout })
+      fetchMock.mockRejectedValue(fetchError(401))
+      const { useApi } = await importUseApi()
+      const api = useApi()
+
+      await expect(api.get('/api/v1/admin/users/1')).rejects.toMatchObject({ status: 401 })
+
+      expect(logout).toHaveBeenCalledWith('/admin/login')
+    })
+
+    it('admin refresh/logout 端點本身 401 不觸發 refresh，直接拋出', async () => {
+      useAdminAuthStoreMock.mockReturnValue({ fetchMe: vi.fn(), logout: vi.fn() })
+      fetchMock.mockRejectedValue(fetchError(401))
+      const { useApi } = await importUseApi()
+      const api = useApi()
+
+      await expect(api.post('/api/v1/admin/auth/refresh')).rejects.toMatchObject({ status: 401 })
+
+      expect(useAdminAuthStoreMock().fetchMe).not.toHaveBeenCalled()
     })
   })
 })

@@ -1,0 +1,39 @@
+<template>
+  <div
+    v-if="adminAuth.adminUser"
+    class="max-w-2xl mx-auto rounded-2xl bg-white border border-neutral-200 p-6"
+  >
+    <h1 class="text-lg font-extrabold mb-4">
+      {{ t('adminDashboard.welcome', { name: adminAuth.adminUser.name }) }}
+    </h1>
+    <dl class="flex flex-col gap-2 text-sm">
+      <div class="flex justify-between">
+        <dt class="text-neutral-500">
+          {{ t('adminDashboard.email') }}
+        </dt>
+        <dd>{{ adminAuth.adminUser.email }}</dd>
+      </div>
+      <div class="flex justify-between">
+        <dt class="text-neutral-500">
+          {{ t('adminDashboard.role') }}
+        </dt>
+        <dd>{{ adminAuth.adminUser.role }}</dd>
+      </div>
+    </dl>
+  </div>
+</template>
+
+<script setup lang="ts">
+definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
+
+const { t } = useI18n()
+const adminAuth = useAdminAuthStore()
+</script>
+
+<script lang="ts">
+export default {
+  name: 'AdminDashboardPage'
+}
+</script>
+
+<style scoped lang="scss"></style>

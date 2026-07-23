@@ -281,3 +281,17 @@ export interface CreatorProfileDto {
   challengeCount: number
   isFollowing: boolean
 }
+
+export interface AdminUserDto {
+  id: string
+  email: string
+  name: string
+  role: string
+  isVerified: boolean
+  createdAt: string
+}
+
+export interface AdminLoginRequest {
+  email: string
+  password: string
+}

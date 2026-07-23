@@ -151,6 +151,24 @@
       "desc": "Sign in to build your own quiz library, auto-generate questions with AI, and track your game history."
     }
   },
+  "adminLogin": {
+    "title": "Admin Sign In",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "loginBtn": "Sign In",
+    "loginError": "Incorrect email or password. Please try again.",
+    "validation": {
+      "emailInvalid": "Please enter a valid email address",
+      "passwordRequired": "Please enter your password"
+    }
+  },
+  "adminDashboard": {
+    "title": "Admin",
+    "welcome": "Welcome back, {name}",
+    "email": "Email",
+    "role": "Role",
+    "logout": "Log out"
+  },
   "library": {
     "searchPlaceholder": "Search quizzes...",
     "featured": "🔥 Featured",
