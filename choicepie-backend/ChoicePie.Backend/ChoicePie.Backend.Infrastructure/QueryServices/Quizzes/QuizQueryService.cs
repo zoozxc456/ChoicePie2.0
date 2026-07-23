@@ -128,4 +128,43 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
 
         return Task.FromResult<IReadOnlyList<string>>(tags);
     }
+
+    public Task<IReadOnlyList<QuizSummaryDto>> GetRelatedAsync(Guid quizId, int limit, CancellationToken cancellationToken)
+    {
+        var quiz = readRepository.Query<Quiz>().FirstOrDefault(q => q.Id == quizId);
+        if (quiz == null || quiz.Tags.Count == 0)
+        {
+            return Task.FromResult<IReadOnlyList<QuizSummaryDto>>([]);
+        }
+
+        var tags = quiz.Tags;
+
+        var joined =
+            from q in readRepository.Query<Quiz>()
+            where q.Id != quizId && q.Status == QuizStatus.Published && q.Tags.Any(t => tags.Contains(t))
+            join m in readRepository.Query<Member>() on q.CreatorId!.Value equals m.Id into creatorGroup
+            from creator in creatorGroup.DefaultIfEmpty()
+            orderby q.Stats.Count descending, q.CreatedAt descending
+            select new QuizSummaryDto(
+                q.Id,
+                q.Title,
+                q.Description,
+                q.Cover.Emoji,
+                q.Cover.Gradient,
+                q.Difficulty.Name,
+                q.Status.Name.ToLower(),
+                q.Questions.Count,
+                q.Stats.Count,
+                q.Stats.PassRate,
+                q.CreatorId!.Value,
+                creator != null ? creator.Name : "Unknown",
+                creator != null ? creator.Avatar : null,
+                q.Tags,
+                q.CreatedAt,
+                q.LastModifiedAt);
+
+        var items = joined.Take(limit).ToList();
+
+        return Task.FromResult<IReadOnlyList<QuizSummaryDto>>(items);
+    }
 }

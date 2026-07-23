@@ -132,6 +132,13 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
         return Ok(ResponseHelper.Success(result));
     }
 
+    [HttpGet("{id:guid}/related")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<QuizSummaryDto>>>> GetRelatedAsync(Guid id, [FromQuery] int limit = 6)
+    {
+        var result = await mediator.Send(new GetRelatedQuizzesQuery(id, limit));
+        return Ok(ResponseHelper.Success(result));
+    }
+
     [HttpGet("{id:guid}/favorite")]
     public async Task<ActionResult<ApiResponse<bool>>> GetFavoriteStatusAsync(Guid id)
     {
