@@ -243,6 +243,7 @@ export interface GameSessionQuestionBreakdownDto {
   options: GameSessionOptionStatDto[]
   correctCount: number
   answeredCount: number
+  averageAnswerTimeMs: number | null
 }
 
 export interface GameSessionDetailDto {

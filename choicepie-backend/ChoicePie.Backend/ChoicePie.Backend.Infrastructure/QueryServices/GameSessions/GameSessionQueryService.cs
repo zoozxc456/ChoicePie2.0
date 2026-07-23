@@ -98,8 +98,12 @@ public sealed class GameSessionQueryService(IReadRepository readRepository) : IG
                         optionIndex == question.AnswerIndex))
                     .ToList();
 
+                var averageAnswerTimeMs = answers.Count == 0
+                    ? (double?)null
+                    : answers.Average(a => a.AnswerTimeMs);
+
                 return new GameSessionQuestionBreakdownDto(
-                    question.Text, optionStats, answers.Count(a => a.IsCorrect), answers.Count);
+                    question.Text, optionStats, answers.Count(a => a.IsCorrect), answers.Count, averageAnswerTimeMs);
             })
             .ToList();
     }

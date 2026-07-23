@@ -32,9 +32,9 @@ public sealed class Player : AuditableEntity<Guid>
 
     public bool HasAnsweredQuestion(int questionIndex) => _answersByQuestionIndex.ContainsKey(questionIndex);
 
-    public void RecordAnswer(int questionIndex, int answerIndex, int score, bool isCorrect)
+    public void RecordAnswer(int questionIndex, int answerIndex, int score, bool isCorrect, long answerTimeMs = 0)
     {
-        _answersByQuestionIndex[questionIndex] = new PlayerAnswer(answerIndex, score, isCorrect);
+        _answersByQuestionIndex[questionIndex] = new PlayerAnswer(answerIndex, score, isCorrect, answerTimeMs);
         SelectedOptionIndex = answerIndex;
         Score += score;
     }
@@ -65,7 +65,7 @@ public sealed class Player : AuditableEntity<Guid>
     }
 }
 
-public sealed record PlayerAnswer(int AnswerIndex, int Score, bool IsCorrect);
+public sealed record PlayerAnswer(int AnswerIndex, int Score, bool IsCorrect, long AnswerTimeMs = 0);
 
 /// <summary>
 /// Memento：供 Redis/快取序列化用的 Player 狀態快照，讓 Repository 可還原聚合而不破壞封裝。

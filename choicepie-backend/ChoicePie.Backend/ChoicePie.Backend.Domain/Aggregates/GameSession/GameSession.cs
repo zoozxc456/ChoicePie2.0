@@ -46,7 +46,7 @@ public sealed class GameSession : AggregateRoot<Guid>
             var player = rankedPlayers[i];
             var answers = player.Answers
                 .Select(kv => new GameSessionAnswerLogEntry(
-                    kv.Key, kv.Value.AnswerIndex, kv.Value.IsCorrect, kv.Value.Score))
+                    kv.Key, kv.Value.AnswerIndex, kv.Value.IsCorrect, kv.Value.Score, kv.Value.AnswerTimeMs))
                 .OrderBy(a => a.QuestionIndex)
                 .ToList();
 

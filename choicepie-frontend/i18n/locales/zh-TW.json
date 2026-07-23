@@ -235,7 +235,8 @@
       "breakdown": {
         "title": "📊 逐題數據分析",
         "correctRate": "答對率 {rate}%",
-        "noAnswers": "這題沒有人作答"
+        "noAnswers": "這題沒有人作答",
+        "averageAnswerTime": "平均作答 {seconds} 秒"
       }
     }
   },

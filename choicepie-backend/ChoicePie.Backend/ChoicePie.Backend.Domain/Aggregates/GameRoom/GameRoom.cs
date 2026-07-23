@@ -129,7 +129,7 @@ public sealed class GameRoom : AggregateRoot<Guid>
         var elapsed = answeredAtUtc - CurrentQuestionStartedAtUtc!.Value - PausedAccumulated;
         var score = ScoreCalculator.Calculate(elapsed, TimeSpan.FromSeconds(TimeLimitSeconds), isCorrect);
 
-        player.RecordAnswer(CurrentQuestionIndex, answerIndex, score, isCorrect);
+        player.RecordAnswer(CurrentQuestionIndex, answerIndex, score, isCorrect, (long)elapsed.TotalMilliseconds);
 
         return new AnswerOutcome(score, isCorrect, question.AnswerIndex);
     }

@@ -222,9 +222,17 @@
                 <p class="text-sm font-semibold leading-relaxed">
                   {{ qi + 1 }}. {{ q.questionText }}
                 </p>
-                <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-cp-primary-light text-cp-primary whitespace-nowrap">
-                  {{ t('history.detail.breakdown.correctRate', { rate: correctRatePercent(q) }) }}
-                </span>
+                <div class="shrink-0 flex flex-col items-end gap-1">
+                  <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-cp-primary-light text-cp-primary whitespace-nowrap">
+                    {{ t('history.detail.breakdown.correctRate', { rate: correctRatePercent(q) }) }}
+                  </span>
+                  <span
+                    v-if="q.averageAnswerTimeMs !== null"
+                    class="text-xs text-cp-text-muted whitespace-nowrap"
+                  >
+                    {{ t('history.detail.breakdown.averageAnswerTime', { seconds: averageAnswerTimeSeconds(q) }) }}
+                  </span>
+                </div>
               </div>
 
               <p
@@ -365,6 +373,9 @@ const correctRatePercent = (q: GameSessionQuestionBreakdownDto) =>
 
 const optionPercent = (opt: GameSessionOptionStatDto, q: GameSessionQuestionBreakdownDto) =>
   q.answeredCount ? Math.round((opt.pickedCount / q.answeredCount) * 100) : 0
+
+const averageAnswerTimeSeconds = (q: GameSessionQuestionBreakdownDto) =>
+  q.averageAnswerTimeMs === null ? 0 : (q.averageAnswerTimeMs / 1000).toFixed(1)
 </script>
 
 <script lang="ts">

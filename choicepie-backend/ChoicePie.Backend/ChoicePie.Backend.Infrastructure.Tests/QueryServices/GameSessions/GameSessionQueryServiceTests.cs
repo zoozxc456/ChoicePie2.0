@@ -123,6 +123,18 @@ public class GameSessionQueryServiceTests
     }
 
     [Test]
+    public async Task GetByIdAsync_GivenHost_WhenCalled_ThenIncludesAverageAnswerTimeMsInBreakdown()
+    {
+        var session = BuildPlayedSession();
+        _readRepository.Query<GameSessionAggregate>().Returns(new List<GameSessionAggregate> { session }.AsQueryable());
+
+        var result = await _sut.GetByIdAsync(session.Id, HostUserId, CancellationToken.None);
+
+        Assert.That(result!.QuestionBreakdown, Has.Count.EqualTo(1));
+        Assert.That(result.QuestionBreakdown[0].AverageAnswerTimeMs, Is.EqualTo(2000).Within(1));
+    }
+
+    [Test]
     public async Task GetByIdAsync_GivenNonExistentId_WhenCalled_ThenReturnsNull()
     {
         _readRepository.Query<GameSessionAggregate>().Returns(new List<GameSessionAggregate>().AsQueryable());

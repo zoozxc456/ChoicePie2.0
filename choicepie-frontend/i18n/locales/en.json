@@ -235,7 +235,8 @@
       "breakdown": {
         "title": "📊 Question Breakdown",
         "correctRate": "{rate}% correct",
-        "noAnswers": "No one answered this question"
+        "noAnswers": "No one answered this question",
+        "averageAnswerTime": "Avg. {seconds}s"
       }
     }
   },
