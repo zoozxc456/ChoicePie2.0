@@ -267,6 +267,9 @@
       "placeholder": "Share your thoughts…",
       "submit": "Post Comment",
       "loginToComment": "Log in to comment"
+    },
+    "related": {
+      "title": "Related Quizzes"
     }
   },
   "signIn": {

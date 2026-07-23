@@ -42,6 +42,8 @@ export const useQuizClientApi = () => {
     fetchComments: (id: string) =>
       api.get<CommentDto[]>(`/api/v1/quizzes/${id}/comments`),
     addComment: (id: string, text: string) =>
-      api.post<CommentDto>(`/api/v1/quizzes/${id}/comments`, { text })
+      api.post<CommentDto>(`/api/v1/quizzes/${id}/comments`, { text }),
+    fetchRelatedQuizzes: (id: string) =>
+      api.get<QuizSummaryDto[]>(`/api/v1/quizzes/${id}/related`)
   }
 }

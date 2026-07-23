@@ -74,6 +74,10 @@ export const useQuizStore = defineStore('quiz', () => {
   const isLoadingComments = ref(false)
   const isPostingComment = ref(false)
 
+  // ── 相關題庫 ──
+  const relatedQuizzes = ref<Quiz[]>([])
+  const isLoadingRelated = ref(false)
+
   // ── AI 每日額度 ──
   const aiUsedDate = ref<string | null>(null)
   const aiUsedCount = ref(0)
@@ -227,6 +231,20 @@ export const useQuizStore = defineStore('quiz', () => {
     }
   }
 
+  // ── 相關題庫 ──
+
+  const fetchRelatedQuizzes = async (id: string) => {
+    isLoadingRelated.value = true
+    try {
+      const data = await quizApi.fetchRelatedQuizzes(id)
+      relatedQuizzes.value = data.map(toQuizFromSummary)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      isLoadingRelated.value = false
+    }
+  }
+
   // ── AI 出題 ──
 
   const recordAiUsage = () => {
@@ -308,6 +326,7 @@ export const useQuizStore = defineStore('quiz', () => {
     aiUsesToday, canUseAiToday,
     isFavorited, isTogglingFavorite,
     comments, isLoadingComments, isPostingComment,
+    relatedQuizzes, isLoadingRelated,
     fetchQuizzes, fetchQuizById, fetchQuizPreview, fetchTags,
     generateQuestions, saveQuiz,
     updateQuiz, deleteQuiz,
@@ -315,6 +334,7 @@ export const useQuizStore = defineStore('quiz', () => {
     publishQuiz, unpublishQuiz, archiveQuiz,
     fetchFavoriteStatus, toggleFavorite,
     fetchComments, addComment,
+    fetchRelatedQuizzes,
     setCurrentQuiz, updateGeneratedQuestion, clearGenerated
   }
 }, {

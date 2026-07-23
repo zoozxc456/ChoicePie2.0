@@ -8,6 +8,7 @@ const {
   updateQuiz, deleteQuiz,
   fetchFavoriteStatus, addFavorite, removeFavorite,
   fetchComments, addComment,
+  fetchRelatedQuizzes,
   generateQuestions, saveQuiz
 } = quizClientMock
 
@@ -250,6 +251,29 @@ describe('useQuizStore', () => {
 
       expect(store.error).toBe('留言送出失敗，請稍後再試')
       expect(store.isPostingComment).toBe(false)
+    })
+  })
+
+  describe('fetchRelatedQuizzes', () => {
+    it('成功時將 summary 轉換為 Quiz 並存入 relatedQuizzes', async () => {
+      fetchRelatedQuizzes.mockResolvedValue([makeQuizSummaryDto({ id: 'quiz-2' })])
+      const store = useQuizStore()
+
+      await store.fetchRelatedQuizzes('quiz-1')
+
+      expect(store.relatedQuizzes).toHaveLength(1)
+      expect(store.relatedQuizzes[0]?.id).toBe('quiz-2')
+      expect(store.isLoadingRelated).toBe(false)
+    })
+
+    it('失敗時保持 relatedQuizzes 為空並記錄錯誤', async () => {
+      fetchRelatedQuizzes.mockRejectedValue(new Error('boom'))
+      const store = useQuizStore()
+
+      await store.fetchRelatedQuizzes('quiz-1')
+
+      expect(store.relatedQuizzes).toEqual([])
+      expect(store.isLoadingRelated).toBe(false)
     })
   })
 

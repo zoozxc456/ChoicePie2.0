@@ -267,6 +267,9 @@
       "placeholder": "留下你的想法……",
       "submit": "送出留言",
       "loginToComment": "登入後即可留言"
+    },
+    "related": {
+      "title": "相關題庫"
     }
   },
   "signIn": {

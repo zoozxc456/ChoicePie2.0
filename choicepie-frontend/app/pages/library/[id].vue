@@ -187,6 +187,39 @@
             </div>
           </div>
         </div>
+
+        <!-- Related quizzes -->
+        <div
+          v-if="quizStore.relatedQuizzes.length > 0"
+          class="bg-white border border-neutral-200 rounded-2xl p-5"
+        >
+          <h2 class="text-base font-bold mb-3">
+            {{ t('libraryDetail.related.title') }}
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <NuxtLink
+              v-for="related in quizStore.relatedQuizzes"
+              :key="related.id"
+              :to="`/library/${related.id}`"
+              class="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-100 transition-colors"
+            >
+              <div
+                class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
+                :style="related.coverGradient"
+              >
+                {{ related.coverEmoji }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate">
+                  {{ related.title }}
+                </p>
+                <p class="text-xs text-neutral-400">
+                  {{ t('libraryDetail.questions', { count: related.questionCount }) }} · {{ t('libraryDetail.challenges', { count: related.challengeCount.toLocaleString() }) }}
+                </p>
+              </div>
+            </NuxtLink>
+          </div>
+        </div>
       </div>
 
       <!-- Right: Creator -->
@@ -358,6 +391,7 @@ const timeLimit = ref<typeof timeLimitOptions[number]>(20)
 const quizId = route.params.id as string
 await quizStore.fetchQuizById(quizId)
 await quizStore.fetchComments(quizId)
+await quizStore.fetchRelatedQuizzes(quizId)
 if (quiz.value) {
   await creatorStore.fetchCreatorProfile(quiz.value.creatorId)
 }

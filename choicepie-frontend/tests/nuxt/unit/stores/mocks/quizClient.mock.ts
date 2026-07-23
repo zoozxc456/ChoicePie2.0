@@ -18,6 +18,7 @@ export const quizClientMock = {
   removeFavorite: vi.fn(),
   fetchComments: vi.fn(),
   addComment: vi.fn(),
+  fetchRelatedQuizzes: vi.fn(),
   generateQuestions: vi.fn(),
   saveQuiz: vi.fn()
 }

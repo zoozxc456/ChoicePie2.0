@@ -156,4 +156,12 @@ describe('useQuizClientApi', () => {
 
     expect(apiMock.post).toHaveBeenCalledWith('/api/v1/quizzes/q1/comments', { text: 'nice quiz' })
   })
+
+  it('fetchRelatedQuizzes 呼叫正確路徑', () => {
+    const client = useQuizClientApi()
+
+    client.fetchRelatedQuizzes('q1')
+
+    expect(apiMock.get).toHaveBeenCalledWith('/api/v1/quizzes/q1/related')
+  })
 })
