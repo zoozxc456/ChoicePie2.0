@@ -1,4 +1,7 @@
 using Asp.Versioning;
+using ChoicePie.Backend.Application.Comments.Commands;
+using ChoicePie.Backend.Application.Comments.Dtos;
+using ChoicePie.Backend.Application.Comments.Queries;
 using ChoicePie.Backend.Application.QuizFavorites.Commands;
 using ChoicePie.Backend.Application.QuizFavorites.Queries;
 using ChoicePie.Backend.Application.Quizzes.Commands;
@@ -150,5 +153,20 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     {
         await mediator.Send(new RemoveQuizFavoriteCommand(id));
         return Ok(ResponseHelper.Success());
+    }
+
+    [HttpGet("{id:guid}/comments")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<CommentDto>>>> GetCommentsAsync(Guid id)
+    {
+        var result = await mediator.Send(new ListCommentsByQuizIdQuery(id));
+        return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpPost("{id:guid}/comments")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse<CommentDto>>> AddCommentAsync(Guid id, [FromBody] AddCommentRequest request)
+    {
+        var result = await mediator.Send(request.ToCommand(id));
+        return Ok(ResponseHelper.Success(result));
     }
 }

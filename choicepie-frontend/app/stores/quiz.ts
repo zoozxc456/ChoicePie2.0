@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { useQuizClientApi } from '~/services/quiz/client'
 import type { Quiz, Question, Difficulty } from '~/types/quiz'
-import type { QuizDto, QuizSummaryDto, QuestionDto, CreateQuestionRequestItem } from '~/types/api'
+import type { QuizDto, QuizSummaryDto, QuestionDto, CreateQuestionRequestItem, CommentDto } from '~/types/api'
 
 const AI_DAILY_LIMIT = 1
 
@@ -68,6 +68,11 @@ export const useQuizStore = defineStore('quiz', () => {
   // ── 收藏 ──
   const isFavorited = ref(false)
   const isTogglingFavorite = ref(false)
+
+  // ── 留言 ──
+  const comments = ref<CommentDto[]>([])
+  const isLoadingComments = ref(false)
+  const isPostingComment = ref(false)
 
   // ── AI 每日額度 ──
   const aiUsedDate = ref<string | null>(null)
@@ -194,6 +199,34 @@ export const useQuizStore = defineStore('quiz', () => {
     }
   }
 
+  // ── 留言 ──
+
+  const fetchComments = async (id: string) => {
+    isLoadingComments.value = true
+    try {
+      comments.value = await quizApi.fetchComments(id)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      isLoadingComments.value = false
+    }
+  }
+
+  const addComment = async (id: string, text: string) => {
+    isPostingComment.value = true
+    try {
+      const comment = await quizApi.addComment(id, text)
+      comments.value = [comment, ...comments.value]
+      return comment
+    } catch (e) {
+      error.value = '留言送出失敗，請稍後再試'
+      console.error(e)
+      throw e
+    } finally {
+      isPostingComment.value = false
+    }
+  }
+
   // ── AI 出題 ──
 
   const recordAiUsage = () => {
@@ -274,12 +307,14 @@ export const useQuizStore = defineStore('quiz', () => {
     isGenerating, isLoading, error,
     aiUsesToday, canUseAiToday,
     isFavorited, isTogglingFavorite,
+    comments, isLoadingComments, isPostingComment,
     fetchQuizzes, fetchQuizById, fetchQuizPreview, fetchTags,
     generateQuestions, saveQuiz,
     updateQuiz, deleteQuiz,
     addQuestion, updateQuestion, removeQuestion,
     publishQuiz, unpublishQuiz, archiveQuiz,
     fetchFavoriteStatus, toggleFavorite,
+    fetchComments, addComment,
     setCurrentQuiz, updateGeneratedQuestion, clearGenerated
   }
 }, {

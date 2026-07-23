@@ -247,3 +247,13 @@ export interface GameSessionDetailDto {
   myScore: number | null
   myWrongAnswers: GameSessionWrongAnswerDto[]
 }
+
+export interface CommentDto {
+  id: string
+  quizId: string
+  userId: string
+  userName: string
+  userAvatar: string | null
+  text: string
+  createdAt: string
+}

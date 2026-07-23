@@ -254,6 +254,13 @@
     "favorite": {
       "add": "收藏",
       "remove": "已收藏"
+    },
+    "comments": {
+      "title": "留言",
+      "empty": "還沒有留言，搶頭香吧！",
+      "placeholder": "留下你的想法……",
+      "submit": "送出留言",
+      "loginToComment": "登入後即可留言"
     }
   },
   "signIn": {

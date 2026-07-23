@@ -125,6 +125,68 @@
             </div>
           </div>
         </div>
+
+        <!-- Comments -->
+        <div class="bg-white border border-neutral-200 rounded-2xl p-5">
+          <h2 class="text-base font-bold mb-3">
+            {{ t('libraryDetail.comments.title') }}
+          </h2>
+
+          <div
+            v-if="auth.isLoggedIn"
+            class="flex flex-col gap-2 mb-5"
+          >
+            <UTextarea
+              v-model="commentText"
+              :placeholder="t('libraryDetail.comments.placeholder')"
+              :rows="2"
+              autoresize
+            />
+            <UButton
+              class="self-end rounded-xl"
+              size="sm"
+              color="primary"
+              :loading="quizStore.isPostingComment"
+              :disabled="!commentText.trim()"
+              @click="handleAddComment"
+            >
+              {{ t('libraryDetail.comments.submit') }}
+            </UButton>
+          </div>
+          <p
+            v-else
+            class="text-[13px] text-neutral-400 mb-5"
+          >
+            {{ t('libraryDetail.comments.loginToComment') }}
+          </p>
+
+          <p
+            v-if="!quizStore.isLoadingComments && quizStore.comments.length === 0"
+            class="text-[13px] text-neutral-400"
+          >
+            {{ t('libraryDetail.comments.empty') }}
+          </p>
+
+          <div class="flex flex-col gap-4">
+            <div
+              v-for="comment in quizStore.comments"
+              :key="comment.id"
+              class="flex gap-3"
+            >
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white bg-secondary-800 shrink-0">
+                {{ comment.userName[0] }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-semibold">
+                  {{ comment.userName }}
+                </p>
+                <p class="text-sm text-neutral-800 whitespace-pre-wrap wrap-break-word">
+                  {{ comment.text }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Right: Creator -->
@@ -269,12 +331,14 @@ const isStartModalOpen = ref(false)
 const isCreatingRoom = ref(false)
 const isStartingAttempt = ref(false)
 const isTogglingStatus = ref(false)
+const commentText = ref('')
 
 const timeLimitOptions = [10, 20, 30, 60] as const
 const timeLimit = ref<typeof timeLimitOptions[number]>(20)
 
 const quizId = route.params.id as string
 await quizStore.fetchQuizById(quizId)
+await quizStore.fetchComments(quizId)
 if (auth.isLoggedIn) {
   await quizStore.fetchFavoriteStatus(quizId)
 }
@@ -362,6 +426,16 @@ const handleToggleFavorite = async () => {
   }
   try {
     await quizStore.toggleFavorite(quiz.value.id)
+  } catch {
+    // 錯誤已寫入 quizStore.error，這裡不需要額外處理
+  }
+}
+
+const handleAddComment = async () => {
+  if (!quiz.value || !commentText.value.trim()) return
+  try {
+    await quizStore.addComment(quiz.value.id, commentText.value.trim())
+    commentText.value = ''
   } catch {
     // 錯誤已寫入 quizStore.error，這裡不需要額外處理
   }
