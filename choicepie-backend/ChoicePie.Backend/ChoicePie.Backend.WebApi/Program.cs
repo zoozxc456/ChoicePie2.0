@@ -1,6 +1,7 @@
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Hosting.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Extensions;
+using ChoicePie.Backend.Shared.Infrastructure.Email;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Abstractions;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Extensions;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
@@ -14,6 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.Configure<AdminBootstrapSettings>(
     builder.Configuration.GetSection(AdminBootstrapSettings.SectionName));
+builder.Services.Configure<SmtpSettings>(
+    builder.Configuration.GetSection(SmtpSettings.SectionName));
 
 builder.Services
     .AddEndpointsApiExplorer()
@@ -31,6 +34,7 @@ builder.Services
     .AddApplication(typeof(ChoicePie.Backend.Application.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Infrastructure.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Infrastructure.Security.AssemblyReference).Assembly)
+    .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Infrastructure.Email.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Hosting.AssemblyReference).Assembly)
     .AddSingleton<DomainExceptionHubFilter>();
 

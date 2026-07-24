@@ -142,6 +142,7 @@
     "noAccount": "Don't have an account?",
     "registerLink": "Sign up",
     "loginError": "Incorrect email or password. Please try again.",
+    "forgotPassword": "Forgot your password?",
     "validation": {
       "emailInvalid": "Please enter a valid email address",
       "passwordMin": "Password must be at least 6 characters"
@@ -150,6 +151,42 @@
       "title": "🎮 Want to host a game?",
       "desc": "Sign in to build your own quiz library, auto-generate questions with AI, and track your game history."
     }
+  },
+  "forgotPassword": {
+    "title": "Forgot Password",
+    "description": "Enter the email you registered with and we'll send you a password reset link.",
+    "emailPlaceholder": "Email",
+    "submitBtn": "Send Reset Link",
+    "submitted": "If this email is registered, a password reset link has been sent — please check your inbox.",
+    "submitError": "Failed to send, please try again later",
+    "backToLogin": "Back to Sign In",
+    "validation": {
+      "emailInvalid": "Please enter a valid email address"
+    }
+  },
+  "resetPassword": {
+    "title": "Reset Password",
+    "missingToken": "This link is invalid. Please request a new password reset.",
+    "passwordPlaceholder": "New password (8+ characters)",
+    "confirmPasswordPlaceholder": "Confirm new password",
+    "submitBtn": "Reset Password",
+    "submitted": "Your password has been reset. Please sign in with your new password.",
+    "submitError": "Failed to reset password. The link may have expired, please request a new one",
+    "backToLogin": "Back to Sign In",
+    "validation": {
+      "passwordMin": "Password must be at least 8 characters",
+      "confirmPasswordMatch": "Passwords do not match"
+    }
+  },
+  "emailVerification": {
+    "bannerText": "Please verify your email to unlock all features.",
+    "resendAction": "Resend verification email",
+    "resent": "Sent",
+    "dismiss": "Dismiss",
+    "pageTitle": "Email Verification",
+    "success": "Your email has been verified successfully!",
+    "failed": "Verification failed. The link may have expired — please resend a verification email.",
+    "backToLibrary": "Go to Quiz Library"
   },
   "adminLogin": {
     "title": "Admin Sign In",

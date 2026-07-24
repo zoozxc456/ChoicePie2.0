@@ -1,7 +1,7 @@
 import { useAuthClientApi } from '~/services/auth'
 import type { User } from '~/types/user'
 import type { MemberDto } from '~/types/api'
-import type { LoginSchema, RegisterSchema } from '~/types/auth'
+import type { LoginSchema, RegisterSchema, ForgotPasswordSchema } from '~/types/auth'
 
 const toUser = (member: MemberDto): User => ({
   id: member.id,
@@ -75,16 +75,84 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = u
   }
 
+  const isForgotPasswordLoading = ref(false)
+  const isResetPasswordLoading = ref(false)
+  const isVerifyEmailLoading = ref(false)
+  const isResendVerificationLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  const forgotPassword = async (payload: ForgotPasswordSchema) => {
+    isForgotPasswordLoading.value = true
+    error.value = null
+    try {
+      await authApi.forgotPassword(payload)
+    } catch (e) {
+      error.value = '發送失敗，請稍後再試'
+      console.error(e)
+      throw e
+    } finally {
+      isForgotPasswordLoading.value = false
+    }
+  }
+
+  const resetPassword = async (payload: { token: string, password: string, confirmPassword: string }) => {
+    isResetPasswordLoading.value = true
+    error.value = null
+    try {
+      await authApi.resetPassword(payload)
+    } catch (e) {
+      error.value = '重設密碼失敗，連結可能已失效'
+      console.error(e)
+      throw e
+    } finally {
+      isResetPasswordLoading.value = false
+    }
+  }
+
+  const verifyEmail = async (token: string) => {
+    isVerifyEmailLoading.value = true
+    error.value = null
+    try {
+      await authApi.verifyEmail(token)
+      if (user.value) {
+        user.value = { ...user.value, isVerified: true }
+      }
+    } catch (e) {
+      error.value = '驗證失敗，連結可能已失效'
+      console.error(e)
+      throw e
+    } finally {
+      isVerifyEmailLoading.value = false
+    }
+  }
+
+  const resendVerification = async () => {
+    isResendVerificationLoading.value = true
+    error.value = null
+    try {
+      await authApi.resendVerification()
+    } catch (e) {
+      error.value = '發送失敗，請稍後再試'
+      console.error(e)
+      throw e
+    } finally {
+      isResendVerificationLoading.value = false
+    }
+  }
+
   return {
     user,
     isLoggedIn,
     isLoading,
+    error,
     loginWithGoogle,
     register,
     loginWithEmail,
     logout,
     fetchMe,
-    setUser
+    setUser,
+    isForgotPasswordLoading, isResetPasswordLoading, isVerifyEmailLoading, isResendVerificationLoading,
+    forgotPassword, resetPassword, verifyEmail, resendVerification
   }
 }, {
   persist: {

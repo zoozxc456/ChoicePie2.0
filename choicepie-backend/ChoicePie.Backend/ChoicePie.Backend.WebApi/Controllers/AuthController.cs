@@ -8,6 +8,7 @@ using ChoicePie.Backend.Shared.Kernel.Auth;
 using ChoicePie.Backend.WebApi.Extensions;
 using ChoicePie.Backend.WebApi.Requests.Auth;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -55,6 +56,35 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
         }
 
         Response.ClearAuthCookies();
+        return Ok(ResponseHelper.Success());
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<ActionResult<ApiResponse>> ForgotPasswordAsync([FromBody] ForgotPasswordRequest request)
+    {
+        await mediator.Send(request.ToCommand());
+        return Ok(ResponseHelper.Success());
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<ActionResult<ApiResponse>> ResetPasswordAsync([FromBody] ResetPasswordRequest request)
+    {
+        await mediator.Send(request.ToCommand());
+        return Ok(ResponseHelper.Success());
+    }
+
+    [HttpPost("verify-email")]
+    public async Task<ActionResult<ApiResponse>> VerifyEmailAsync([FromBody] VerifyEmailRequest request)
+    {
+        await mediator.Send(request.ToCommand());
+        return Ok(ResponseHelper.Success());
+    }
+
+    [HttpPost("resend-verification")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse>> ResendVerificationAsync()
+    {
+        await mediator.Send(new ResendVerificationEmailCommand());
         return Ok(ResponseHelper.Success());
     }
 }

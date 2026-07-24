@@ -49,4 +49,24 @@ public sealed class AuthAccount : AggregateRoot<Guid>
 
         _loginMethods.Add(LoginMethod.CreateExternal(provider, providerUserId));
     }
+
+    public void ChangePassword(HashedPassword password)
+    {
+        var originalLoginMethod = _loginMethods.SingleOrDefault(m => m.Provider == LoginProvider.Original)
+                                   ?? throw new NoOriginalLoginMethodException(Id);
+
+        originalLoginMethod.SetPassword(password);
+        Touch();
+    }
+
+    public void Verify()
+    {
+        if (IsVerified)
+        {
+            return;
+        }
+
+        IsVerified = true;
+        Touch();
+    }
 }

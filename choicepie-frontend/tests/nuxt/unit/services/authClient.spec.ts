@@ -40,4 +40,38 @@ describe('useAuthClientApi', () => {
 
     expect(apiMock.post).toHaveBeenCalledWith('/api/v1/auth/refresh')
   })
+
+  it('forgotPassword 呼叫正確路徑與 payload', () => {
+    const client = useAuthClientApi()
+    const payload = { email: 'a@b.com' }
+
+    client.forgotPassword(payload)
+
+    expect(apiMock.post).toHaveBeenCalledWith('/api/v1/auth/forgot-password', payload)
+  })
+
+  it('resetPassword 呼叫正確路徑與 payload', () => {
+    const client = useAuthClientApi()
+    const payload = { token: 'raw-token', password: 'newpass123', confirmPassword: 'newpass123' }
+
+    client.resetPassword(payload)
+
+    expect(apiMock.post).toHaveBeenCalledWith('/api/v1/auth/reset-password', payload)
+  })
+
+  it('verifyEmail 呼叫正確路徑與 body', () => {
+    const client = useAuthClientApi()
+
+    client.verifyEmail('raw-token')
+
+    expect(apiMock.post).toHaveBeenCalledWith('/api/v1/auth/verify-email', { token: 'raw-token' })
+  })
+
+  it('resendVerification 呼叫正確路徑', () => {
+    const client = useAuthClientApi()
+
+    client.resendVerification()
+
+    expect(apiMock.post).toHaveBeenCalledWith('/api/v1/auth/resend-verification')
+  })
 })

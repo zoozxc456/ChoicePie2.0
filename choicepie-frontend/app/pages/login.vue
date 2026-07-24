@@ -74,6 +74,12 @@
             </template>
           </UInput>
         </UFormField>
+        <NuxtLink
+          to="/forgot-password"
+          class="text-xs text-neutral-500 text-right -mt-1"
+        >
+          {{ t('login.forgotPassword') }}
+        </NuxtLink>
         <p
           v-if="error"
           class="text-sm text-error-500"

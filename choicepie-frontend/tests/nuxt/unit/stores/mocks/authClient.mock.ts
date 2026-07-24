@@ -5,7 +5,11 @@ const authClientMock = vi.hoisted(() => ({
   register: vi.fn(),
   loginWithEmail: vi.fn(),
   logout: vi.fn(),
-  refresh: vi.fn()
+  refresh: vi.fn(),
+  forgotPassword: vi.fn(),
+  resetPassword: vi.fn(),
+  verifyEmail: vi.fn(),
+  resendVerification: vi.fn()
 }))
 
 const navigateToMock = vi.hoisted(() => vi.fn())

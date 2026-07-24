@@ -2,6 +2,7 @@ using ChoicePie.Backend.Application.Identity.Dtos;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
+using ChoicePie.Backend.Domain.Aggregates.EmailVerificationToken;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
@@ -13,8 +14,11 @@ namespace ChoicePie.Backend.Application.Identity.Commands;
 public sealed class RegisterMemberCommandHandler(
     IMemberRepository memberRepository,
     IAuthAccountRepository authAccountRepository,
+    IEmailVerificationTokenRepository emailVerificationTokenRepository,
     IPasswordHasher passwordHasher,
-    IUnitOfWork unitOfWork)
+    IRefreshTokenGenerator tokenGenerator,
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<RegisterMemberCommand, MemberDto>
 {
     public async Task<MemberDto> Handle(RegisterMemberCommand request, CancellationToken cancellationToken)
@@ -32,8 +36,13 @@ public sealed class RegisterMemberCommandHandler(
         var hashedPassword = passwordHasher.Hash(request.Password);
         var authAccount = AuthAccount.Register(email, hashedPassword, member.Id);
 
+        var (rawToken, tokenHash) = tokenGenerator.Generate();
+        var verificationToken = EmailVerificationToken.Issue(
+            authAccount.Id, email.Value, rawToken, tokenHash, timeProvider.GetUtcNow().UtcDateTime);
+
         await memberRepository.AddAsync(member, cancellationToken);
         await authAccountRepository.AddAsync(authAccount, cancellationToken);
+        await emailVerificationTokenRepository.AddAsync(verificationToken, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return MemberDto.FromDomain(member, authAccount);

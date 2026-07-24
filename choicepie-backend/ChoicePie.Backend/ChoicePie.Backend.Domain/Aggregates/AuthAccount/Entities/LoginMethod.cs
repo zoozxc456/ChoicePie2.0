@@ -32,4 +32,10 @@ public sealed class LoginMethod : AuditableEntity<Guid>
         Id = Guid.NewGuid(),
         External = ExternalIdentity.Create(provider, providerUserId)
     };
+
+    public void SetPassword(HashedPassword password)
+    {
+        Password = password;
+        Touch();
+    }
 }

@@ -96,21 +96,48 @@
 - `useApi.ts` 既有的 `/api/v1/admin/*` 401 refresh 邏輯（`ADMIN_PATH_PREFIX`）直接涵蓋新
   endpoint，未額外調整。
 
-## 忘記密碼 / Email 驗證 / Email 通知 — 待規劃，需先補寄信基礎設施
+## 忘記密碼 / Email 驗證 — 已完成（Email 通知類其他功能仍待規劃）
 
-2026-07-24 新增：三項功能前後端皆完全沒有實作，且共同卡在同一個前提——**後端目前沒有任何寄信功能**
-（搜尋 SendGrid/SmtpClient/MailKit/IEmailSender 等全部零命中，只有 `Email` value object 負責驗證/儲存信箱格式，
-沒有任何 outbound mail transport）。要做任何一項都必須先補上寄信基礎設施。
+2026-07-24：決策——寄信服務採用 SMTP（MailKit），不綁定特定 SaaS；一次實作忘記密碼與 Email 驗證兩條流程。
 
-- **忘記密碼/重設密碼**：`AuthController`/`app/services/auth.ts` 只有 register/login/refresh/logout，
-  沒有 `ForgotPasswordCommand`/`ResetPasswordCommand`，前端也沒有忘記密碼頁面或連結。
-- **Email 驗證**：`AuthAccount.cs`/`AdminAuthAccount.cs` 有 `IsVerified` 欄位，但建立時永遠寫死 `false`，
-  全專案沒有任何地方會把它改成 `true`——是個沒有驅動邏輯的死欄位（`MemberDto`/`AdminUserDto` 只是原樣輸出）。
-  沒有 `VerifyEmailCommand`、驗證 token 產生、或驗證頁面。
-  沒有寄信邏輯，也沒有「請至信箱完成驗證」之類的前端提示/i18n 文案。
+後端：
 
-需要規劃：選定寄信服務（SendGrid/SMTP 等）、忘記密碼的 token 產生與過期機制、email 驗證流程與觸發時機
-（註冊時自動寄送？）、對應前端頁面（忘記密碼表單、重設密碼表單、「請查收信箱」提示頁）。
+- 新增 `ChoicePie.Backend.Shared.Infrastructure.Email` 專案（比照 `Shared.Infrastructure.Security` 的
+  「小型、單一用途 infra 專案」慣例），`SmtpEmailSender : IEmailSender`（MailKit）、
+  `SmtpSettings : IAppSetting`（`Host`/`Port`/`Username`/`Password`/`FromAddress`/`FromName`/`UseSsl`/
+  `FrontendBaseUrl`，對應 `appsettings.json` 的 `Smtp`區段）、`FrontendUrlProvider : IFrontendUrlProvider`
+  （供 Application 層組信件連結，不需依賴 Infra 層的 `SmtpSettings`）。`IEmailSender`/`IFrontendUrlProvider`
+  介面定義在 `Shared.Application/Interfaces/`，維持依賴方向正確。
+- `AuthAccount.cs` 新增 `ChangePassword(HashedPassword)`（委派給 `LoginMethod.SetPassword`，找不到
+  `Original` 登入方式時丟出 `NoOriginalLoginMethodException`）與 `Verify()`（已驗證時為 no-op）。
+- 新增 `PasswordResetToken`/`EmailVerificationToken` aggregate（比照 `RefreshToken` 的 hash-only 儲存 +
+  `ExpiresAt`/`UsedAt` 過期機制，`EnsureUsable(nowUtc)`/`MarkUsed(utcNow)`），`Issue(...)` 靜態工廠同時
+  raise `PasswordResetRequestedDomainEvent`/`EmailVerificationRequestedDomainEvent`（攜帶明文 raw token，
+  僅供事件處理器組信件連結，資料庫只存 hash）。Token 產生沿用既有 `IRefreshTokenGenerator`
+  （32 bytes random + SHA-256 hash），未另外寫 token 產生邏輯。
+- Application 新增 `ForgotPasswordCommand`（找不到 email 時靜默返回，避免帳號枚舉）、
+  `ResetPasswordCommand`、`VerifyEmailCommand`、`ResendVerificationEmailCommand`（`MemberOnly`，已驗證時
+  丟出 `EmailAlreadyVerifiedException`）。`RegisterMemberCommandHandler` 註冊時一併簽發
+  `EmailVerificationToken`。兩個 `INotificationHandler<DomainEventNotification<T>>`
+  （`SendPasswordResetEmailHandler`/`SendEmailVerificationEmailHandler`）比照既有
+  `LogAuthAccountRegisteredHandler` 的模式監聽事件並呼叫 `IEmailSender` 寄出中文 HTML 信件。
+- Controller：`AuthController` 新增 `POST /api/v1/auth/forgot-password`、`.../reset-password`、
+  `.../verify-email`（皆匿名）與 `.../resend-verification`（`[Authorize(Policy = "MemberOnly")]`）。
+- EF migration `AddPasswordResetAndEmailVerificationTokens` 新增
+  `password_reset_token`/`email_verification_token` 兩張表。
+
+前端：
+
+- `app/types/auth.ts` 新增 `useForgotPasswordSchema`/`useResetPasswordSchema`，
+  `app/services/auth.ts`/`app/stores/auth.ts` 新增對應 4 個 action（`forgotPassword`/`resetPassword`/
+  `verifyEmail`/`resendVerification`），`verifyEmail` 成功時同步更新 `user.isVerified`。
+- `app/pages/forgot-password.vue`/`reset-password.vue`（`token` 讀取自 query string）/`verify-email.vue`
+  三個新頁面，皆比照 `login.vue` 的卡片版型。`login.vue` 密碼欄位下方加上「忘記密碼？」連結。
+- `app/components/common/EmailVerificationBanner.vue`（未驗證會員登入後顯示的可關閉提示 bar，含
+  「重新發送驗證信」按鈕），掛載於 `app/layouts/content.vue`（`library` 等主要頁面使用的 layout）。
+
+**仍待規劃**：一般性 Email 通知（例如遊戲/題庫相關通知信）目前仍無需求與設計，寄信基礎設施已備妥，
+之後若有需要可直接復用 `IEmailSender`。
 
 ## 單人練習 (`/attempt/[id]`) — 計時/歷史記錄/續作限制皆已完成
 

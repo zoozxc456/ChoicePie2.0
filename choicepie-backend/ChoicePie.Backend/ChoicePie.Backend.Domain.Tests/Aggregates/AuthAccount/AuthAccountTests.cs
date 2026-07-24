@@ -76,4 +76,36 @@ public class AuthAccountTests
         Assert.Throws<LoginMethodAlreadyLinkedException>(() =>
             authAccount.AddLoginMethod(LoginProvider.Original, "irrelevant"));
     }
+
+    [Test]
+    public void ChangePassword_GivenAccountWithOriginalLoginMethod_WhenCalled_ThenUpdatesPassword()
+    {
+        var authAccount = CreateAuthAccount();
+        var newPassword = HashedPassword.Create("new-hash", "new-salt");
+
+        authAccount.ChangePassword(newPassword);
+
+        Assert.That(authAccount.OriginalPassword, Is.EqualTo(newPassword));
+    }
+
+    [Test]
+    public void Verify_GivenUnverifiedAccount_WhenCalled_ThenSetsIsVerifiedTrue()
+    {
+        var authAccount = CreateAuthAccount();
+
+        authAccount.Verify();
+
+        Assert.That(authAccount.IsVerified, Is.True);
+    }
+
+    [Test]
+    public void Verify_GivenAlreadyVerifiedAccount_WhenCalledAgain_ThenRemainsVerified()
+    {
+        var authAccount = CreateAuthAccount();
+        authAccount.Verify();
+
+        authAccount.Verify();
+
+        Assert.That(authAccount.IsVerified, Is.True);
+    }
 }
