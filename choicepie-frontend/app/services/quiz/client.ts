@@ -39,8 +39,8 @@ export const useQuizClientApi = () => {
       api.put(`/api/v1/quizzes/${id}/favorite`),
     removeFavorite: (id: string) =>
       api.del(`/api/v1/quizzes/${id}/favorite`),
-    fetchComments: (id: string) =>
-      api.get<CommentDto[]>(`/api/v1/quizzes/${id}/comments`),
+    fetchComments: (id: string, page = 1, pageSize = 20) =>
+      api.get<PagedResult<CommentDto>>(`/api/v1/quizzes/${id}/comments`, { page, pageSize }),
     addComment: (id: string, text: string) =>
       api.post<CommentDto>(`/api/v1/quizzes/${id}/comments`, { text }),
     updateComment: (id: string, commentId: string, text: string) =>

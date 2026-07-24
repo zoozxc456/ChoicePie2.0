@@ -4,6 +4,7 @@ using ChoicePie.Backend.Application.Comments.Queries;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
+using ChoicePie.Backend.Shared.Application.Contracts;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.Comments;
@@ -30,13 +31,14 @@ public class ListCommentsByQuizIdQueryHandlerTests
     [Test]
     public async Task Handle_GivenExistingQuiz_WhenCalled_ThenReturnsCommentsFromQueryService()
     {
-        var expected = new List<CommentDto>
-        {
-            new(Guid.NewGuid(), _quiz.Id, Guid.NewGuid(), "Alice", null, "hi", DateTime.UtcNow)
-        };
-        _commentQueryService.ListByQuizIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(expected);
+        var expected = new PagedResult<CommentDto>(
+            new List<CommentDto>
+            {
+                new(Guid.NewGuid(), _quiz.Id, Guid.NewGuid(), "Alice", null, "hi", DateTime.UtcNow)
+            }, 1, 20, 1);
+        _commentQueryService.ListByQuizIdAsync(_quiz.Id, 1, 20, Arg.Any<CancellationToken>()).Returns(expected);
 
-        var result = await _sut.Handle(new ListCommentsByQuizIdQuery(_quiz.Id), CancellationToken.None);
+        var result = await _sut.Handle(new ListCommentsByQuizIdQuery(_quiz.Id, 1, 20), CancellationToken.None);
 
         Assert.That(result, Is.EqualTo(expected));
     }
@@ -47,6 +49,7 @@ public class ListCommentsByQuizIdQueryHandlerTests
         var missingId = Guid.NewGuid();
         _quizRepository.GetByIdAsync(missingId, Arg.Any<CancellationToken>()).Returns((Quiz?)null);
 
-        Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(new ListCommentsByQuizIdQuery(missingId), CancellationToken.None));
+        Assert.ThrowsAsync<QuizNotFoundException>(() =>
+            _sut.Handle(new ListCommentsByQuizIdQuery(missingId, 1, 20), CancellationToken.None));
     }
 }

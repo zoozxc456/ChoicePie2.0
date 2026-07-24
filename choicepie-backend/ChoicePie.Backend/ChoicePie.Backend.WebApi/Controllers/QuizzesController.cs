@@ -170,9 +170,10 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpGet("{id:guid}/comments")]
-    public async Task<ActionResult<ApiResponse<IReadOnlyList<CommentDto>>>> GetCommentsAsync(Guid id)
+    public async Task<ActionResult<ApiResponse<PagedResult<CommentDto>>>> GetCommentsAsync(
+        Guid id, [FromQuery(Name = "page")] int pageNumber = 1, [FromQuery(Name = "pageSize")] int pageSize = 20)
     {
-        var result = await mediator.Send(new ListCommentsByQuizIdQuery(id));
+        var result = await mediator.Send(new ListCommentsByQuizIdQuery(id, pageNumber, pageSize));
         return Ok(ResponseHelper.Success(result));
     }
 

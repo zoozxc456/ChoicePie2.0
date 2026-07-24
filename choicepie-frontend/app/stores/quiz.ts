@@ -73,9 +73,12 @@ export const useQuizStore = defineStore('quiz', () => {
   // ── 留言 ──
   const comments = ref<CommentDto[]>([])
   const isLoadingComments = ref(false)
+  const isLoadingMoreComments = ref(false)
   const isPostingComment = ref(false)
   const isUpdatingComment = ref(false)
   const isDeletingComment = ref(false)
+  const commentsPage = ref(1)
+  const hasMoreComments = ref(false)
 
   // ── 相關題庫 ──
   const relatedQuizzes = ref<Quiz[]>([])
@@ -211,11 +214,30 @@ export const useQuizStore = defineStore('quiz', () => {
   const fetchComments = async (id: string) => {
     isLoadingComments.value = true
     try {
-      comments.value = await quizApi.fetchComments(id)
+      const result = await quizApi.fetchComments(id, 1)
+      comments.value = result.items
+      commentsPage.value = 1
+      hasMoreComments.value = result.hasNextPage ?? (result.pageNumber * result.pageSize < result.totalCount)
     } catch (e) {
       console.error(e)
     } finally {
       isLoadingComments.value = false
+    }
+  }
+
+  const fetchMoreComments = async (id: string) => {
+    if (isLoadingMoreComments.value || !hasMoreComments.value) return
+    isLoadingMoreComments.value = true
+    try {
+      const nextPage = commentsPage.value + 1
+      const result = await quizApi.fetchComments(id, nextPage)
+      comments.value = [...comments.value, ...result.items]
+      commentsPage.value = nextPage
+      hasMoreComments.value = result.hasNextPage ?? (result.pageNumber * result.pageSize < result.totalCount)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      isLoadingMoreComments.value = false
     }
   }
 
@@ -368,7 +390,8 @@ export const useQuizStore = defineStore('quiz', () => {
     isGenerating, isLoading, error,
     aiUsesToday, canUseAiToday,
     isFavorited, isTogglingFavorite,
-    comments, isLoadingComments, isPostingComment, isUpdatingComment, isDeletingComment,
+    comments, isLoadingComments, isLoadingMoreComments, isPostingComment, isUpdatingComment, isDeletingComment,
+    hasMoreComments,
     relatedQuizzes, isLoadingRelated,
     fetchQuizzes, fetchQuizById, fetchQuizPreview, fetchTags,
     generateQuestions, saveQuiz,
@@ -376,7 +399,7 @@ export const useQuizStore = defineStore('quiz', () => {
     addQuestion, updateQuestion, removeQuestion,
     publishQuiz, unpublishQuiz, archiveQuiz,
     fetchFavoriteStatus, toggleFavorite,
-    fetchComments, addComment, updateComment, deleteComment,
+    fetchComments, fetchMoreComments, addComment, updateComment, deleteComment,
     fetchRelatedQuizzes,
     recordShare,
     setCurrentQuiz, updateGeneratedQuestion, clearGenerated

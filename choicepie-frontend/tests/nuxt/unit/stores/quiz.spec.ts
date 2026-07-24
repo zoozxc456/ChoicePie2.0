@@ -67,6 +67,14 @@ const makeComment = (overrides: Partial<CommentDto> = {}): CommentDto => ({
   ...overrides
 })
 
+const makeCommentsPage = (items: CommentDto[], overrides: Partial<{ pageNumber: number, pageSize: number, totalCount: number, hasNextPage: boolean }> = {}) => ({
+  items,
+  pageNumber: overrides.pageNumber ?? 1,
+  pageSize: overrides.pageSize ?? 20,
+  totalCount: overrides.totalCount ?? items.length,
+  hasNextPage: overrides.hasNextPage ?? false
+})
+
 describe('useQuizStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -223,13 +231,43 @@ describe('useQuizStore', () => {
 
   describe('comments', () => {
     it('fetchComments 成功時儲存留言列表', async () => {
-      fetchComments.mockResolvedValue([makeComment()])
+      fetchComments.mockResolvedValue(makeCommentsPage([makeComment()]))
       const store = useQuizStore()
 
       await store.fetchComments('quiz-1')
 
+      expect(fetchComments).toHaveBeenCalledWith('quiz-1', 1)
       expect(store.comments).toHaveLength(1)
       expect(store.isLoadingComments).toBe(false)
+      expect(store.hasMoreComments).toBe(false)
+    })
+
+    it('fetchMoreComments 會附加下一頁留言', async () => {
+      fetchComments.mockResolvedValue(
+        makeCommentsPage([makeComment({ id: 'comment-1' })], { hasNextPage: true, totalCount: 2 })
+      )
+      const store = useQuizStore()
+      await store.fetchComments('quiz-1')
+
+      fetchComments.mockResolvedValue(
+        makeCommentsPage([makeComment({ id: 'comment-2' })], { pageNumber: 2, hasNextPage: false, totalCount: 2 })
+      )
+      await store.fetchMoreComments('quiz-1')
+
+      expect(fetchComments).toHaveBeenCalledWith('quiz-1', 2)
+      expect(store.comments).toHaveLength(2)
+      expect(store.hasMoreComments).toBe(false)
+    })
+
+    it('fetchMoreComments 沒有下一頁時不會呼叫 API', async () => {
+      fetchComments.mockResolvedValue(makeCommentsPage([makeComment()], { hasNextPage: false }))
+      const store = useQuizStore()
+      await store.fetchComments('quiz-1')
+      fetchComments.mockClear()
+
+      await store.fetchMoreComments('quiz-1')
+
+      expect(fetchComments).not.toHaveBeenCalled()
     })
 
     it('addComment 成功時將新留言插入最前面', async () => {

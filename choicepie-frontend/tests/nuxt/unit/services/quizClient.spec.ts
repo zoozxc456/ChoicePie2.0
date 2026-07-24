@@ -141,12 +141,20 @@ describe('useQuizClientApi', () => {
     expect(apiMock.del).toHaveBeenCalledWith('/api/v1/quizzes/q1/favorite')
   })
 
-  it('fetchComments 呼叫正確路徑', () => {
+  it('fetchComments 呼叫正確路徑與分頁參數', () => {
     const client = useQuizClientApi()
 
     client.fetchComments('q1')
 
-    expect(apiMock.get).toHaveBeenCalledWith('/api/v1/quizzes/q1/comments')
+    expect(apiMock.get).toHaveBeenCalledWith('/api/v1/quizzes/q1/comments', { page: 1, pageSize: 20 })
+  })
+
+  it('fetchComments 支援自訂頁碼', () => {
+    const client = useQuizClientApi()
+
+    client.fetchComments('q1', 2)
+
+    expect(apiMock.get).toHaveBeenCalledWith('/api/v1/quizzes/q1/comments', { page: 2, pageSize: 20 })
   })
 
   it('addComment 呼叫正確路徑與 body', () => {

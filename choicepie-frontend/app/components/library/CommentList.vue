@@ -51,6 +51,18 @@
         @delete="handleDeleteComment"
       />
     </div>
+
+    <UButton
+      v-if="quizStore.hasMoreComments"
+      class="mt-4 self-center"
+      block
+      variant="ghost"
+      color="neutral"
+      :loading="quizStore.isLoadingMoreComments"
+      @click="quizStore.fetchMoreComments(props.quizId)"
+    >
+      {{ t('libraryDetail.comments.loadMore') }}
+    </UButton>
   </div>
 </template>
 

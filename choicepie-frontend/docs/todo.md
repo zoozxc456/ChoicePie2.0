@@ -41,7 +41,7 @@
 `loginWithGoogle()` 是一行 `// TODO: redirect to /api/auth/google` 的前端空殼，後端完全沒有對應的 OAuth route。需要規劃：
 後端串接 Google OAuth（取得 email 建立/綁定既有帳號）、前端登入頁加上「使用 Google 繼續」按鈕、既有 email 帳號與 Google 帳號的綁定/合併規則。
 
-## 留言功能補強 — 編輯/刪除已完成，分頁仍待規劃
+## 留言功能補強 — 編輯/刪除/分頁皆已完成
 
 2026-07-24：留言的編輯/刪除已完成並接回前端。後端新增 `Comment.UpdateText()`/`EnsureModifiableBy()` 網域方法
 （僅留言作者可編輯/刪除，比照 `Quiz.EnsureModifiableBy` 的模式，違反時丟出 `CommentForbiddenException`），
@@ -51,8 +51,14 @@
 `app/components/library/CommentList.vue` + `CommentItem.vue`，僅留言本人（`auth.user.id === comment.userId`）
 會看到編輯/刪除按鈕，`app/stores/quiz.ts` 新增 `updateComment`/`deleteComment` actions。
 
-**仍待規劃**：查詢目前仍無分頁（`ListCommentsByQuizIdQuery` 回傳完整 `IReadOnlyList<CommentDto>`），留言數量多時
-需要補上分頁或無限捲動。
+2026-07-24：**留言分頁**已完成，比照既有 `PaginationParameters`/`PagedResult<T>` 慣例（`ListQuizzesQuery`/
+`QuizQueryService.ListAsync` 的模式）。`ListCommentsByQuizIdQuery` 改為 `record(QuizId, PageNumber, PageSize)`，
+回傳型別由 `IReadOnlyList<CommentDto>` 改為 `PagedResult<CommentDto>`；`ICommentQueryService.ListByQuizIdAsync`
+補上 `pageNumber`/`pageSize` 參數與 `Count()` + `Skip/Take` 分頁查詢。Controller `GET /api/v1/quizzes/{id}/comments`
+比照 `GameSessionsController`（route id + `[FromQuery(Name = "page")]`/`[FromQuery(Name = "pageSize")]`，
+預設 `page=1`、`pageSize=20`）的寫法。前端採「載入更多」模式：`quizStore.comments` 維持攤平陣列並用新頁附加，
+新增 `hasMoreComments`/`isLoadingMoreComments`/`fetchMoreComments` state 與 action，`CommentList.vue` 底部顯示
+「載入更多留言」按鈕（`hasMoreComments` 為 true 時才出現）。
 
 ## Admin：題庫下架 / 會員管理 — 已完成
 
