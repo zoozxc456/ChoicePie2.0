@@ -292,6 +292,37 @@ export interface AdminUserDto {
   createdAt: string
 }
 
+export interface AdminListQuizzesQuery {
+  search?: string
+  pageNumber?: number
+  pageSize?: number
+}
+
+export interface TakeDownQuizRequest {
+  reason: string
+}
+
+export interface AdminMemberSummaryDto {
+  id: string
+  name: string
+  email: string
+  isSuspended: boolean
+  suspendedReason: string | null
+  suspendedUntil: string | null
+  createdAt: string
+}
+
+export interface AdminListMembersQuery {
+  search?: string
+  pageNumber?: number
+  pageSize?: number
+}
+
+export interface SuspendMemberRequest {
+  reason: string
+  until: string | null
+}
+
 export interface AdminLoginRequest {
   email: string
   password: string

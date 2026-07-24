@@ -20,6 +20,33 @@
         <dd>{{ adminAuth.adminUser.role }}</dd>
       </div>
     </dl>
+
+    <div class="flex gap-3 mt-6">
+      <NuxtLink
+        to="/admin/quizzes"
+        class="flex-1"
+      >
+        <UButton
+          block
+          color="primary"
+          variant="soft"
+        >
+          {{ t('adminDashboard.nav.quizzes') }}
+        </UButton>
+      </NuxtLink>
+      <NuxtLink
+        to="/admin/members"
+        class="flex-1"
+      >
+        <UButton
+          block
+          color="primary"
+          variant="soft"
+        >
+          {{ t('adminDashboard.nav.members') }}
+        </UButton>
+      </NuxtLink>
+    </div>
   </div>
 </template>
 

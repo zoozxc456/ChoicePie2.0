@@ -53,4 +53,41 @@ public class MemberQueryServiceTests
 
         Assert.ThrowsAsync<AuthAccountNotFoundException>(() => _sut.GetByIdAsync(member.Id, CancellationToken.None));
     }
+
+    [Test]
+    public async Task AdminListAsync_GivenSuspendedAndActiveMembers_WhenCalled_ThenReturnsBothWithSuspensionFields()
+    {
+        var active = Member.Create("Active Member");
+        var suspended = Member.Create("Suspended Member");
+        suspended.Suspend("spamming", null);
+        var activeAuth = AuthAccount.Register(
+            Email.Create("active@example.com"), HashedPassword.Create("hashed-password", "salt"), active.Id);
+        var suspendedAuth = AuthAccount.Register(
+            Email.Create("suspended@example.com"), HashedPassword.Create("hashed-password", "salt"), suspended.Id);
+        _readRepository.Query<Member>().Returns(new List<Member> { active, suspended }.AsQueryable());
+        _readRepository.Query<AuthAccount>().Returns(new List<AuthAccount> { activeAuth, suspendedAuth }.AsQueryable());
+
+        var result = await _sut.AdminListAsync(null, 1, 20, CancellationToken.None);
+
+        Assert.That(result.TotalCount, Is.EqualTo(2));
+        var suspendedDto = result.Items.Single(m => m.Id == suspended.Id);
+        Assert.Multiple(() =>
+        {
+            Assert.That(suspendedDto.IsSuspended, Is.True);
+            Assert.That(suspendedDto.SuspendedReason, Is.EqualTo("spamming"));
+            Assert.That(suspendedDto.Email, Is.EqualTo("suspended@example.com"));
+        });
+    }
+
+    [Test]
+    public async Task AdminListAsync_GivenSearchNotMatchingAnyName_WhenCalled_ThenReturnsEmptyResult()
+    {
+        var member = Member.Create("Host Name");
+        _readRepository.Query<Member>().Returns(new List<Member> { member }.AsQueryable());
+        _readRepository.Query<AuthAccount>().Returns(new List<AuthAccount>().AsQueryable());
+
+        var result = await _sut.AdminListAsync("no-match", 1, 20, CancellationToken.None);
+
+        Assert.That(result.TotalCount, Is.EqualTo(0));
+    }
 }

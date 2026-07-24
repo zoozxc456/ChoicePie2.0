@@ -13,6 +13,11 @@ public interface IQuizQueryService
         string? tag, string? search, Guid? ownerId, int pageNumber, int pageSize,
         CancellationToken cancellationToken);
 
+    // Admin-facing listing: not restricted to Published/own-Draft like ListAsync - returns
+    // quizzes across every status (including TakenDown) so moderators can find anything.
+    Task<PagedResult<QuizSummaryDto>> AdminListAsync(
+        string? search, int pageNumber, int pageSize, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<string>> GetTagsAsync(CancellationToken cancellationToken);
 
     Task<IReadOnlyList<QuizSummaryDto>> GetRelatedAsync(Guid quizId, int limit, CancellationToken cancellationToken);

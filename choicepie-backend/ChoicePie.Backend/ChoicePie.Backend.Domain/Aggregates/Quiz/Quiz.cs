@@ -32,6 +32,10 @@ public sealed class Quiz : AggregateRoot<Guid>
     // not deduplicated per user - mirrors the same at-least-once tolerance as ChallengeStats.
     public int ShareCount { get; private set; }
 
+    public string? TakedownReason { get; private set; }
+    public Guid? TakedownBy { get; private set; }
+    public DateTime? TakedownAt { get; private set; }
+
     [NotMapped] public int ChallengeCount => Stats.Count;
 
     [NotMapped] public decimal PassRate => Stats.PassRate;
@@ -165,6 +169,11 @@ public sealed class Quiz : AggregateRoot<Guid>
             throw new InvalidQuizException("題庫已經是封存狀態。");
         }
 
+        if (Status == QuizStatus.TakenDown)
+        {
+            throw new InvalidQuizException("題庫已被下架，無法封存。");
+        }
+
         Status = QuizStatus.Archived;
         Touch();
     }
@@ -179,11 +188,44 @@ public sealed class Quiz : AggregateRoot<Guid>
         ShareCount++;
     }
 
+    public void TakeDown(Guid adminId, string reason, DateTime utcNow)
+    {
+        if (Status == QuizStatus.TakenDown)
+        {
+            throw new InvalidQuizException("題庫已經被下架。");
+        }
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new InvalidQuizException("下架原因不能為空。");
+        }
+
+        Status = QuizStatus.TakenDown;
+        TakedownReason = reason;
+        TakedownBy = adminId;
+        TakedownAt = utcNow;
+        Touch();
+    }
+
+    public void RestoreFromTakedown()
+    {
+        if (Status != QuizStatus.TakenDown)
+        {
+            throw new InvalidQuizException("題庫目前不是下架狀態。");
+        }
+
+        Status = QuizStatus.Draft;
+        TakedownReason = null;
+        TakedownBy = null;
+        TakedownAt = null;
+        Touch();
+    }
+
     private void EnsureEditable()
     {
-        if (Status == QuizStatus.Archived)
+        if (Status == QuizStatus.Archived || Status == QuizStatus.TakenDown)
         {
-            throw new InvalidQuizException("封存狀態的題庫無法修改。");
+            throw new InvalidQuizException("此題庫目前無法修改。");
         }
     }
 

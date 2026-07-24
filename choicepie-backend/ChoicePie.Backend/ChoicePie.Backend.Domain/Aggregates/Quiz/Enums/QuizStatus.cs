@@ -8,4 +8,5 @@ public sealed record QuizStatus(int Id, string Name) : Enumeration<QuizStatus>(I
     public static readonly QuizStatus Published = new(2, nameof(Published));
     public static readonly QuizStatus Archived = new(3, nameof(Archived));
     public static readonly QuizStatus Deleted = new(4, nameof(Deleted));
+    public static readonly QuizStatus TakenDown = new(5, nameof(TakenDown));
 }

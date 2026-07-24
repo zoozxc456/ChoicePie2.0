@@ -4,6 +4,7 @@ using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.Member;
+using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
@@ -107,5 +108,26 @@ public class LoginCommandHandlerTests
         _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<HashedPassword>()).Returns(false);
 
         Assert.ThrowsAsync<InvalidCredentialsException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+    }
+
+    [Test]
+    public void Handle_GivenSuspendedMember_WhenCalled_ThenThrowsMemberSuspendedException()
+    {
+        _passwordHasher.Verify("correct-password", HashedPassword.Create("hashed-password", "salt")).Returns(true);
+        _registeredMember.Suspend("spamming", null);
+
+        Assert.ThrowsAsync<MemberSuspendedException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+    }
+
+    [Test]
+    public async Task Handle_GivenExpiredSuspension_WhenCalled_ThenLogsInSuccessfully()
+    {
+        _passwordHasher.Verify("correct-password", HashedPassword.Create("hashed-password", "salt")).Returns(true);
+        _tokenService.GenerateAccessToken(_registeredMember).Returns("jwt-access-token");
+        _registeredMember.Suspend("spamming", DateTimeOffset.UtcNow.AddDays(-1).UtcDateTime);
+
+        var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
+
+        Assert.That(result.AccessToken, Is.EqualTo("jwt-access-token"));
     }
 }

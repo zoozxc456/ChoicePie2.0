@@ -152,6 +152,32 @@ public class QuizQueryServiceTests
     }
 
     [Test]
+    public async Task AdminListAsync_GivenDraftPublishedAndTakenDownQuizzes_WhenCalled_ThenReturnsAllOfThem()
+    {
+        var published = MakeQuiz("Published Quiz");
+        var draft = MakeQuiz("Draft Quiz", published: false);
+        var takenDown = MakeQuiz("Bad Quiz");
+        takenDown.TakeDown(Guid.NewGuid(), "reason", DateTime.UtcNow);
+        _readRepository.Query<Quiz>().Returns(new List<Quiz> { published, draft, takenDown }.AsQueryable());
+
+        var result = await _sut.AdminListAsync(null, 1, 10, CancellationToken.None);
+
+        Assert.That(result.Items.Select(i => i.Title), Is.EquivalentTo(new[] { "Published Quiz", "Draft Quiz", "Bad Quiz" }));
+    }
+
+    [Test]
+    public async Task AdminListAsync_GivenSearch_WhenCalled_ThenFiltersByTitle()
+    {
+        var match = MakeQuiz("Kubernetes 101");
+        var nonMatch = MakeQuiz("Docker Basics");
+        _readRepository.Query<Quiz>().Returns(new List<Quiz> { match, nonMatch }.AsQueryable());
+
+        var result = await _sut.AdminListAsync("Kubernetes", 1, 10, CancellationToken.None);
+
+        Assert.That(result.Items.Select(i => i.Title), Is.EquivalentTo(new[] { "Kubernetes 101" }));
+    }
+
+    [Test]
     public async Task GetTagsAsync_WhenCalled_ThenReturnsDistinctSortedTagsFromPublishedQuizzesOnly()
     {
         var q1 = Quiz.Create(_creator.Id, "Q1", null, "⚓", "g", Difficulty.Beginner, ["Go", "Kubernetes"]);

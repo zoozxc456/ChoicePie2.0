@@ -117,6 +117,49 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
         return Task.FromResult(new PagedResult<QuizSummaryDto>(items, pageNumber, pageSize, totalCount));
     }
 
+    public Task<PagedResult<QuizSummaryDto>> AdminListAsync(
+        string? search, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
+        var query = readRepository.Query<Quiz>();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(q => q.Title.Contains(search));
+        }
+
+        var totalCount = query.Count();
+
+        var joined =
+            from q in query
+            join m in readRepository.Query<Member>() on q.CreatorId!.Value equals m.Id into creatorGroup
+            from creator in creatorGroup.DefaultIfEmpty()
+            orderby q.CreatedAt descending
+            select new QuizSummaryDto(
+                q.Id,
+                q.Title,
+                q.Description,
+                q.Cover.Emoji,
+                q.Cover.Gradient,
+                q.Difficulty.Name,
+                q.Status.Name.ToLower(),
+                q.Questions.Count,
+                q.Stats.Count,
+                q.Stats.PassRate,
+                q.CreatorId!.Value,
+                creator != null ? creator.Name : "Unknown",
+                creator != null ? creator.Avatar : null,
+                q.Tags,
+                q.CreatedAt,
+                q.LastModifiedAt);
+
+        var items = joined
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return Task.FromResult(new PagedResult<QuizSummaryDto>(items, pageNumber, pageSize, totalCount));
+    }
+
     public Task<IReadOnlyList<string>> GetTagsAsync(CancellationToken cancellationToken)
     {
         var tags = readRepository.Query<Quiz>()

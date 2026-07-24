@@ -54,16 +54,41 @@
 **仍待規劃**：查詢目前仍無分頁（`ListCommentsByQuizIdQuery` 回傳完整 `IReadOnlyList<CommentDto>`），留言數量多時
 需要補上分頁或無限捲動。
 
-## Admin：題庫下架 / 會員管理 — 待規劃，需從零開始
+## Admin：題庫下架 / 會員管理 — 已完成
 
-2026-07-24 新增：Admin 面板目前只完成登入 + 儀表板空殼（見上方 Admin 相關 commit），題庫下架與會員管理是刻意
-留到下一輪的功能。目前後端完全沒有相關支援：
+2026-07-24：決策——題庫下架新增獨立的 `TakenDown` 狀態（與作者自行封存的 `Archived` 語意區分）；
+會員停權支援期限（`SuspendedUntil` 為 `null` 代表永久停權，到期後登入判斷自動視為未停權，
+沒有背景工作定期清除 `IsSuspended`）；複權/解除停權權限沿用現有單一 Admin 角色（`AdminOnly` policy），
+未做角色分級。
 
-- 沒有 Report/Moderation/Takedown/Ban/Suspend 相關的 aggregate、repository、command、query、controller
-- `Quiz.Status`（`Draft/Published/Archived/Deleted`）沒有 admin 觸發的狀態轉換機制，也沒有會員停權概念
-- 前端 admin 除了登入頁與空殼儀表板（`app/pages/admin/index.vue`）外沒有任何管理頁面
+後端：
 
-需要規劃：資料模型（下架原因？停權期限或永久？誰能複權？）、command/query/controller 一整層、對應的 admin UI（題庫列表+下架操作、會員列表+停權操作）。
+- `QuizStatus` 新增 `TakenDown`；`Quiz.cs` 新增 `TakeDown(adminId, reason, utcNow)` /
+  `RestoreFromTakedown()`，記錄 `TakedownReason`/`TakedownBy`/`TakedownAt`；`Archive()` 補上防呆
+  （已下架題庫不可被作者封存）。
+- `Member.cs` 新增 `IsSuspended`/`SuspendedReason`/`SuspendedUntil` 與 `Suspend(reason, until)` /
+  `Unsuspend()` / `IsCurrentlySuspended(nowUtc)`；`LoginCommandHandler` 登入時呼叫
+  `IsCurrentlySuspended` 擋下停權會員（`MemberSuspendedException`，403）。
+- 新增 `AdminQuizzes`（`AdminTakeDownQuizCommand`/`AdminRestoreQuizCommand`/`AdminListQuizzesQuery`）與
+  `AdminMembers`（`AdminSuspendMemberCommand`/`AdminUnsuspendMemberCommand`/`AdminListMembersQuery`）
+  application slice，`IQuizQueryService`/`IMemberQueryService` 各補上一個不受狀態限制的
+  `AdminListAsync`（一般會員端查詢仍只回傳 `Published`/自己的 `Draft`）。
+- Controller：`AdminQuizzesController`（`GET/POST /api/v1/admin/quizzes`,
+  `POST .../{id}/takedown`, `POST .../{id}/restore`）與 `AdminMembersController`
+  （`GET /api/v1/admin/members`, `POST .../{id}/suspend`, `POST .../{id}/unsuspend`），皆掛
+  `[Authorize(Policy = "AdminOnly")]`。
+- EF migration `AddQuizTakedownAndMemberSuspension` 新增對應欄位（`quiz.takedown_reason/by/at`,
+  `member.is_suspended/suspended_reason/suspended_until`）。
+
+前端：
+
+- `app/pages/admin/quizzes/index.vue`（搜尋 + 列表 + 下架/還原，下架需透過
+  `components/admin/TakeDownQuizModal.vue` 填寫原因）與 `app/pages/admin/members/index.vue`
+  （搜尋 + 列表 + 停權/解除停權，停權透過 `components/admin/SuspendMemberModal.vue` 填寫原因與
+  可選的停權期限）。`app/stores/adminQuiz.ts`/`adminMember.ts` + `app/services/admin/quiz.ts`/
+  `member.ts` 皆為新檔案。`app/pages/admin/index.vue` 儀表板補上兩個管理頁面的導覽按鈕。
+- `useApi.ts` 既有的 `/api/v1/admin/*` 401 refresh 邏輯（`ADMIN_PATH_PREFIX`）直接涵蓋新
+  endpoint，未額外調整。
 
 ## 忘記密碼 / Email 驗證 / Email 通知 — 待規劃，需先補寄信基礎設施
 

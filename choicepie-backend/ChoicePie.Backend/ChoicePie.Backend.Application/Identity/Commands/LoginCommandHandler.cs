@@ -43,6 +43,11 @@ public sealed class LoginCommandHandler(
         var member = await memberRepository.GetByIdAsync(authAccount.MemberId, cancellationToken)
                      ?? throw new MemberNotFoundException(authAccount.MemberId);
 
+        if (member.IsCurrentlySuspended(timeProvider.GetUtcNow().UtcDateTime))
+        {
+            throw new MemberSuspendedException(member.Id, member.SuspendedReason);
+        }
+
         var accessToken = tokenService.GenerateAccessToken(member);
         var (rawRefreshToken, refreshTokenHash) = refreshTokenGenerator.Generate();
         var refreshToken =

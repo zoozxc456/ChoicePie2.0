@@ -10,6 +10,9 @@ public sealed class Member : AggregateRoot<Guid>
     public string Name { get; private set; } = null!;
     public string? Avatar { get; private set; }
     public DateTime? LastAiGenerationAt { get; private set; }
+    public bool IsSuspended { get; private set; }
+    public string? SuspendedReason { get; private set; }
+    public DateTime? SuspendedUntil { get; private set; }
 
     private Member()
     {
@@ -39,5 +42,36 @@ public sealed class Member : AggregateRoot<Guid>
     public void RecordAiGeneration(DateTime nowUtc)
     {
         LastAiGenerationAt = nowUtc;
+    }
+
+    // SuspendedUntil = null means a permanent suspension; a concrete date expires automatically
+    // (checked in IsCurrentlySuspended) without any background job clearing IsSuspended.
+    public void Suspend(string reason, DateTime? until)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new InvalidMemberSuspensionException("停權原因不能為空。");
+        }
+
+        IsSuspended = true;
+        SuspendedReason = reason;
+        SuspendedUntil = until;
+    }
+
+    public void Unsuspend()
+    {
+        IsSuspended = false;
+        SuspendedReason = null;
+        SuspendedUntil = null;
+    }
+
+    public bool IsCurrentlySuspended(DateTime nowUtc)
+    {
+        if (!IsSuspended)
+        {
+            return false;
+        }
+
+        return SuspendedUntil is null || SuspendedUntil.Value > nowUtc;
     }
 }

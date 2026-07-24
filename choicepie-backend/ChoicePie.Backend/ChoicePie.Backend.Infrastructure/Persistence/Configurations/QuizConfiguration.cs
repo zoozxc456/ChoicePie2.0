@@ -30,6 +30,8 @@ public sealed class QuizConfiguration : AuditableEntityConfiguration<Quiz>
             .HasConversion(new EnumerationValueConverter<QuizStatus>())
             .IsRequired();
 
+        builder.Property(q => q.TakedownReason).HasMaxLength(500);
+
         builder.Property(q => q.Tags)
             .HasColumnType("text[]")
             .Metadata.SetValueComparer(stringListComparer);

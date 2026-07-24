@@ -20,11 +20,11 @@ public class QuizStatusTests
     }
 
     [Test]
-    public void Enumerations_WhenRead_ThenContainsExactlyFourStatuses()
+    public void Enumerations_WhenRead_ThenContainsExactlyFiveStatuses()
     {
         Assert.That(QuizStatus.Enumerations.Values, Is.EquivalentTo(new[]
         {
-            QuizStatus.Draft, QuizStatus.Published, QuizStatus.Archived, QuizStatus.Deleted
+            QuizStatus.Draft, QuizStatus.Published, QuizStatus.Archived, QuizStatus.Deleted, QuizStatus.TakenDown
         }));
     }
 }

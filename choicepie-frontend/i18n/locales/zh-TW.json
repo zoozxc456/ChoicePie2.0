@@ -167,7 +167,49 @@
     "welcome": "歡迎回來，{name}",
     "email": "Email",
     "role": "角色",
-    "logout": "登出"
+    "logout": "登出",
+    "nav": {
+      "quizzes": "題庫管理",
+      "members": "會員管理"
+    }
+  },
+  "adminQuizzes": {
+    "title": "題庫管理",
+    "searchPlaceholder": "搜尋題庫標題...",
+    "empty": "找不到題庫",
+    "status": {
+      "draft": "草稿",
+      "published": "已發布",
+      "archived": "已封存",
+      "deleted": "已刪除",
+      "takendown": "已下架"
+    },
+    "creatorLine": "作者：{name}",
+    "takeDownAction": "下架",
+    "restoreAction": "還原",
+    "takedownReasonLabel": "下架原因",
+    "takedownReasonPlaceholder": "請輸入下架原因（會員將會看到此原因）",
+    "takedownReasonRequired": "請輸入下架原因",
+    "confirm": "確認",
+    "cancel": "取消",
+    "takedownInfo": "下架原因：{reason}"
+  },
+  "adminMembers": {
+    "title": "會員管理",
+    "searchPlaceholder": "搜尋會員名稱...",
+    "empty": "找不到會員",
+    "statusActive": "正常",
+    "statusSuspended": "停權中",
+    "suspendedUntil": "停權至 {date}",
+    "suspendedPermanently": "永久停權",
+    "suspendAction": "停權",
+    "unsuspendAction": "解除停權",
+    "suspendReasonLabel": "停權原因",
+    "suspendReasonPlaceholder": "請輸入停權原因",
+    "suspendReasonRequired": "請輸入停權原因",
+    "suspendUntilLabel": "停權期限（留空表示永久停權）",
+    "confirm": "確認",
+    "cancel": "取消"
   },
   "library": {
     "searchPlaceholder": "搜尋題庫...",

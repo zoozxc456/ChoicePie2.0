@@ -318,4 +318,74 @@ public class QuizTests
 
         Assert.Throws<QuizForbiddenException>(() => quiz.EnsureModifiableBy(Guid.NewGuid()));
     }
+
+    [Test]
+    public void TakeDown_GivenPublishedQuiz_WhenCalled_ThenSetsStatusAndTakedownFields()
+    {
+        var quiz = CreatePublishedQuiz();
+        var adminId = Guid.NewGuid();
+        var now = new DateTime(2026, 7, 24, 9, 0, 0, DateTimeKind.Utc);
+
+        quiz.TakeDown(adminId, "inappropriate content", now);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(quiz.Status, Is.EqualTo(QuizStatus.TakenDown));
+            Assert.That(quiz.TakedownReason, Is.EqualTo("inappropriate content"));
+            Assert.That(quiz.TakedownBy, Is.EqualTo(adminId));
+            Assert.That(quiz.TakedownAt, Is.EqualTo(now));
+        });
+    }
+
+    [Test]
+    public void TakeDown_GivenAlreadyTakenDownQuiz_WhenCalled_ThenThrowsInvalidQuizException()
+    {
+        var quiz = CreatePublishedQuiz();
+        quiz.TakeDown(Guid.NewGuid(), "reason", DateTime.UtcNow);
+
+        Assert.Throws<InvalidQuizException>(() => quiz.TakeDown(Guid.NewGuid(), "another reason", DateTime.UtcNow));
+    }
+
+    [TestCase("")]
+    [TestCase("   ")]
+    public void TakeDown_GivenEmptyOrWhitespaceReason_WhenCalled_ThenThrowsInvalidQuizException(string reason)
+    {
+        var quiz = CreatePublishedQuiz();
+
+        Assert.Throws<InvalidQuizException>(() => quiz.TakeDown(Guid.NewGuid(), reason, DateTime.UtcNow));
+    }
+
+    [Test]
+    public void RestoreFromTakedown_GivenTakenDownQuiz_WhenCalled_ThenSetsStatusToDraftAndClearsFields()
+    {
+        var quiz = CreatePublishedQuiz();
+        quiz.TakeDown(Guid.NewGuid(), "reason", DateTime.UtcNow);
+
+        quiz.RestoreFromTakedown();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(quiz.Status, Is.EqualTo(QuizStatus.Draft));
+            Assert.That(quiz.TakedownReason, Is.Null);
+            Assert.That(quiz.TakedownBy, Is.Null);
+            Assert.That(quiz.TakedownAt, Is.Null);
+        });
+    }
+
+    [Test]
+    public void RestoreFromTakedown_GivenQuizNotTakenDown_WhenCalled_ThenThrowsInvalidQuizException()
+    {
+        var quiz = CreatePublishedQuiz();
+
+        Assert.Throws<InvalidQuizException>(() => quiz.RestoreFromTakedown());
+    }
+
+    [Test]
+    public void Archive_GivenTakenDownQuiz_WhenCalled_ThenThrowsInvalidQuizException()
+    {
+        var quiz = CreatePublishedQuiz();
+        quiz.TakeDown(Guid.NewGuid(), "reason", DateTime.UtcNow);
+
+        Assert.Throws<InvalidQuizException>(() => quiz.Archive());
+    }
 }

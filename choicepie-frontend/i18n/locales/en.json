@@ -167,7 +167,49 @@
     "welcome": "Welcome back, {name}",
     "email": "Email",
     "role": "Role",
-    "logout": "Log out"
+    "logout": "Log out",
+    "nav": {
+      "quizzes": "Quiz Management",
+      "members": "Member Management"
+    }
+  },
+  "adminQuizzes": {
+    "title": "Quiz Management",
+    "searchPlaceholder": "Search quiz titles...",
+    "empty": "No quizzes found",
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived",
+      "deleted": "Deleted",
+      "takendown": "Taken Down"
+    },
+    "creatorLine": "By: {name}",
+    "takeDownAction": "Take Down",
+    "restoreAction": "Restore",
+    "takedownReasonLabel": "Takedown Reason",
+    "takedownReasonPlaceholder": "Enter the reason for taking down this quiz (visible to the owner)",
+    "takedownReasonRequired": "Please enter a takedown reason",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "takedownInfo": "Takedown reason: {reason}"
+  },
+  "adminMembers": {
+    "title": "Member Management",
+    "searchPlaceholder": "Search member names...",
+    "empty": "No members found",
+    "statusActive": "Active",
+    "statusSuspended": "Suspended",
+    "suspendedUntil": "Suspended until {date}",
+    "suspendedPermanently": "Permanently suspended",
+    "suspendAction": "Suspend",
+    "unsuspendAction": "Unsuspend",
+    "suspendReasonLabel": "Suspension Reason",
+    "suspendReasonPlaceholder": "Enter the suspension reason",
+    "suspendReasonRequired": "Please enter a suspension reason",
+    "suspendUntilLabel": "Suspend Until (leave blank for permanent)",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "library": {
     "searchPlaceholder": "Search quizzes...",

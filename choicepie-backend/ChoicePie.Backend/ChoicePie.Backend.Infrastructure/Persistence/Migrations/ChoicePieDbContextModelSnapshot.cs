@@ -375,6 +375,10 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("deleter_id");
 
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_suspended");
+
                     b.Property<DateTime?>("LastAiGenerationAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_ai_generation_at");
@@ -392,6 +396,15 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("name");
+
+                    b.Property<string>("SuspendedReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("suspended_reason");
+
+                    b.Property<DateTime?>("SuspendedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("suspended_until");
 
                     b.HasKey("Id")
                         .HasName("pk_member");
@@ -450,6 +463,19 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text[]")
                         .HasColumnName("tags");
+
+                    b.Property<DateTime?>("TakedownAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("takedown_at");
+
+                    b.Property<Guid?>("TakedownBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("takedown_by");
+
+                    b.Property<string>("TakedownReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("takedown_reason");
 
                     b.Property<string>("Title")
                         .IsRequired()
