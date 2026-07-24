@@ -22,8 +22,10 @@ export const useAuthStore = defineStore('auth', () => {
   const loginWithGoogle = async () => {
     isLoading.value = true
     try {
-      // TODO: redirect to /api/auth/google
-      await navigateTo('/api/auth/google', { external: true })
+      const { requestIdToken } = useGoogleIdentity()
+      const idToken = await requestIdToken()
+      const member = await authApi.loginWithGoogle(idToken)
+      user.value = toUser(member)
     } finally {
       isLoading.value = false
     }

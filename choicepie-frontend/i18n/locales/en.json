@@ -142,6 +142,7 @@
     "noAccount": "Don't have an account?",
     "registerLink": "Sign up",
     "loginError": "Incorrect email or password. Please try again.",
+    "googleLoginError": "Google sign-in failed. Please try again.",
     "forgotPassword": "Forgot your password?",
     "validation": {
       "emailInvalid": "Please enter a valid email address",
@@ -435,6 +436,7 @@
     "haveAccount": "Already have an account?",
     "loginLink": "Sign in",
     "registerError": "This email may already be in use",
+    "googleLoginError": "Google sign-in failed. Please try again.",
     "passwordMismatch": "Passwords do not match",
     "strength": {
       "tooShort": "Too short",

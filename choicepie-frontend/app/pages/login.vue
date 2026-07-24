@@ -22,7 +22,7 @@
         variant="outline"
         class="font-bold h-12 rounded-2xl"
         :loading="auth.isLoading"
-        @click="auth.loginWithGoogle"
+        @click="handleGoogleLogin"
       >
         <template #leading>
           <span class="font-extrabold text-[#4285F4]">G</span>
@@ -166,6 +166,16 @@ const handleEmailLogin = async (event: FormSubmitEvent<LoginSchema>) => {
 
 const onToggleShowPassword = () => {
   showPassword.value = !showPassword.value
+}
+
+const handleGoogleLogin = async () => {
+  error.value = ''
+  try {
+    await auth.loginWithGoogle()
+    await navigateTo(redirect.value)
+  } catch (e: unknown) {
+    error.value = e instanceof ApiError ? e.message : t('login.googleLoginError')
+  }
 }
 </script>
 

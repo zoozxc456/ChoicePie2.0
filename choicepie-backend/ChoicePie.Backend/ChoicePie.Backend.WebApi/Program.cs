@@ -17,6 +17,8 @@ builder.Services.Configure<AdminBootstrapSettings>(
     builder.Configuration.GetSection(AdminBootstrapSettings.SectionName));
 builder.Services.Configure<SmtpSettings>(
     builder.Configuration.GetSection(SmtpSettings.SectionName));
+builder.Services.Configure<GoogleSettings>(
+    builder.Configuration.GetSection(GoogleSettings.SectionName));
 
 builder.Services
     .AddEndpointsApiExplorer()

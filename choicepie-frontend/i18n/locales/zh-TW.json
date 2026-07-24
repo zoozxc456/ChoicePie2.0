@@ -142,6 +142,7 @@
     "noAccount": "還沒有帳號？",
     "registerLink": "註冊",
     "loginError": "帳號或密碼錯誤，請再試一次",
+    "googleLoginError": "Google 登入失敗，請再試一次",
     "forgotPassword": "忘記密碼？",
     "validation": {
       "emailInvalid": "請輸入有效的 Email",
@@ -435,6 +436,7 @@
     "haveAccount": "已有帳號？",
     "loginLink": "直接登入",
     "registerError": "此 Email 可能已被使用",
+    "googleLoginError": "Google 登入失敗，請再試一次",
     "passwordMismatch": "密碼不一致",
     "strength": {
       "tooShort": "太短",

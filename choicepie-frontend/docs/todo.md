@@ -35,11 +35,41 @@
 2. 確認現有輸入介面（主題/關鍵字/難度）、產生題目後的審核與編輯流程是否足夠，不需要另外規劃
 3. 成本控管（token 用量、額度限制）——確認現有額度邏輯是否已涵蓋真實 API 呼叫成本
 
-## Google 註冊登入 — 待規劃
+## Google 註冊登入 — 已完成
 
-尚未開始。目前 `login.vue`/`sign-in/index.vue` 僅支援 email/password 登入，`app/stores/auth.ts` 的
-`loginWithGoogle()` 是一行 `// TODO: redirect to /api/auth/google` 的前端空殼，後端完全沒有對應的 OAuth route。需要規劃：
-後端串接 Google OAuth（取得 email 建立/綁定既有帳號）、前端登入頁加上「使用 Google 繼續」按鈕、既有 email 帳號與 Google 帳號的綁定/合併規則。
+2026-07-25：採用前端 Google Identity Services（GIS，ID Token 流程），而非傳統 Authorization Code redirect——
+不需要 client secret，前端 Client ID 本來就設計成公開值，安全性靠後端驗證 ID Token 簽章（`aud`/`iss`/過期時間），
+不是靠保密。Google 帳號是 `AuthAccount` 的其中一種 `LoginMethod`（`LoginProvider.Google`），與既有 `Original`
+密碼登入共存於同一聚合，符合「Google 登入只是其中一種登入方式」的設計目標。
+
+後端：
+- `AuthAccount.RegisterWithExternalLogin(...)`（`Domain/Aggregates/AuthAccount/AuthAccount.cs`）——外部登入
+  註冊時直接 `IsVerified = true`（Google 已驗證過 email），沿用既有 `AddLoginMethod`/`LoginMethodAlreadyLinkedException`。
+- 新增 `AuthAccountByExternalIdentitySpecification`，查詢 owned collection `LoginMethods` 中匹配的 provider + providerUserId。
+- `IGoogleIdTokenVerifier`（`Application/Identity/Contracts/`）+ `GoogleIdTokenVerifier` 實作
+  （`Infrastructure/Identity/`，用 `Google.Apis.Auth` 套件的 `GoogleJsonWebSignature.ValidateAsync` 驗證簽章/audience），
+  驗證失敗丟 `InvalidGoogleTokenException`。
+- `GoogleSettings`（`Shared.Kernel/Abstractions/Settings/`，只有 `ClientId`，無 secret）、`appsettings.json` 新增
+  `Google:ClientId`（需自行填入）。
+- `GoogleLoginCommand`/`GoogleLoginCommandHandler`：依序嘗試「Google 身分已存在」→「email 已註冊但未綁定 Google
+  （自動補綁 `AddLoginMethod`）」→「全新使用者（建立 Member + AuthAccount）」，其餘登入/發 token 流程與
+  `LoginCommandHandler` 一致（复用 `ITokenService`/`IRefreshTokenGenerator`）。
+- `AuthController` 新增 `POST /api/v1/auth/google`（匿名，回傳 `MemberDto` 並設定 auth cookies，與既有 `/login` 相同模式）。
+- 測試：`AuthAccountTests`（`RegisterWithExternalLogin`）、`GoogleLoginCommandHandlerTests`（新使用者/既有 Google
+  帳號/自動綁定既有 email 帳號/停權會員）。
+
+前端：
+- `app/composables/useGoogleIdentity.ts`：動態載入 Google GIS script（`accounts.google.com/gsi/client`），
+  包裝 `google.accounts.id.initialize/prompt`，回傳 Promise-based `requestIdToken()`。
+- `app/services/auth.ts` 新增 `loginWithGoogle(idToken)` → `POST /api/v1/auth/google`。
+- `app/stores/auth.ts` 的 `loginWithGoogle()` 補上真正邏輯（原本是導到不存在的 `/api/auth/google` 的空殼）。
+- `login.vue`/`sign-in/index.vue` 的 Google 按鈕接上 `handleGoogleLogin`（含錯誤處理與 loading 狀態）。
+- `nuxt.config.ts`/`.env.example` 新增 `NUXT_PUBLIC_GOOGLE_CLIENT_ID`（公開值）。
+- i18n 新增 `login.googleLoginError`/`signIn.googleLoginError`（zh-TW + en）。
+- 測試：`useGoogleIdentity.spec.ts`（成功/使用者取消）、`auth.spec.ts`/`authClient.spec.ts` 補上 `loginWithGoogle` case。
+
+部署前待辦：需要在 Google Cloud Console 建立 OAuth Client ID（類型選 Web application，Authorized JavaScript
+origins 設定前端網域），並將 Client ID 填入後端 `Google:ClientId` 與前端 `NUXT_PUBLIC_GOOGLE_CLIENT_ID`。
 
 ## 留言功能補強 — 編輯/刪除/分頁皆已完成
 

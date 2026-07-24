@@ -21,7 +21,8 @@
         color="neutral"
         variant="outline"
         class="font-bold h-12 rounded-2xl"
-        @click="auth.loginWithGoogle"
+        :loading="auth.isLoading"
+        @click="handleGoogleLogin"
       >
         <template #leading>
           <span class="font-extrabold text-[#4285F4]">G</span>
@@ -229,6 +230,16 @@ const onToggleShowPassword = () => {
 
 const onToggleShowConfirmPassword = () => {
   showConfirmPassword.value = !showConfirmPassword.value
+}
+
+const handleGoogleLogin = async () => {
+  error.value = ''
+  try {
+    await auth.loginWithGoogle()
+    await navigateTo(redirect.value)
+  } catch (e: unknown) {
+    error.value = e instanceof ApiError ? e.message : t('signIn.googleLoginError')
+  }
 }
 </script>
 

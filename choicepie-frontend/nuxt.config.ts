@@ -18,7 +18,8 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     public: {
-      apiBaseUrl: 'https://choicepie-dev-api.minjie.demo'
+      apiBaseUrl: 'https://choicepie-dev-api.minjie.demo',
+      googleClientId: ''
     }
   },
   devServer: {

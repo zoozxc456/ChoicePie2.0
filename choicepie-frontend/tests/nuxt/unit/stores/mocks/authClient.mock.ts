@@ -4,6 +4,7 @@ import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 const authClientMock = vi.hoisted(() => ({
   register: vi.fn(),
   loginWithEmail: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refresh: vi.fn(),
   forgotPassword: vi.fn(),
@@ -13,11 +14,13 @@ const authClientMock = vi.hoisted(() => ({
 }))
 
 const navigateToMock = vi.hoisted(() => vi.fn())
+const requestIdTokenMock = vi.hoisted(() => vi.fn())
 
 vi.mock('~/services/auth', () => ({
   useAuthClientApi: () => authClientMock
 }))
 
 mockNuxtImport('navigateTo', () => navigateToMock)
+mockNuxtImport('useGoogleIdentity', () => () => ({ requestIdToken: requestIdTokenMock }))
 
-export { authClientMock, navigateToMock }
+export { authClientMock, navigateToMock, requestIdTokenMock }

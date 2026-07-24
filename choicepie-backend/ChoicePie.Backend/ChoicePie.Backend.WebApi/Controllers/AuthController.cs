@@ -35,6 +35,15 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
         return Ok(ResponseHelper.Success(result.Member));
     }
 
+    [HttpPost("google")]
+    public async Task<ActionResult<ApiResponse<MemberDto>>> GoogleLoginAsync([FromBody] GoogleLoginRequest request)
+    {
+        var result = await mediator.Send(request.ToCommand());
+        Response.SetAuthCookies(result.AccessToken, result.RefreshToken,
+            jwtSettings.Value.AccessTokenExpirationSeconds);
+        return Ok(ResponseHelper.Success(result.Member));
+    }
+
     [HttpPost("refresh")]
     public async Task<ActionResult<ApiResponse<MemberDto>>> RefreshAsync()
     {

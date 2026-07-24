@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import type { MemberDto } from '~/types/api'
 import type { LoginSchema, RegisterSchema } from '~/types/auth'
-import { authClientMock, navigateToMock } from './mocks/authClient.mock'
+import { authClientMock, navigateToMock, requestIdTokenMock } from './mocks/authClient.mock'
 
-const { register, loginWithEmail, logout, refresh, forgotPassword, resetPassword, verifyEmail, resendVerification } = authClientMock
+const { register, loginWithEmail, loginWithGoogle, logout, refresh, forgotPassword, resetPassword, verifyEmail, resendVerification } = authClientMock
 const navigateTo = navigateToMock
 
 const { useAuthStore } = await import('~/stores/auth')
@@ -91,6 +91,31 @@ describe('useAuthStore', () => {
       await store.loginWithEmail({ email: 'alice@example.com', password: 'secret' } as LoginSchema)
 
       expect(store.user?.avatar).toBeUndefined()
+    })
+  })
+
+  describe('loginWithGoogle', () => {
+    it('成功時取得 ID Token 並儲存使用者資料', async () => {
+      requestIdTokenMock.mockResolvedValue('google-id-token')
+      loginWithGoogle.mockResolvedValue(member)
+      const store = useAuthStore()
+
+      await store.loginWithGoogle()
+
+      expect(requestIdTokenMock).toHaveBeenCalled()
+      expect(loginWithGoogle).toHaveBeenCalledWith('google-id-token')
+      expect(store.user?.email).toBe('alice@example.com')
+      expect(store.isLoading).toBe(false)
+    })
+
+    it('使用者取消或 Google 流程失敗時往外拋出例外', async () => {
+      requestIdTokenMock.mockRejectedValue(new Error('Google login was cancelled or failed'))
+      const store = useAuthStore()
+
+      await expect(store.loginWithGoogle()).rejects.toThrow('Google login was cancelled or failed')
+
+      expect(store.user).toBeNull()
+      expect(store.isLoading).toBe(false)
     })
   })
 

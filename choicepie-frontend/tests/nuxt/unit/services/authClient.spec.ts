@@ -25,6 +25,14 @@ describe('useAuthClientApi', () => {
     expect(apiMock.post).toHaveBeenCalledWith('/api/v1/auth/login', payload)
   })
 
+  it('loginWithGoogle 呼叫正確路徑與 payload', () => {
+    const client = useAuthClientApi()
+
+    client.loginWithGoogle('google-id-token')
+
+    expect(apiMock.post).toHaveBeenCalledWith('/api/v1/auth/google', { idToken: 'google-id-token' })
+  })
+
   it('logout 呼叫正確路徑', () => {
     const client = useAuthClientApi()
 
