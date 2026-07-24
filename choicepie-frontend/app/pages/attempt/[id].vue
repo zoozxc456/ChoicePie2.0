@@ -15,10 +15,23 @@
       <!-- Progress -->
       <div class="flex items-center justify-between mb-3 text-sm font-semibold text-neutral-400">
         <span>{{ t('attempt.question.questionOf', { current: questionIndex + 1, total: quiz.questions.length }) }}</span>
+        <span
+          class="text-2xl font-black tabular-nums w-10 text-right"
+          :class="isTimerUrgent ? 'text-error-500' : 'text-primary-500'"
+        >
+          {{ timeLeft }}
+        </span>
       </div>
       <div class="h-1.5 rounded-full bg-neutral-100 mb-6 overflow-hidden">
         <div
-          class="h-full rounded-full bg-primary-500 transition-[width] duration-300 ease-linear"
+          class="h-full rounded-full transition-[width] duration-1000 ease-linear"
+          :class="isTimerUrgent ? 'bg-error-500 animate-pulse' : 'bg-primary-500'"
+          :style="{ width: `${timerPercent}%` }"
+        />
+      </div>
+      <div class="h-1 rounded-full bg-neutral-100 mb-6 overflow-hidden">
+        <div
+          class="h-full rounded-full bg-neutral-300 transition-[width] duration-300 ease-linear"
           :style="{ width: `${((questionIndex + 1) / quiz.questions.length) * 100}%` }"
         />
       </div>
@@ -87,6 +100,7 @@ import AttemptResult from '~/components/attempt/AttemptResult.vue'
 definePageMeta({ layout: 'content', middleware: ['auth'] })
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
+const QUESTION_TIME_LIMIT_SECONDS = 30
 
 const { t } = useI18n()
 const route = useRoute()
@@ -105,16 +119,53 @@ const isChecking = ref(true)
 const currentQuestion = computed(() => quiz.value?.questions[questionIndex.value] ?? null)
 const isLastQuestion = computed(() => !!quiz.value && questionIndex.value === quiz.value.questions.length - 1)
 
+// ── Timer (client-side only, no server-side time limit or scoring impact) ──
+const timeLeft = ref(QUESTION_TIME_LIMIT_SECONDS)
+let timerInterval: ReturnType<typeof setInterval> | null = null
+
+const isTimerUrgent = computed(() => timeLeft.value <= 5 && timeLeft.value > 0)
+const timerPercent = computed(() => (timeLeft.value / QUESTION_TIME_LIMIT_SECONDS) * 100)
+
+const stopTimer = () => {
+  if (timerInterval !== null) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+}
+
+const startTimer = () => {
+  stopTimer()
+  timeLeft.value = QUESTION_TIME_LIMIT_SECONDS
+  timerInterval = setInterval(() => {
+    if (timeLeft.value > 0) {
+      timeLeft.value--
+    } else {
+      stopTimer()
+      handleNext()
+    }
+  }, 1000)
+}
+
+watch(currentQuestion, (question) => {
+  if (question) startTimer()
+  else stopTimer()
+})
+
+onUnmounted(stopTimer)
+
 const selectOption = (index: number) => {
   if (isSubmitting.value) return
   selectedOptionIndex.value = index
 }
 
 const handleNext = async () => {
-  if (!currentQuestion.value || selectedOptionIndex.value === null) return
+  if (!currentQuestion.value || isSubmitting.value) return
+  stopTimer()
   isSubmitting.value = true
   try {
-    await quizAttemptStore.submitAnswer(attemptId, currentQuestion.value.id, selectedOptionIndex.value)
+    if (selectedOptionIndex.value !== null) {
+      await quizAttemptStore.submitAnswer(attemptId, currentQuestion.value.id, selectedOptionIndex.value)
+    }
     if (isLastQuestion.value) {
       await quizAttemptStore.completeAttempt(attemptId)
     } else {
@@ -129,6 +180,7 @@ const handleNext = async () => {
 onMounted(async () => {
   if (quizAttemptStore.currentAttempt?.attemptId === attemptId) {
     isChecking.value = false
+    startTimer()
     return
   }
   quizAttemptStore.reset()
@@ -141,6 +193,7 @@ onMounted(async () => {
       await quizAttemptStore.startAttempt(attempt.quizId)
       const answeredCount = attempt.answers.filter(a => a.selectedOptionIndex !== null).length
       questionIndex.value = Math.min(answeredCount, attempt.answers.length - 1)
+      startTimer()
     }
   } catch {
     // Attempt not found or not owned by the current user — fall through to not-found view.
