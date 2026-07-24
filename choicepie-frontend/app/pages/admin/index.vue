@@ -21,10 +21,10 @@
       </div>
     </dl>
 
-    <div class="flex gap-3 mt-6">
+    <div class="flex flex-wrap gap-3 mt-6">
       <NuxtLink
         to="/admin/quizzes"
-        class="flex-1"
+        class="flex-1 min-w-36"
       >
         <UButton
           block
@@ -36,7 +36,7 @@
       </NuxtLink>
       <NuxtLink
         to="/admin/members"
-        class="flex-1"
+        class="flex-1 min-w-36"
       >
         <UButton
           block
@@ -44,6 +44,18 @@
           variant="soft"
         >
           {{ t('adminDashboard.nav.members') }}
+        </UButton>
+      </NuxtLink>
+      <NuxtLink
+        to="/admin/quiz-reports"
+        class="flex-1 min-w-36"
+      >
+        <UButton
+          block
+          color="primary"
+          variant="soft"
+        >
+          {{ t('adminDashboard.nav.quizReports') }}
         </UButton>
       </NuxtLink>
     </div>

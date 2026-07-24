@@ -71,6 +71,15 @@
         :quiz-title="quiz.title"
       />
 
+      <button
+        v-if="!isOwner && auth.isLoggedIn"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap disabled:opacity-60"
+        :disabled="quizStore.hasReported"
+        @click="isReportModalOpen = true"
+      >
+        {{ quizStore.hasReported ? t('libraryDetail.report.reported') : t('libraryDetail.report.action') }}
+      </button>
+
       <div class="ml-auto flex gap-2 items-center">
         <button
           v-if="isOwner && quiz.status !== 'Published'"
@@ -300,6 +309,13 @@
         </div>
       </div>
     </Transition>
+
+    <ReportQuizModal
+      :open="isReportModalOpen"
+      :is-submitting="quizStore.isReporting"
+      @confirm="handleReport"
+      @cancel="isReportModalOpen = false"
+    />
   </div>
 
   <!-- Loading -->
@@ -429,6 +445,18 @@ const gameSettings = computed(() => [
   { label: t('libraryDetail.modal.allQuestions'), value: t('libraryDetail.modal.allQuestionsValue') },
   { label: t('libraryDetail.modal.joinMethod'), value: t('libraryDetail.modal.joinMethodValue') }
 ])
+
+const isReportModalOpen = ref(false)
+
+const handleReport = async (reason: string, description?: string) => {
+  if (!quiz.value) return
+  try {
+    await quizStore.reportQuiz(quiz.value.id, reason, description)
+    isReportModalOpen.value = false
+  } catch {
+    // 錯誤已寫入 quizStore.error，這裡不需要額外處理
+  }
+}
 
 const handleToggleFavorite = async () => {
   if (!quiz.value) return

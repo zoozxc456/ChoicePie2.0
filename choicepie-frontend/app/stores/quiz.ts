@@ -310,6 +310,25 @@ export const useQuizStore = defineStore('quiz', () => {
     }
   }
 
+  // ── 檢舉 ──
+
+  const isReporting = ref(false)
+  const hasReported = ref(false)
+
+  const reportQuiz = async (id: string, reason: string, description?: string) => {
+    isReporting.value = true
+    try {
+      await quizApi.reportQuiz(id, { reason, description })
+      hasReported.value = true
+    } catch (e) {
+      error.value = '檢舉送出失敗，請稍後再試'
+      console.error(e)
+      throw e
+    } finally {
+      isReporting.value = false
+    }
+  }
+
   // ── AI 出題 ──
 
   const recordAiUsage = () => {
@@ -402,6 +421,7 @@ export const useQuizStore = defineStore('quiz', () => {
     fetchComments, fetchMoreComments, addComment, updateComment, deleteComment,
     fetchRelatedQuizzes,
     recordShare,
+    isReporting, hasReported, reportQuiz,
     setCurrentQuiz, updateGeneratedQuestion, clearGenerated
   }
 }, {

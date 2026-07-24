@@ -1,5 +1,5 @@
 import type { Difficulty } from '~/types/quiz'
-import type { QuizDto, QuizSummaryDto, PagedResult, CreateQuestionRequestItem, GenerateQuestionsResultDto, QuizForAttemptDto, CommentDto } from '~/types/api'
+import type { QuizDto, QuizSummaryDto, PagedResult, CreateQuestionRequestItem, GenerateQuestionsResultDto, QuizForAttemptDto, CommentDto, CreateQuizReportRequest } from '~/types/api'
 
 export const useQuizClientApi = () => {
   const api = useApi()
@@ -50,6 +50,8 @@ export const useQuizClientApi = () => {
     fetchRelatedQuizzes: (id: string) =>
       api.get<QuizSummaryDto[]>(`/api/v1/quizzes/${id}/related`),
     recordShare: (id: string) =>
-      api.post<number>(`/api/v1/quizzes/${id}/share`)
+      api.post<number>(`/api/v1/quizzes/${id}/share`),
+    reportQuiz: (id: string, payload: CreateQuizReportRequest) =>
+      api.post(`/api/v1/quizzes/${id}/report`, payload)
   }
 }

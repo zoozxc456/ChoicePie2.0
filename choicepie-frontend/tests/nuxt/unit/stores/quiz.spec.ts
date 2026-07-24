@@ -10,6 +10,7 @@ const {
   fetchComments, addComment, updateComment, deleteComment,
   fetchRelatedQuizzes,
   recordShare,
+  reportQuiz,
   generateQuestions, saveQuiz
 } = quizClientMock
 
@@ -384,6 +385,30 @@ describe('useQuizStore', () => {
 
       await expect(store.recordShare('quiz-1')).resolves.toBeUndefined()
       expect(store.currentQuiz?.shareCount).toBe(0)
+    })
+  })
+
+  describe('reportQuiz', () => {
+    it('成功時設定 hasReported', async () => {
+      reportQuiz.mockResolvedValue(undefined)
+      const store = useQuizStore()
+
+      await store.reportQuiz('quiz-1', 'Spam', 'spam content')
+
+      expect(reportQuiz).toHaveBeenCalledWith('quiz-1', { reason: 'Spam', description: 'spam content' })
+      expect(store.hasReported).toBe(true)
+      expect(store.isReporting).toBe(false)
+    })
+
+    it('失敗時設定 error 並往外拋出', async () => {
+      reportQuiz.mockRejectedValue(new Error('boom'))
+      const store = useQuizStore()
+
+      await expect(store.reportQuiz('quiz-1', 'Spam')).rejects.toThrow('boom')
+
+      expect(store.error).toBe('檢舉送出失敗，請稍後再試')
+      expect(store.hasReported).toBe(false)
+      expect(store.isReporting).toBe(false)
     })
   })
 

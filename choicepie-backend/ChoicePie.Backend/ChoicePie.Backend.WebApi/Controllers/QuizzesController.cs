@@ -200,4 +200,12 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
         await mediator.Send(new DeleteCommentCommand(commentId));
         return Ok(ResponseHelper.Success());
     }
+
+    [HttpPost("{id:guid}/report")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse>> ReportAsync(Guid id, [FromBody] CreateQuizReportRequest request)
+    {
+        await mediator.Send(request.ToCommand(id));
+        return Ok(ResponseHelper.Success());
+    }
 }

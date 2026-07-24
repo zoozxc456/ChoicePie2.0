@@ -170,7 +170,8 @@
     "logout": "登出",
     "nav": {
       "quizzes": "題庫管理",
-      "members": "會員管理"
+      "members": "會員管理",
+      "quizReports": "檢舉審核"
     }
   },
   "adminQuizzes": {
@@ -210,6 +211,28 @@
     "suspendUntilLabel": "停權期限（留空表示永久停權）",
     "confirm": "確認",
     "cancel": "取消"
+  },
+  "adminQuizReports": {
+    "title": "檢舉審核",
+    "empty": "沒有符合條件的檢舉紀錄",
+    "reporterLine": "檢舉人：{name}",
+    "resolveAction": "下架題庫",
+    "dismissAction": "駁回檢舉",
+    "noteLabel": "處理備註（選填）",
+    "notePlaceholder": "請輸入處理備註",
+    "confirm": "確認",
+    "cancel": "取消",
+    "status": {
+      "pending": "待處理",
+      "resolved": "已下架",
+      "dismissed": "已駁回"
+    },
+    "reasons": {
+      "InappropriateContent": "內容不當",
+      "Spam": "垃圾廣告",
+      "Copyright": "版權問題",
+      "Other": "其他"
+    }
   },
   "library": {
     "searchPlaceholder": "搜尋題庫...",
@@ -345,6 +368,22 @@
       "line": "分享到 Line",
       "facebook": "分享到 Facebook",
       "x": "分享到 X"
+    },
+    "report": {
+      "action": "檢舉",
+      "reported": "已檢舉",
+      "title": "檢舉此題庫",
+      "reasonLabel": "檢舉原因",
+      "descriptionLabel": "補充說明（選填）",
+      "descriptionPlaceholder": "請描述問題內容",
+      "confirm": "送出檢舉",
+      "cancel": "取消",
+      "reasons": {
+        "InappropriateContent": "內容不當",
+        "Spam": "垃圾廣告",
+        "Copyright": "版權問題",
+        "Other": "其他"
+      }
     }
   },
   "signIn": {

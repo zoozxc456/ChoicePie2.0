@@ -336,3 +336,37 @@ export interface AdminLoginRequest {
   email: string
   password: string
 }
+
+export interface CreateQuizReportRequest {
+  reason: string
+  description?: string | null
+}
+
+export interface QuizReportDto {
+  id: string
+  quizId: string
+  quizTitle: string
+  reporterId: string
+  reporterName: string
+  reason: string
+  description: string | null
+  status: string
+  resolvedBy: string | null
+  resolvedAt: string | null
+  resolutionNote: string | null
+  createdAt: string
+}
+
+export interface AdminListQuizReportsQuery {
+  status?: string
+  pageNumber?: number
+  pageSize?: number
+}
+
+export interface ResolveQuizReportRequest {
+  note?: string | null
+}
+
+export interface DismissQuizReportRequest {
+  note?: string | null
+}

@@ -196,4 +196,12 @@ describe('useQuizClientApi', () => {
 
     expect(apiMock.post).toHaveBeenCalledWith('/api/v1/quizzes/q1/share')
   })
+
+  it('reportQuiz 呼叫正確路徑與 body', () => {
+    const client = useQuizClientApi()
+
+    client.reportQuiz('q1', { reason: 'Spam', description: 'spam content' })
+
+    expect(apiMock.post).toHaveBeenCalledWith('/api/v1/quizzes/q1/report', { reason: 'Spam', description: 'spam content' })
+  })
 })

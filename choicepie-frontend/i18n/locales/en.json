@@ -170,7 +170,8 @@
     "logout": "Log out",
     "nav": {
       "quizzes": "Quiz Management",
-      "members": "Member Management"
+      "members": "Member Management",
+      "quizReports": "Report Review"
     }
   },
   "adminQuizzes": {
@@ -210,6 +211,28 @@
     "suspendUntilLabel": "Suspend Until (leave blank for permanent)",
     "confirm": "Confirm",
     "cancel": "Cancel"
+  },
+  "adminQuizReports": {
+    "title": "Report Review",
+    "empty": "No reports match this filter",
+    "reporterLine": "Reported by: {name}",
+    "resolveAction": "Take Down Quiz",
+    "dismissAction": "Dismiss Report",
+    "noteLabel": "Resolution Note (optional)",
+    "notePlaceholder": "Enter a resolution note",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "status": {
+      "pending": "Pending",
+      "resolved": "Taken Down",
+      "dismissed": "Dismissed"
+    },
+    "reasons": {
+      "InappropriateContent": "Inappropriate Content",
+      "Spam": "Spam",
+      "Copyright": "Copyright Issue",
+      "Other": "Other"
+    }
   },
   "library": {
     "searchPlaceholder": "Search quizzes...",
@@ -345,6 +368,22 @@
       "line": "Share to Line",
       "facebook": "Share to Facebook",
       "x": "Share to X"
+    },
+    "report": {
+      "action": "Report",
+      "reported": "Reported",
+      "title": "Report this quiz",
+      "reasonLabel": "Reason",
+      "descriptionLabel": "Additional details (optional)",
+      "descriptionPlaceholder": "Describe the issue",
+      "confirm": "Submit Report",
+      "cancel": "Cancel",
+      "reasons": {
+        "InappropriateContent": "Inappropriate Content",
+        "Spam": "Spam",
+        "Copyright": "Copyright Issue",
+        "Other": "Other"
+      }
     }
   },
   "signIn": {
