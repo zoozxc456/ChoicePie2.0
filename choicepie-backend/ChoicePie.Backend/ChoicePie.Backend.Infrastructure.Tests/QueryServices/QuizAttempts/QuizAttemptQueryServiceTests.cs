@@ -80,4 +80,45 @@ public class QuizAttemptQueryServiceTests
 
         Assert.That(result, Is.Null);
     }
+
+    [Test]
+    public async Task ListHistoryAsync_GivenCompletedAndInProgressAttempts_WhenCalled_ThenReturnsOnlyCompletedNewestFirst()
+    {
+        var older = QuizAttemptAggregate.Start(_quiz.Id, _member.Id, [_question.Id], new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        older.SubmitAnswer(_question.Id, 3, new DateTime(2026, 1, 1, 0, 0, 5, DateTimeKind.Utc));
+        older.Complete(new Dictionary<Guid, int> { [_question.Id] = 3 }, new DateTime(2026, 1, 1, 0, 0, 10, DateTimeKind.Utc));
+
+        var newer = QuizAttemptAggregate.Start(_quiz.Id, _member.Id, [_question.Id], new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+        newer.SubmitAnswer(_question.Id, 3, new DateTime(2026, 1, 2, 0, 0, 5, DateTimeKind.Utc));
+        newer.Complete(new Dictionary<Guid, int> { [_question.Id] = 3 }, new DateTime(2026, 1, 2, 0, 0, 8, DateTimeKind.Utc));
+
+        var inProgress = QuizAttemptAggregate.Start(_quiz.Id, _member.Id, [_question.Id], DateTime.UtcNow);
+
+        _readRepository.Query<QuizAttemptAggregate>()
+            .Returns(new List<QuizAttemptAggregate> { older, newer, inProgress }.AsQueryable());
+
+        var result = await _sut.ListHistoryAsync(_quiz.Id, _member.Id, CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Has.Count.EqualTo(2));
+            Assert.That(result[0]!.Id, Is.EqualTo(newer.Id));
+            Assert.That(result[1]!.Id, Is.EqualTo(older.Id));
+            Assert.That(result[1]!.DurationMs, Is.EqualTo(10000));
+        });
+    }
+
+    [Test]
+    public async Task ListHistoryAsync_GivenAnotherMembersAttempt_WhenCalled_ThenExcludesIt()
+    {
+        var otherMember = Member.Create("Other Member");
+        var attempt = QuizAttemptAggregate.Start(_quiz.Id, otherMember.Id, [_question.Id], DateTime.UtcNow);
+        attempt.SubmitAnswer(_question.Id, 3, DateTime.UtcNow);
+        attempt.Complete(new Dictionary<Guid, int> { [_question.Id] = 3 }, DateTime.UtcNow);
+        _readRepository.Query<QuizAttemptAggregate>().Returns(new List<QuizAttemptAggregate> { attempt }.AsQueryable());
+
+        var result = await _sut.ListHistoryAsync(_quiz.Id, _member.Id, CancellationToken.None);
+
+        Assert.That(result, Is.Empty);
+    }
 }

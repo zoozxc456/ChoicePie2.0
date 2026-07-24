@@ -131,6 +131,9 @@
           </div>
         </div>
 
+        <!-- Attempt history -->
+        <AttemptHistoryList :quiz-id="quizId" />
+
         <!-- Comments -->
         <CommentList :quiz-id="quizId" />
 

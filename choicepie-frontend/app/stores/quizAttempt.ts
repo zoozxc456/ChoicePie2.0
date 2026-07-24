@@ -1,13 +1,15 @@
 import { defineStore } from 'pinia'
 import { useQuizAttemptClientApi } from '~/services/quizAttempt/client'
-import type { StartAttemptResultDto, QuizAttemptResultDto } from '~/types/api'
+import type { StartAttemptResultDto, QuizAttemptResultDto, QuizAttemptHistoryItemDto } from '~/types/api'
 
 export const useQuizAttemptStore = defineStore('quizAttempt', () => {
   const quizAttemptApi = useQuizAttemptClientApi()
 
   const currentAttempt = ref<StartAttemptResultDto | null>(null)
   const result = ref<QuizAttemptResultDto | null>(null)
+  const history = ref<QuizAttemptHistoryItemDto[]>([])
   const isLoading = ref(false)
+  const isLoadingHistory = ref(false)
   const error = ref<string | null>(null)
 
   const startAttempt = async (quizId: string) => {
@@ -64,6 +66,19 @@ export const useQuizAttemptStore = defineStore('quizAttempt', () => {
     }
   }
 
+  const fetchAttemptHistory = async (quizId: string) => {
+    isLoadingHistory.value = true
+    try {
+      history.value = await quizAttemptApi.fetchAttemptHistory(quizId)
+      return history.value
+    } catch (e) {
+      console.error(e)
+      throw e
+    } finally {
+      isLoadingHistory.value = false
+    }
+  }
+
   const reset = () => {
     currentAttempt.value = null
     result.value = null
@@ -71,7 +86,7 @@ export const useQuizAttemptStore = defineStore('quizAttempt', () => {
   }
 
   return {
-    currentAttempt, result, isLoading, error,
-    startAttempt, submitAnswer, completeAttempt, fetchAttemptById, reset
+    currentAttempt, result, history, isLoading, isLoadingHistory, error,
+    startAttempt, submitAnswer, completeAttempt, fetchAttemptById, fetchAttemptHistory, reset
   }
 })

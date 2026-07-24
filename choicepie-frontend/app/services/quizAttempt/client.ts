@@ -1,4 +1,4 @@
-import type { StartAttemptResultDto, QuizAttemptResultDto } from '~/types/api'
+import type { StartAttemptResultDto, QuizAttemptResultDto, QuizAttemptHistoryItemDto } from '~/types/api'
 
 export const useQuizAttemptClientApi = () => {
   const api = useApi()
@@ -11,6 +11,8 @@ export const useQuizAttemptClientApi = () => {
     completeAttempt: (attemptId: string) =>
       api.post<QuizAttemptResultDto>(`/api/v1/quiz-attempts/${attemptId}/complete`),
     fetchAttemptById: (attemptId: string) =>
-      api.get<QuizAttemptResultDto>(`/api/v1/quiz-attempts/${attemptId}`)
+      api.get<QuizAttemptResultDto>(`/api/v1/quiz-attempts/${attemptId}`),
+    fetchAttemptHistory: (quizId: string) =>
+      api.get<QuizAttemptHistoryItemDto[]>('/api/v1/quiz-attempts/history', { quizId })
   }
 }

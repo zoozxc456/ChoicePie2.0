@@ -41,4 +41,12 @@ describe('useQuizAttemptClientApi', () => {
 
     expect(apiMock.get).toHaveBeenCalledWith('/api/v1/quiz-attempts/attempt1')
   })
+
+  it('fetchAttemptHistory 呼叫正確路徑與查詢參數', () => {
+    const client = useQuizAttemptClientApi()
+
+    client.fetchAttemptHistory('quiz1')
+
+    expect(apiMock.get).toHaveBeenCalledWith('/api/v1/quiz-attempts/history', { quizId: 'quiz1' })
+  })
 })

@@ -202,6 +202,15 @@ export interface QuizAttemptResultDto {
   answers: QuizAttemptAnswerResultDto[]
 }
 
+export interface QuizAttemptHistoryItemDto {
+  id: string
+  score: number
+  passed: boolean
+  startedAt: string
+  completedAt: string
+  durationMs: number
+}
+
 export interface GameSessionSummaryDto {
   id: string
   roomCode: string

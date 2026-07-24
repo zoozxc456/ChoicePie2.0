@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import type { StartAttemptResultDto, QuizAttemptResultDto } from '~/types/api'
+import type { StartAttemptResultDto, QuizAttemptResultDto, QuizAttemptHistoryItemDto } from '~/types/api'
 import { quizAttemptClientMock } from './mocks/quizAttemptClient.mock'
 
-const { startAttempt, submitAnswer, completeAttempt, fetchAttemptById } = quizAttemptClientMock
+const { startAttempt, submitAnswer, completeAttempt, fetchAttemptById, fetchAttemptHistory } = quizAttemptClientMock
 
 const { useQuizAttemptStore } = await import('~/stores/quizAttempt')
 
@@ -138,6 +138,33 @@ describe('useQuizAttemptStore', () => {
       await expect(store.fetchAttemptById('attempt-1')).rejects.toThrow('boom')
 
       expect(store.error).toBe('無法載入作答結果')
+    })
+  })
+
+  describe('fetchAttemptHistory', () => {
+    const historyItems: QuizAttemptHistoryItemDto[] = [
+      { id: 'attempt-1', score: 80, passed: true, startedAt: '2026-01-01T00:00:00Z', completedAt: '2026-01-01T00:05:00Z', durationMs: 12000 }
+    ]
+
+    it('成功時儲存 history 並回傳資料', async () => {
+      fetchAttemptHistory.mockResolvedValue(historyItems)
+      const store = useQuizAttemptStore()
+
+      const result = await store.fetchAttemptHistory('quiz-1')
+
+      expect(fetchAttemptHistory).toHaveBeenCalledWith('quiz-1')
+      expect(result).toEqual(historyItems)
+      expect(store.history).toEqual(historyItems)
+      expect(store.isLoadingHistory).toBe(false)
+    })
+
+    it('失敗時往外拋出例外', async () => {
+      fetchAttemptHistory.mockRejectedValue(new Error('boom'))
+      const store = useQuizAttemptStore()
+
+      await expect(store.fetchAttemptHistory('quiz-1')).rejects.toThrow('boom')
+
+      expect(store.isLoadingHistory).toBe(false)
     })
   })
 

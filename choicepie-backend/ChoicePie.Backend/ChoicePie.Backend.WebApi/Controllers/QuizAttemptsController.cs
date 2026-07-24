@@ -43,4 +43,11 @@ public class QuizAttemptsController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetQuizAttemptByIdQuery(attemptId));
         return Ok(ResponseHelper.Success(result));
     }
+
+    [HttpGet("history")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<QuizAttemptHistoryItemDto>>>> ListHistoryAsync([FromQuery] Guid quizId)
+    {
+        var result = await mediator.Send(new ListQuizAttemptHistoryQuery(quizId));
+        return Ok(ResponseHelper.Success(result));
+    }
 }

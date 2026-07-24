@@ -640,6 +640,12 @@
       "title": "找不到作答進度",
       "desc": "重新整理或直接開啟連結會遺失作答中的進度，請回到題庫重新開始。",
       "backToLibrary": "回題庫首頁"
+    },
+    "history": {
+      "title": "作答歷史",
+      "empty": "還沒有挑戰紀錄",
+      "score": "{score} 分",
+      "duration": "耗時 {seconds} 秒"
     }
   },
   "myQuizzes": {

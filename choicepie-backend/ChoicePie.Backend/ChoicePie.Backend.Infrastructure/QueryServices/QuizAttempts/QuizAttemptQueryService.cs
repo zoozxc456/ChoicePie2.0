@@ -51,4 +51,23 @@ public sealed class QuizAttemptQueryService(IReadRepository readRepository) : IQ
 
         return Task.FromResult<QuizAttemptResultDto?>(dto);
     }
+
+    public Task<IReadOnlyList<QuizAttemptHistoryItemDto>> ListHistoryAsync(
+        Guid quizId, Guid memberId, CancellationToken cancellationToken)
+    {
+        var items = readRepository.Query<QuizAttemptAggregate>()
+            .Where(a => a.QuizId == quizId && a.MemberId == memberId && a.Status == AttemptStatus.Completed)
+            .OrderByDescending(a => a.CompletedAt)
+            .ToList()
+            .Select(a => new QuizAttemptHistoryItemDto(
+                a.Id,
+                a.Score!.Value,
+                a.Passed!.Value,
+                a.StartedAt,
+                a.CompletedAt!.Value,
+                (long)(a.CompletedAt!.Value - a.StartedAt).TotalMilliseconds))
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<QuizAttemptHistoryItemDto>>(items);
+    }
 }

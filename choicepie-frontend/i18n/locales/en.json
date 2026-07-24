@@ -640,6 +640,12 @@
       "title": "Attempt progress not found",
       "desc": "Refreshing or opening this link directly loses in-progress answers. Please go back and start again.",
       "backToLibrary": "Back to Library"
+    },
+    "history": {
+      "title": "Attempt History",
+      "empty": "No attempts yet",
+      "score": "{score} pts",
+      "duration": "{seconds}s"
     }
   },
   "myQuizzes": {

@@ -106,7 +106,7 @@
 需要規劃：選定寄信服務（SendGrid/SMTP 等）、忘記密碼的 token 產生與過期機制、email 驗證流程與觸發時機
 （註冊時自動寄送？）、對應前端頁面（忘記密碼表單、重設密碼表單、「請查收信箱」提示頁）。
 
-## 單人練習 (`/attempt/[id]`) — 計時/續作限制已完成，作答歷史記錄待補
+## 單人練習 (`/attempt/[id]`) — 計時/歷史記錄/續作限制皆已完成
 
 2026-07-24 新增：核心作答流程（開始挑戰 → 逐題作答 → 完成計分 → 結果頁逐題檢討）已完整串接前後端，
 可正常遊玩。
@@ -117,6 +117,13 @@
 `_startTimer`/`_stopTimer` 寫法，UI 沿用 `components/gameRoom/GamingRoom.vue` 的數字倒數 + 進度條風格），
 `questionIndex` 改變時透過 `watch` 重啟計時；時間到會呼叫既有的 `handleNext()`（此時
 `selectedOptionIndex` 若仍是 `null` 則視為跳過該題，不送出答案，直接前進到下一題或結算）。
+
+2026-07-24：**作答歷史記錄**已完成，範圍為「單一題庫的歷史清單（分數、時間、次數），在題庫詳情頁展開」。
+後端新增 `GET /api/v1/quiz-attempts/history?quizId=...`（`ListQuizAttemptHistoryQuery` +
+`QuizAttemptQueryService.ListHistoryAsync`），只回傳當前登入會員、該題庫、`Status == Completed` 的
+attempts，依 `CompletedAt` 新到舊排序，`QuizAttemptHistoryItemDto` 額外算出 `DurationMs`
+（`CompletedAt - StartedAt`）。前端 `app/components/attempt/AttemptHistoryList.vue` 嵌入
+`library/[id].vue` 題目列表下方，僅登入會員可見。
 
 2026-07-24：**中途離開無法續作 / 無重複挑戰限制**已一併處理完成，決策為「同一題庫同一會員最多只有一個
 進行中的 attempt，重新開始會續用而非產生新記錄；已完成的挑戰不限制次數」（練習性質題庫，允許重複挑戰
