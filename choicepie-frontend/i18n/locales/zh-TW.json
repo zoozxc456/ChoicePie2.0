@@ -2,7 +2,7 @@
   "nav": {
     "join": "加入遊戲",
     "createGame": "建立遊戲",
-    "myLibrary": "我的題庫",
+    "myLibrary": "遊戲題庫",
     "history": "歷史紀錄",
     "howToUse": "如何使用",
     "about": "關於我們",
@@ -111,7 +111,7 @@
     "rejoinFailed": {
       "title": "找不到這個房間",
       "desc": "房間可能已經結束或房間碼有誤",
-      "backToLibrary": "返回題庫"
+      "backToLibrary": "返回遊戲題庫"
     }
   },
   "bigscreen": {
@@ -187,7 +187,7 @@
     "pageTitle": "Email 驗證",
     "success": "您的 Email 已成功驗證！",
     "failed": "驗證失敗，連結可能已失效，請重新發送驗證信。",
-    "backToLibrary": "前往題庫廣場"
+    "backToLibrary": "前往遊戲題庫"
   },
   "adminLogin": {
     "title": "管理後台登入",
@@ -273,6 +273,11 @@
     }
   },
   "library": {
+    "title": "遊戲題庫",
+    "tabs": {
+      "all": "所有題庫",
+      "mine": "我的題庫"
+    },
     "searchPlaceholder": "搜尋題庫...",
     "featured": "🔥 精選題庫",
     "latest": "🆕 最新上架",
@@ -344,7 +349,7 @@
     }
   },
   "libraryDetail": {
-    "backToLibrary": "返回題庫",
+    "backToLibrary": "返回遊戲題庫",
     "knowledgePack": "知識包",
     "creatorLine": "{name} 出題",
     "questionList": "題目列表",
@@ -713,12 +718,12 @@
       "correct": "✔ 答對了",
       "wrong": "✘ 答錯了",
       "backToQuiz": "返回題庫",
-      "backToLibrary": "回題庫首頁"
+      "backToLibrary": "回遊戲題庫首頁"
     },
     "notFound": {
       "title": "找不到作答進度",
       "desc": "重新整理或直接開啟連結會遺失作答中的進度，請回到題庫重新開始。",
-      "backToLibrary": "回題庫首頁"
+      "backToLibrary": "回遊戲題庫首頁"
     },
     "history": {
       "title": "作答歷史",

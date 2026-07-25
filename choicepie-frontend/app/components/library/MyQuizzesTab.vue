@@ -1,14 +1,5 @@
 <template>
-  <div class="max-w-7xl mx-auto px-6 py-8">
-    <div class="mb-7">
-      <h1 class="text-2xl font-black">
-        {{ t('myQuizzes.title') }}
-      </h1>
-      <p class="text-sm text-neutral-600 mt-1.5">
-        {{ t('myQuizzes.subtitle') }}
-      </p>
-    </div>
-
+  <div>
     <!-- Loading -->
     <div
       v-if="quizStore.isLoading"
@@ -109,8 +100,6 @@
 import { useQuizStore } from '~/stores/quiz'
 import MineQuizCard from '~/components/library/MineQuizCard.vue'
 
-definePageMeta({ layout: 'content', middleware: ['auth'] })
-
 const { t } = useI18n()
 const quizStore = useQuizStore()
 
@@ -165,7 +154,7 @@ onMounted(() => {
 
 <script lang="ts">
 export default {
-  name: 'MyQuizzesPage'
+  name: 'MyQuizzesTab'
 }
 </script>
 

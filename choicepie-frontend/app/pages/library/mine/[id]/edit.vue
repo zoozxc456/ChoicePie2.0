@@ -4,7 +4,7 @@
     class="max-w-3xl mx-auto px-6 py-8"
   >
     <NuxtLink
-      to="/library/mine"
+      to="/library?tab=mine"
       class="text-[13px] text-neutral-600 mb-4 inline-block"
     >
       ← {{ t('myQuizzesEdit.backToList') }}

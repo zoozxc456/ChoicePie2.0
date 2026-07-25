@@ -273,6 +273,11 @@
     }
   },
   "library": {
+    "title": "Quiz Library",
+    "tabs": {
+      "all": "All quizzes",
+      "mine": "My quizzes"
+    },
     "searchPlaceholder": "Search quizzes...",
     "featured": "🔥 Featured",
     "latest": "🆕 Latest",

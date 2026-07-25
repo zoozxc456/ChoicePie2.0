@@ -61,7 +61,7 @@
                 class="dropdown-item__icon"
               />{{ t('nav.createGame') }}</NuxtLink>
               <NuxtLink
-                to="/library/mine"
+                to="/library?tab=mine"
                 class="dropdown-item dropdown-item--info"
                 @click="closeMenu"
               ><UIcon
