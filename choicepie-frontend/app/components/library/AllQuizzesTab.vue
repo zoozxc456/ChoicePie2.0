@@ -47,7 +47,7 @@
 
     <!-- Loading -->
     <div
-      v-if="quizStore.isLoading"
+      v-if="isLoading"
       class="flex justify-center py-20"
     >
       <UIcon
@@ -110,8 +110,12 @@ const quizStore = useQuizStore()
 const search = ref('')
 const activeTag = ref('全部')
 
-const fetchedTags = ref<string[]>([])
-const tags = computed(() => ['全部', ...fetchedTags.value])
+const { data: fetchedTags } = await useAsyncData('library-tags', () => quizStore.fetchTags(), {
+  default: () => []
+})
+const tags = computed(() => ['全部', ...(fetchedTags.value ?? [])])
+
+const { pending: isLoading } = await useAsyncData('library-all-quizzes', () => quizStore.fetchQuizzes())
 
 const filteredQuizzes = computed(() => {
   let list = quizStore.quizzes
@@ -127,13 +131,6 @@ const filteredQuizzes = computed(() => {
 
 const featured = computed(() => filteredQuizzes.value.slice(0, 4))
 const latest = computed(() => filteredQuizzes.value.slice(4))
-
-onMounted(() => {
-  quizStore.fetchQuizzes()
-  quizStore.fetchTags().then((data) => {
-    fetchedTags.value = data
-  })
-})
 </script>
 
 <script lang="ts">

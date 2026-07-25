@@ -40,6 +40,8 @@ export const useApi = () => {
     $fetch<ApiEnvelope<T>>(path, {
       baseURL: config.public.apiBaseUrl,
       credentials: 'include',
+      // SSR 沒有瀏覽器 cookie jar，需手動把 incoming request 的 cookie 轉發給後端才能帶出登入狀態。
+      headers: import.meta.server ? useRequestHeaders(['cookie']) : undefined,
       ...options
     })
 

@@ -2,7 +2,7 @@
   <div>
     <!-- Loading -->
     <div
-      v-if="quizStore.isLoading"
+      v-if="isLoading"
       class="flex justify-center py-20"
     >
       <UIcon
@@ -106,6 +106,8 @@ const quizStore = useQuizStore()
 const pendingId = ref<string | null>(null)
 const confirmDeleteId = ref<string | null>(null)
 
+const { pending: isLoading } = await useAsyncData('library-mine-quizzes', () => quizStore.fetchQuizzes({ mine: true }))
+
 const handlePublish = async (id: string) => {
   pendingId.value = id
   try {
@@ -146,10 +148,6 @@ const handleDelete = async () => {
     pendingId.value = null
   }
 }
-
-onMounted(() => {
-  quizStore.fetchQuizzes({ mine: true })
-})
 </script>
 
 <script lang="ts">

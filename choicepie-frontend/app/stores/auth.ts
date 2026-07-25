@@ -158,6 +158,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 }, {
   persist: {
-    pick: ['user']
+    pick: ['user'],
+    // 用 cookie 而非預設 localStorage，讓 SSR 也能讀到登入狀態（localStorage 在伺服器端不存在）。
+    storage: piniaPluginPersistedstate.cookies()
   }
 })
