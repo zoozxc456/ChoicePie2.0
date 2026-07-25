@@ -30,6 +30,8 @@ const makeQuizDto = (overrides: Partial<QuizDto> = {}): QuizDto => ({
   creatorName: 'Alice',
   creatorAvatar: null,
   questions: [],
+  questionStubs: [],
+  questionCount: 0,
   tags: [],
   shareCount: 0,
   createdAt: '2026-01-01T00:00:00Z',
@@ -141,7 +143,7 @@ describe('useQuizStore', () => {
       store.setCurrentQuiz({
         id: 'quiz-1', title: 'Old', coverEmoji: '📝', coverGradient: 'g',
         difficulty: 'beginner', questionCount: 0, challengeCount: 0, passRate: 0,
-        creatorId: 'c1', creatorName: 'Alice', questions: [], tags: [],
+        creatorId: 'c1', creatorName: 'Alice', questions: [], questionIds: [], tags: [],
         isPublic: false, status: 'Draft', createdAt: 't', updatedAt: 't'
       })
       updateQuiz.mockResolvedValue(makeQuizDto({ title: 'New Title' }))
@@ -157,7 +159,7 @@ describe('useQuizStore', () => {
       store.setCurrentQuiz({
         id: 'quiz-2', title: 'Other', coverEmoji: '📝', coverGradient: 'g',
         difficulty: 'beginner', questionCount: 0, challengeCount: 0, passRate: 0,
-        creatorId: 'c1', creatorName: 'Alice', questions: [], tags: [],
+        creatorId: 'c1', creatorName: 'Alice', questions: [], questionIds: [], tags: [],
         isPublic: false, status: 'Draft', createdAt: 't', updatedAt: 't'
       })
       updateQuiz.mockResolvedValue(makeQuizDto({ id: 'quiz-1', title: 'New Title' }))
@@ -175,7 +177,7 @@ describe('useQuizStore', () => {
       store.quizzes.push({
         id: 'quiz-1', title: 'Sample', coverEmoji: '📝', coverGradient: 'g',
         difficulty: 'beginner', questionCount: 0, challengeCount: 0, passRate: 0,
-        creatorId: 'c1', creatorName: 'Alice', questions: [], tags: [],
+        creatorId: 'c1', creatorName: 'Alice', questions: [], questionIds: [], tags: [],
         isPublic: false, status: 'Draft', createdAt: 't', updatedAt: 't'
       })
       store.setCurrentQuiz(store.quizzes[0]!)
@@ -485,7 +487,7 @@ describe('useQuizStore', () => {
       store.quizzes.push({
         id: 'quiz-old', title: 'Old', coverEmoji: '📝', coverGradient: 'g',
         difficulty: 'beginner', questionCount: 0, challengeCount: 0, passRate: 0,
-        creatorId: 'c1', creatorName: 'Alice', questions: [], tags: [],
+        creatorId: 'c1', creatorName: 'Alice', questions: [], questionIds: [], tags: [],
         isPublic: false, status: 'Draft', createdAt: 't', updatedAt: 't'
       })
 

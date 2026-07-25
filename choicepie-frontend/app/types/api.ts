@@ -49,6 +49,10 @@ export interface UpdateQuestionRequest {
   explanation: string
 }
 
+export interface QuestionStubDto {
+  id: string
+}
+
 export interface QuizDto {
   id: string
   title: string
@@ -62,12 +66,14 @@ export interface QuizDto {
   creatorId: string
   creatorName: string
   creatorAvatar: string | null
+  // Empty when the viewer isn't the quiz owner - use questionStubs for question IDs instead.
   questions: QuestionDto[]
+  questionStubs: QuestionStubDto[]
+  questionCount: number
   tags: string[]
   shareCount: number
   createdAt: string
   updatedAt: string
-  questionCount?: number
 }
 
 export interface QuizSummaryDto {

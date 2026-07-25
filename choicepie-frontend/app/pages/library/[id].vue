@@ -48,6 +48,7 @@
         {{ t('libraryDetail.useForGame') }}
       </button>
       <button
+        v-if="isOwner"
         class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap"
         :disabled="isStartingAttempt"
         @click="handleSoloPractice"
@@ -120,7 +121,10 @@
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
       <!-- Left: Question list + Comments -->
       <div class="flex flex-col gap-6">
-        <div class="bg-white border border-neutral-200 rounded-2xl p-5">
+        <div
+          v-if="isOwner"
+          class="bg-white border border-neutral-200 rounded-2xl p-5"
+        >
           <h2 class="text-base font-bold mb-3">
             {{ t('libraryDetail.questionList') }}
           </h2>
@@ -417,7 +421,7 @@ const handleCreateRoom = async () => {
   try {
     await gameRoom.createRoom({
       quizId: quiz.value.id,
-      questionIds: quiz.value.questions.map(q => q.id),
+      questionIds: quiz.value.questionIds,
       timeLimit: timeLimit.value
     })
   } catch {
