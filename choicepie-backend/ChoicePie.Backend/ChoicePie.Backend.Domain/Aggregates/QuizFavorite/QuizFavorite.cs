@@ -5,7 +5,6 @@ namespace ChoicePie.Backend.Domain.Aggregates.QuizFavorite;
 public sealed class QuizFavorite : AggregateRoot<Guid>
 {
     public Guid QuizId { get; private set; }
-    public Guid UserId => CreatorId!.Value;
 
     private QuizFavorite()
     {

@@ -17,7 +17,7 @@ public class CreatorFollowTests
         Assert.Multiple(() =>
         {
             Assert.That(follow.Id, Is.Not.EqualTo(Guid.Empty));
-            Assert.That(follow.FollowerId, Is.EqualTo(followerId));
+            Assert.That(follow.CreatorId, Is.EqualTo(followerId));
             Assert.That(follow.FollowedCreatorId, Is.EqualTo(creatorId));
         });
     }

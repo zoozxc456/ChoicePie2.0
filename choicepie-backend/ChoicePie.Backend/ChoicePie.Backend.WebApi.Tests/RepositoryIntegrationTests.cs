@@ -8,7 +8,11 @@ using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Entities;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
+using ChoicePie.Backend.Domain.Aggregates.CreatorFollow;
+using ChoicePie.Backend.Domain.Aggregates.CreatorFollow.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt;
+using ChoicePie.Backend.Domain.Aggregates.QuizFavorite;
+using ChoicePie.Backend.Domain.Aggregates.QuizFavorite.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Enums;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
@@ -17,9 +21,11 @@ using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using Microsoft.Extensions.DependencyInjection;
+using CreatorFollowAggregate = ChoicePie.Backend.Domain.Aggregates.CreatorFollow.CreatorFollow;
 using GameRoomAggregate = ChoicePie.Backend.Domain.Aggregates.GameRoom.GameRoom;
 using GameSessionAggregate = ChoicePie.Backend.Domain.Aggregates.GameSession.GameSession;
 using QuizAttemptAggregate = ChoicePie.Backend.Domain.Aggregates.QuizAttempt.QuizAttempt;
+using QuizFavoriteAggregate = ChoicePie.Backend.Domain.Aggregates.QuizFavorite.QuizFavorite;
 using RefreshTokenAggregate = ChoicePie.Backend.Domain.Aggregates.RefreshToken.RefreshToken;
 
 namespace ChoicePie.Backend.WebApi.Tests;
@@ -231,5 +237,49 @@ public sealed class RepositoryIntegrationTests
 
         Assert.That(titles, Has.Count.EqualTo(1));
         Assert.That(titles[0], Is.EqualTo(uniqueTitle));
+    }
+
+    [Test]
+    public async Task QuizFavoriteRepository_ExistsAsync_GivenSpecificationOnCreatorIdAndQuizId_WhenTranslatedToSql_ThenReturnsExpectedResult()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<IQuizFavoriteRepository>();
+
+        var member = Member.Create("Favorite Owner");
+        var quiz = Quiz.Create(member.Id, "Favorite Repo Quiz", null, "🎯", "grad", Difficulty.Beginner, ["test"]);
+        var favorite = QuizFavoriteAggregate.Create(quiz.Id, member.Id);
+        dbContext.Add(member);
+        dbContext.Add(quiz);
+        dbContext.Add(favorite);
+        await dbContext.SaveChangesAsync();
+
+        var exists = await repository.ExistsAsync(new QuizFavoriteByUserAndQuizSpecification(member.Id, quiz.Id));
+        var missing = await repository.ExistsAsync(new QuizFavoriteByUserAndQuizSpecification(Guid.NewGuid(), quiz.Id));
+
+        Assert.That(exists, Is.True);
+        Assert.That(missing, Is.False);
+    }
+
+    [Test]
+    public async Task CreatorFollowRepository_ExistsAsync_GivenSpecificationOnCreatorIdAndFollowedCreatorId_WhenTranslatedToSql_ThenReturnsExpectedResult()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
+        var repository = scope.ServiceProvider.GetRequiredService<ICreatorFollowRepository>();
+
+        var follower = Member.Create("Follower");
+        var creator = Member.Create("Followed Creator");
+        var follow = CreatorFollowAggregate.Create(follower.Id, creator.Id);
+        dbContext.Add(follower);
+        dbContext.Add(creator);
+        dbContext.Add(follow);
+        await dbContext.SaveChangesAsync();
+
+        var exists = await repository.ExistsAsync(new CreatorFollowByFollowerAndCreatorSpecification(follower.Id, creator.Id));
+        var missing = await repository.ExistsAsync(new CreatorFollowByFollowerAndCreatorSpecification(Guid.NewGuid(), creator.Id));
+
+        Assert.That(exists, Is.True);
+        Assert.That(missing, Is.False);
     }
 }

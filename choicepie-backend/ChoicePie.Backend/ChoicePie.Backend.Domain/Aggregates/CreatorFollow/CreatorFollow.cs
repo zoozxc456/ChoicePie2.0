@@ -6,7 +6,6 @@ namespace ChoicePie.Backend.Domain.Aggregates.CreatorFollow;
 public sealed class CreatorFollow : AggregateRoot<Guid>
 {
     public Guid FollowedCreatorId { get; private set; }
-    public Guid FollowerId => CreatorId!.Value;
 
     private CreatorFollow()
     {

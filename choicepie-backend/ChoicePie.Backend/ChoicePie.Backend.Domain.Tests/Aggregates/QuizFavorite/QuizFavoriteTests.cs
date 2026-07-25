@@ -17,7 +17,7 @@ public class QuizFavoriteTests
         {
             Assert.That(favorite.Id, Is.Not.EqualTo(Guid.Empty));
             Assert.That(favorite.QuizId, Is.EqualTo(quizId));
-            Assert.That(favorite.UserId, Is.EqualTo(userId));
+            Assert.That(favorite.CreatorId, Is.EqualTo(userId));
         });
     }
 }
