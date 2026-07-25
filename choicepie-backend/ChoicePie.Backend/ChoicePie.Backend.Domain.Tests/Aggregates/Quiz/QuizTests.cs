@@ -388,4 +388,23 @@ public class QuizTests
 
         Assert.Throws<InvalidQuizException>(() => quiz.Archive());
     }
+
+    [Test]
+    public void Unarchive_GivenArchivedQuiz_WhenCalled_ThenSetsStatusDraft()
+    {
+        var quiz = CreateQuiz();
+        quiz.Archive();
+
+        quiz.Unarchive();
+
+        Assert.That(quiz.Status, Is.EqualTo(QuizStatus.Draft));
+    }
+
+    [Test]
+    public void Unarchive_GivenDraftQuiz_WhenCalled_ThenThrowsInvalidQuizException()
+    {
+        var quiz = CreateQuiz();
+
+        Assert.Throws<InvalidQuizException>(() => quiz.Unarchive());
+    }
 }

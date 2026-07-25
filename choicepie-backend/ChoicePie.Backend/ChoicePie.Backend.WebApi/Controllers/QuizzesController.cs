@@ -86,6 +86,14 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
         return Ok(ResponseHelper.Success(result));
     }
 
+    [HttpPost("{id:guid}/unarchive")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse<QuizDto>>> UnarchiveAsync(Guid id)
+    {
+        var result = await mediator.Send(new UnarchiveQuizCommand(id));
+        return Ok(ResponseHelper.Success(result));
+    }
+
     [HttpPost("{id:guid}/archive")]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse<QuizDto>>> ArchiveAsync(Guid id)

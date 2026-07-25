@@ -178,6 +178,17 @@ public sealed class Quiz : AggregateRoot<Guid>
         Touch();
     }
 
+    public void Unarchive()
+    {
+        if (Status != QuizStatus.Archived)
+        {
+            throw new InvalidQuizException("只有封存狀態的題庫可以取消封存。");
+        }
+
+        Status = QuizStatus.Draft;
+        Touch();
+    }
+
     public void RecordChallengeOutcome(bool passed)
     {
         Stats = Stats.RecordOutcome(passed);

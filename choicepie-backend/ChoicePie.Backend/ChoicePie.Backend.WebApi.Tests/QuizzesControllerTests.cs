@@ -223,6 +223,20 @@ public sealed class QuizzesControllerTests
     }
 
     [Test]
+    public async Task UnarchiveAsync_GivenArchivedQuiz_WhenCalled_ThenStatusBecomesDraft()
+    {
+        using var client = await CreateAuthenticatedClientAsync();
+        var quiz = await CreateQuizAsync(client);
+        await client.PostAsync($"/api/v1/quizzes/{quiz.Id}/archive", null);
+
+        var response = await client.PostAsync($"/api/v1/quizzes/{quiz.Id}/unarchive", null);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var body = await response.Content.ReadFromJsonAsync<ApiResponse<QuizDto>>();
+        Assert.That(body!.Data!.Status, Is.EqualTo("draft"));
+    }
+
+    [Test]
     public async Task DeleteAsync_GivenOwner_WhenCalled_ThenQuizNoLongerRetrievable()
     {
         using var client = await CreateAuthenticatedClientAsync();
