@@ -274,11 +274,17 @@ public sealed class QuizzesControllerTests
         var uniqueTitle = $"Mine-{Guid.NewGuid()}";
         await CreateQuizAsync(client, uniqueTitle);
 
+        using var otherClient = await CreateAuthenticatedClientAsync();
+        var otherTitle = $"Other-{Guid.NewGuid()}";
+        var otherQuiz = await CreateQuizAsync(otherClient, otherTitle);
+        await otherClient.PostAsync($"/api/v1/quizzes/{otherQuiz.Id}/publish", null);
+
         var response = await client.GetAsync("/api/v1/quizzes?mine=true&pageSize=100");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var body = await response.Content.ReadFromJsonAsync<ApiResponse<PagedResult<QuizSummaryDto>>>();
         Assert.That(body!.Data!.Items.Any(q => q.Title == uniqueTitle), Is.True);
+        Assert.That(body!.Data!.Items.Any(q => q.Title == otherTitle), Is.False);
     }
 
     [Test]

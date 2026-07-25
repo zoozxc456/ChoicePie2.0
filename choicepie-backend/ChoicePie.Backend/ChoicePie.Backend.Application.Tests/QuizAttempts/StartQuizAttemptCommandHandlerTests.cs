@@ -41,7 +41,7 @@ public class StartQuizAttemptCommandHandlerTests
             _quizRepository, _quizAttemptRepository, _memberRepository, _currentUserService, _unitOfWork,
             _timeProvider);
 
-        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(_memberId, "Title", null, "⚓", "g", Difficulty.Beginner, []);
         _quiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
         _quiz.Publish();
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
@@ -88,11 +88,23 @@ public class StartQuizAttemptCommandHandlerTests
     [Test]
     public void Handle_GivenDraftQuiz_WhenCalled_ThenThrowsQuizNotPublishedException()
     {
-        var draftQuiz = Quiz.Create(Guid.NewGuid(), "Draft", null, "⚓", "g", Difficulty.Beginner, []);
+        var draftQuiz = Quiz.Create(_memberId, "Draft", null, "⚓", "g", Difficulty.Beginner, []);
         _quizRepository.GetByIdAsync(draftQuiz.Id, Arg.Any<CancellationToken>()).Returns(draftQuiz);
 
         Assert.ThrowsAsync<QuizNotPublishedException>(() =>
             _sut.Handle(new StartQuizAttemptCommand(draftQuiz.Id), CancellationToken.None));
+    }
+
+    [Test]
+    public void Handle_GivenNonOwner_WhenCalled_ThenThrowsQuizForbiddenException()
+    {
+        var othersQuiz = Quiz.Create(Guid.NewGuid(), "Someone Else's Quiz", null, "⚓", "g", Difficulty.Beginner, []);
+        othersQuiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
+        othersQuiz.Publish();
+        _quizRepository.GetByIdAsync(othersQuiz.Id, Arg.Any<CancellationToken>()).Returns(othersQuiz);
+
+        Assert.ThrowsAsync<QuizForbiddenException>(() =>
+            _sut.Handle(new StartQuizAttemptCommand(othersQuiz.Id), CancellationToken.None));
     }
 
     [Test]

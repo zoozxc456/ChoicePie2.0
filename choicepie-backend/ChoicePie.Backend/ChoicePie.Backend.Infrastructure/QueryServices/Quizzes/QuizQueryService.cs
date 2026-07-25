@@ -33,6 +33,8 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
                     creator != null ? creator.Avatar : null,
                     q.Questions.Select(question => new QuestionDto(question.Id, question.Text, question.Choices.Options,
                         question.Choices.AnswerIndex, question.Explanation)).ToList(),
+                    q.Questions.Select(question => new QuestionStubDto(question.Id)).ToList(),
+                    q.Questions.Count,
                     q.Tags,
                     q.ShareCount,
                     q.CreatedAt,
@@ -70,9 +72,9 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
     public Task<PagedResult<QuizSummaryDto>> ListAsync(
         string? tag, string? search, Guid? ownerId, int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
-        var query =
-            readRepository.Query<Quiz>().Where(q =>
-                q.Status == QuizStatus.Published || (q.CreatorId == ownerId && q.Status == QuizStatus.Draft));
+        var query = ownerId.HasValue
+            ? readRepository.Query<Quiz>().Where(q => q.CreatorId == ownerId)
+            : readRepository.Query<Quiz>().Where(q => q.Status == QuizStatus.Published);
 
         if (!string.IsNullOrWhiteSpace(tag))
         {

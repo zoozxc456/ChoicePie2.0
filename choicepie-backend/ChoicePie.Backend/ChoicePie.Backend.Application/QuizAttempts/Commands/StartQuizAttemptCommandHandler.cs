@@ -29,6 +29,11 @@ public sealed class StartQuizAttemptCommandHandler(
         var quiz = await quizRepository.GetByIdAsync(request.QuizId, cancellationToken)
                    ?? throw new QuizNotFoundException(request.QuizId);
 
+        if (quiz.OwnerId != memberId)
+        {
+            throw new QuizForbiddenException(quiz.Id, memberId);
+        }
+
         if (quiz.Status != QuizStatus.Published)
         {
             throw new QuizNotPublishedException(quiz.Id);
