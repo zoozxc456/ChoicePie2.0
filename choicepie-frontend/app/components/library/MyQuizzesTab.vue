@@ -51,6 +51,7 @@
           @publish="handlePublish"
           @unpublish="handleUnpublish"
           @archive="handleArchive"
+          @unarchive="handleUnarchive"
           @delete="handleDelete"
         />
       </NuxtLink>
@@ -132,6 +133,16 @@ const handleArchive = async (id: string) => {
   pendingId.value = id
   try {
     await quizStore.archiveQuiz(id)
+    await quizStore.fetchQuizzes({ mine: true })
+  } finally {
+    pendingId.value = null
+  }
+}
+
+const handleUnarchive = async (id: string) => {
+  pendingId.value = id
+  try {
+    await quizStore.unarchiveQuiz(id)
     await quizStore.fetchQuizzes({ mine: true })
   } finally {
     pendingId.value = null

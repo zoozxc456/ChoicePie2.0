@@ -744,13 +744,15 @@
     "status": {
       "published": "已發布",
       "draft": "草稿",
-      "archived": "已封存"
+      "archived": "已封存",
+      "takenDown": "已下架"
     },
     "actions": {
       "edit": "編輯",
       "publish": "發布",
       "unpublish": "取消發布",
       "archive": "封存",
+      "unarchive": "取消封存",
       "delete": "刪除"
     },
     "deleteConfirm": {

@@ -182,6 +182,12 @@ export const useQuizStore = defineStore('quiz', () => {
     return currentQuiz.value
   }
 
+  const unarchiveQuiz = async (id: string) => {
+    const data = await quizApi.unarchiveQuiz(id)
+    currentQuiz.value = toQuiz(data)
+    return currentQuiz.value
+  }
+
   // ── 收藏 ──
 
   const fetchFavoriteStatus = async (id: string) => {
@@ -418,7 +424,7 @@ export const useQuizStore = defineStore('quiz', () => {
     generateQuestions, saveQuiz,
     updateQuiz, deleteQuiz,
     addQuestion, updateQuestion, removeQuestion,
-    publishQuiz, unpublishQuiz, archiveQuiz,
+    publishQuiz, unpublishQuiz, archiveQuiz, unarchiveQuiz,
     fetchFavoriteStatus, toggleFavorite,
     fetchComments, fetchMoreComments, addComment, updateComment, deleteComment,
     fetchRelatedQuizzes,

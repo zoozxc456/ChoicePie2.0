@@ -744,13 +744,15 @@
     "status": {
       "published": "Published",
       "draft": "Draft",
-      "archived": "Archived"
+      "archived": "Archived",
+      "takenDown": "Taken Down"
     },
     "actions": {
       "edit": "Edit",
       "publish": "Publish",
       "unpublish": "Unpublish",
       "archive": "Archive",
+      "unarchive": "Unarchive",
       "delete": "Delete"
     },
     "deleteConfirm": {

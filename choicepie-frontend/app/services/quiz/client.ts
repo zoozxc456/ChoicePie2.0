@@ -29,6 +29,8 @@ export const useQuizClientApi = () => {
       api.post<QuizDto>(`/api/v1/quizzes/${id}/unpublish`),
     archiveQuiz: (id: string) =>
       api.post<QuizDto>(`/api/v1/quizzes/${id}/archive`),
+    unarchiveQuiz: (id: string) =>
+      api.post<QuizDto>(`/api/v1/quizzes/${id}/unarchive`),
     generateQuestions: (content: string, questionCount: 3 | 5 | 10, difficulty: Difficulty) =>
       api.post<GenerateQuestionsResultDto>('/api/v1/quizzes/generate-questions', { content, questionCount, difficulty }),
     saveQuiz: (payload: { title: string, description: string | null, coverEmoji: string, coverGradient: string, difficulty: Difficulty, tags: string[], questions: CreateQuestionRequestItem[] }) =>

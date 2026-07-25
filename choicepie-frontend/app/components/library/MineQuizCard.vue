@@ -52,7 +52,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'publish' | 'unpublish' | 'archive' | 'delete', quizId: string): void
+  (e: 'publish' | 'unpublish' | 'archive' | 'unarchive' | 'delete', quizId: string): void
 }
 
 const props = defineProps<Props>()
@@ -63,13 +63,15 @@ const { t } = useI18n()
 const statusLabel = computed(() => ({
   Published: t('myQuizzes.status.published'),
   Draft: t('myQuizzes.status.draft'),
-  Archived: t('myQuizzes.status.archived')
+  Archived: t('myQuizzes.status.archived'),
+  TakenDown: t('myQuizzes.status.takenDown')
 }[props.quiz.status] ?? props.quiz.status))
 
 const statusBadgeClass = computed(() => ({
   Published: 'bg-success-100 text-success-800',
   Draft: 'bg-neutral-100 text-neutral-600',
-  Archived: 'bg-warning-100 text-warning-800'
+  Archived: 'bg-warning-100 text-warning-800',
+  TakenDown: 'bg-error-100 text-error-800'
 }[props.quiz.status] ?? 'bg-neutral-100 text-neutral-600'))
 
 const cardActions = (quiz: Quiz): DropdownMenuItem[] => ([
@@ -88,10 +90,15 @@ const cardActions = (quiz: Quiz): DropdownMenuItem[] => ([
     icon: 'i-lucide-eye-off',
     onSelect: () => emit('unpublish', quiz.id)
   },
-  quiz.status !== 'Archived' && {
+  quiz.status !== 'Archived' && quiz.status !== 'TakenDown' && {
     label: t('myQuizzes.actions.archive'),
     icon: 'i-lucide-archive',
     onSelect: () => emit('archive', quiz.id)
+  },
+  quiz.status === 'Archived' && {
+    label: t('myQuizzes.actions.unarchive'),
+    icon: 'i-lucide-archive-restore',
+    onSelect: () => emit('unarchive', quiz.id)
   },
   {
     label: t('myQuizzes.actions.delete'),
