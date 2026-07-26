@@ -29,7 +29,7 @@ const toQuiz = (dto: QuizDto): Quiz => ({
   questions: dto.questions.map(toQuestion),
   questionIds: dto.questionStubs.map(q => q.id),
   tags: dto.tags,
-  isPublic: dto.status === 'Published',
+  isPublic: dto.status === 'published',
   status: dto.status,
   shareCount: dto.shareCount,
   createdAt: dto.createdAt,
@@ -52,7 +52,7 @@ const toQuizFromSummary = (dto: QuizSummaryDto): Quiz => ({
   questions: [],
   questionIds: [],
   tags: dto.tags,
-  isPublic: dto.status === 'Published',
+  isPublic: dto.status === 'published',
   status: dto.status,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt

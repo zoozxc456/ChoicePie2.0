@@ -23,7 +23,7 @@ const makeQuizDto = (overrides: Partial<QuizDto> = {}): QuizDto => ({
   coverEmoji: '📝',
   coverGradient: 'linear-gradient(135deg,#0f3460,#533483)',
   difficulty: 'beginner',
-  status: 'Draft',
+  status: 'draft',
   challengeCount: 0,
   passRate: 0,
   creatorId: 'creator-1',
@@ -46,7 +46,7 @@ const makeQuizSummaryDto = (overrides: Partial<QuizSummaryDto> = {}): QuizSummar
   coverEmoji: '📝',
   coverGradient: 'linear-gradient(135deg,#0f3460,#533483)',
   difficulty: 'beginner',
-  status: 'Published',
+  status: 'published',
   questionCount: 3,
   challengeCount: 0,
   passRate: 0,
@@ -144,7 +144,7 @@ describe('useQuizStore', () => {
         id: 'quiz-1', title: 'Old', coverEmoji: '📝', coverGradient: 'g',
         difficulty: 'beginner', questionCount: 0, challengeCount: 0, passRate: 0,
         creatorId: 'c1', creatorName: 'Alice', questions: [], questionIds: [], tags: [],
-        isPublic: false, status: 'Draft', createdAt: 't', updatedAt: 't'
+        isPublic: false, status: 'draft', createdAt: 't', updatedAt: 't'
       })
       updateQuiz.mockResolvedValue(makeQuizDto({ title: 'New Title' }))
 
@@ -160,7 +160,7 @@ describe('useQuizStore', () => {
         id: 'quiz-2', title: 'Other', coverEmoji: '📝', coverGradient: 'g',
         difficulty: 'beginner', questionCount: 0, challengeCount: 0, passRate: 0,
         creatorId: 'c1', creatorName: 'Alice', questions: [], questionIds: [], tags: [],
-        isPublic: false, status: 'Draft', createdAt: 't', updatedAt: 't'
+        isPublic: false, status: 'draft', createdAt: 't', updatedAt: 't'
       })
       updateQuiz.mockResolvedValue(makeQuizDto({ id: 'quiz-1', title: 'New Title' }))
 
@@ -178,7 +178,7 @@ describe('useQuizStore', () => {
         id: 'quiz-1', title: 'Sample', coverEmoji: '📝', coverGradient: 'g',
         difficulty: 'beginner', questionCount: 0, challengeCount: 0, passRate: 0,
         creatorId: 'c1', creatorName: 'Alice', questions: [], questionIds: [], tags: [],
-        isPublic: false, status: 'Draft', createdAt: 't', updatedAt: 't'
+        isPublic: false, status: 'draft', createdAt: 't', updatedAt: 't'
       })
       store.setCurrentQuiz(store.quizzes[0]!)
 
@@ -488,7 +488,7 @@ describe('useQuizStore', () => {
         id: 'quiz-old', title: 'Old', coverEmoji: '📝', coverGradient: 'g',
         difficulty: 'beginner', questionCount: 0, challengeCount: 0, passRate: 0,
         creatorId: 'c1', creatorName: 'Alice', questions: [], questionIds: [], tags: [],
-        isPublic: false, status: 'Draft', createdAt: 't', updatedAt: 't'
+        isPublic: false, status: 'draft', createdAt: 't', updatedAt: 't'
       })
 
       const result = await store.saveQuiz(
