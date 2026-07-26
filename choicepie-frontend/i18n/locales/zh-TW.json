@@ -286,9 +286,6 @@
       "title": "✨ 沒有現成題庫？讓 AI 幫你在幾秒內出題",
       "subtitle": "貼上文字或網址，AI 自動生成 4 選 1 問答遊戲",
       "cta": "開始出題 →"
-    },
-    "card": {
-      "questions": "{count} 道題"
     }
   },
   "history": {
@@ -357,7 +354,6 @@
     "challenges": "{count} 人挑戰",
     "passRate": "平均答對率 {rate}%",
     "passRateBadge": "答對率 {rate}%",
-    "useForGame": "⚡ 用於遊戲",
     "soloPractice": "📝 單人練習",
     "status": {
       "published": "已發布",
@@ -738,9 +734,6 @@
     "empty": "還沒有建立任何題庫耶！",
     "emptyDesc": "出一組題目，開始你的第一個題庫吧",
     "emptyCta": "✨ 建立新題庫",
-    "card": {
-      "questions": "{count} 道題"
-    },
     "status": {
       "published": "已發布",
       "draft": "草稿",

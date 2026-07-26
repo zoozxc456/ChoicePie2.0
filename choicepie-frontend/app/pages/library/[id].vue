@@ -35,21 +35,15 @@
     <!-- ── Action bar ── -->
     <div class="flex items-center gap-3 px-8 py-5 bg-white rounded-b-2xl mb-6 flex-wrap shadow-cp-md">
       <button
-        class="w-14 h-14 rounded-full flex items-center justify-center text-2xl text-white shrink-0 bg-primary-500 transition-transform hover:scale-105"
+        class="w-11 h-11 rounded-full flex items-center justify-center text-lg text-white shrink-0 bg-primary-500 cursor-pointer transition-transform hover:scale-110 hover:rotate-6"
         @click="isStartModalOpen = true"
       >
         ▶
       </button>
 
       <button
-        class="h-10 px-4 rounded-full text-[13px] font-semibold text-white bg-secondary-800 whitespace-nowrap"
-        @click="isStartModalOpen = true"
-      >
-        {{ t('libraryDetail.useForGame') }}
-      </button>
-      <button
         v-if="isOwner"
-        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer"
         :disabled="isStartingAttempt"
         @click="handleSoloPractice"
       >
@@ -57,7 +51,7 @@
       </button>
 
       <button
-        class="h-10 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap disabled:opacity-60"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap cursor-pointer disabled:opacity-60"
         :class="quizStore.isFavorited
           ? 'border-error-200 bg-error-100 text-error-800'
           : 'border-neutral-200 bg-white'"
@@ -67,6 +61,25 @@
         {{ quizStore.isFavorited ? `♥ ${t('libraryDetail.favorite.remove')}` : `♡ ${t('libraryDetail.favorite.add')}` }}
       </button>
 
+      <button
+        v-if="isOwner && quiz.status !== 'published'"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold text-white bg-primary-500 whitespace-nowrap cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+        :disabled="isTogglingStatus"
+        @click="handlePublish"
+      >
+        <UIcon name="i-lucide-upload" />
+        {{ t('libraryDetail.status.publishAction') }}
+      </button>
+      <button
+        v-if="isOwner && quiz.status === 'published'"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+        :disabled="isTogglingStatus"
+        @click="handleUnpublish"
+      >
+        <UIcon name="i-lucide-eye-off" />
+        {{ t('libraryDetail.status.unpublishAction') }}
+      </button>
+
       <ShareMenu
         :quiz-id="quiz.id"
         :quiz-title="quiz.title"
@@ -74,7 +87,7 @@
 
       <button
         v-if="!isOwner && auth.isLoggedIn"
-        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap disabled:opacity-60"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer disabled:opacity-60"
         :disabled="quizStore.hasReported"
         @click="isReportModalOpen = true"
       >
@@ -82,22 +95,6 @@
       </button>
 
       <div class="ml-auto flex gap-2 items-center">
-        <button
-          v-if="isOwner && quiz.status !== 'Published'"
-          class="h-8 px-3.5 rounded-full text-[13px] font-semibold text-white bg-primary-500 whitespace-nowrap disabled:opacity-60"
-          :disabled="isTogglingStatus"
-          @click="handlePublish"
-        >
-          {{ t('libraryDetail.status.publishAction') }}
-        </button>
-        <button
-          v-if="isOwner && quiz.status === 'Published'"
-          class="h-8 px-3.5 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap disabled:opacity-60"
-          :disabled="isTogglingStatus"
-          @click="handleUnpublish"
-        >
-          {{ t('libraryDetail.status.unpublishAction') }}
-        </button>
         <span
           v-if="isOwner"
           class="text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap"
@@ -202,7 +199,7 @@
           </p>
           <button
             v-if="!isOwner && creatorStore.profile"
-            class="h-8 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap disabled:opacity-60"
+            class="h-8 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap cursor-pointer disabled:opacity-60"
             :class="creatorStore.profile.isFollowing
               ? 'border-neutral-200 bg-white'
               : 'border-transparent bg-primary-500 text-white'"
@@ -278,7 +275,7 @@
                     v-for="option in timeLimitOptions"
                     :key="option"
                     type="button"
-                    class="h-8 px-3 rounded-full text-xs font-semibold transition-colors"
+                    class="h-8 px-3 rounded-full text-xs font-semibold cursor-pointer transition-colors"
                     :class="option === timeLimit
                       ? 'bg-primary-500 text-white'
                       : 'bg-neutral-100 text-neutral-600'"
@@ -384,15 +381,15 @@ const difficultyClass = computed(() => ({
 const isOwner = computed(() => !!auth.user && auth.user.id === quiz.value?.creatorId)
 
 const statusLabel = computed(() => ({
-  Published: t('libraryDetail.status.published'),
-  Draft: t('libraryDetail.status.draft'),
-  Archived: t('libraryDetail.status.archived')
+  published: t('libraryDetail.status.published'),
+  draft: t('libraryDetail.status.draft'),
+  archived: t('libraryDetail.status.archived')
 }[quiz.value?.status ?? ''] ?? quiz.value?.status))
 
 const statusBadgeClass = computed(() => ({
-  Published: 'bg-success-100 text-success-800',
-  Draft: 'bg-neutral-100 text-neutral-600',
-  Archived: 'bg-warning-100 text-warning-800'
+  published: 'bg-success-100 text-success-800',
+  draft: 'bg-neutral-100 text-neutral-600',
+  archived: 'bg-warning-100 text-warning-800'
 }[quiz.value?.status ?? ''] ?? 'bg-neutral-100 text-neutral-600'))
 
 const handlePublish = async () => {

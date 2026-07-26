@@ -4,7 +4,7 @@
       :items="shareActions"
       :content="{ align: 'start' }"
     >
-      <button class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap">
+      <button class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer">
         {{ t('libraryDetail.share.action') }}
       </button>
     </UDropdownMenu>

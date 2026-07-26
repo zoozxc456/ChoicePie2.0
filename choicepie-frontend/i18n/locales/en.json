@@ -286,9 +286,6 @@
       "title": "✨ No quiz ready? Let AI generate one in seconds",
       "subtitle": "Paste text or a URL and AI will create a 4-choice quiz for you",
       "cta": "Start generating →"
-    },
-    "card": {
-      "questions": "{count} questions"
     }
   },
   "history": {
@@ -357,7 +354,6 @@
     "challenges": "{count} plays",
     "passRate": "Avg. pass rate {rate}%",
     "passRateBadge": "Pass rate {rate}%",
-    "useForGame": "⚡ Use in Game",
     "soloPractice": "📝 Solo Practice",
     "status": {
       "published": "Published",
@@ -738,9 +734,6 @@
     "empty": "You haven't created any quizzes yet!",
     "emptyDesc": "Write a set of questions to create your first quiz",
     "emptyCta": "✨ Create a Quiz",
-    "card": {
-      "questions": "{count} questions"
-    },
     "status": {
       "published": "Published",
       "draft": "Draft",
