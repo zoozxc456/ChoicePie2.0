@@ -11,10 +11,6 @@
         <p class="text-sm font-bold truncate block hover:underline">
           {{ quiz.title }}
         </p>
-
-        <p class="text-xs text-neutral-400 mt-0.5">
-          {{ t('myQuizzes.card.questions', { count: quiz.questionCount }) }}
-        </p>
       </div>
       <span
         class="text-[11px] px-2 py-1 rounded-full font-semibold whitespace-nowrap shrink-0"
@@ -61,17 +57,17 @@ const emit = defineEmits<Emits>()
 const { t } = useI18n()
 
 const statusLabel = computed(() => ({
-  Published: t('myQuizzes.status.published'),
-  Draft: t('myQuizzes.status.draft'),
-  Archived: t('myQuizzes.status.archived'),
-  TakenDown: t('myQuizzes.status.takenDown')
+  published: t('myQuizzes.status.published'),
+  draft: t('myQuizzes.status.draft'),
+  archived: t('myQuizzes.status.archived'),
+  takendown: t('myQuizzes.status.takenDown')
 }[props.quiz.status] ?? props.quiz.status))
 
 const statusBadgeClass = computed(() => ({
-  Published: 'bg-success-100 text-success-800',
-  Draft: 'bg-neutral-100 text-neutral-600',
-  Archived: 'bg-warning-100 text-warning-800',
-  TakenDown: 'bg-error-100 text-error-800'
+  published: 'bg-success-100 text-success-800',
+  draft: 'bg-neutral-100 text-neutral-600',
+  archived: 'bg-warning-100 text-warning-800',
+  takendown: 'bg-error-100 text-error-800'
 }[props.quiz.status] ?? 'bg-neutral-100 text-neutral-600'))
 
 const cardActions = (quiz: Quiz): DropdownMenuItem[] => ([
@@ -80,22 +76,22 @@ const cardActions = (quiz: Quiz): DropdownMenuItem[] => ([
     icon: 'i-lucide-pencil',
     to: `/library/mine/${quiz.id}/edit`
   },
-  quiz.status !== 'Published' && {
+  quiz.status !== 'published' && {
     label: t('myQuizzes.actions.publish'),
     icon: 'i-lucide-upload',
     onSelect: () => emit('publish', quiz.id)
   },
-  quiz.status === 'Published' && {
+  quiz.status === 'published' && {
     label: t('myQuizzes.actions.unpublish'),
     icon: 'i-lucide-eye-off',
     onSelect: () => emit('unpublish', quiz.id)
   },
-  quiz.status !== 'Archived' && quiz.status !== 'TakenDown' && {
+  quiz.status !== 'archived' && quiz.status !== 'takendown' && {
     label: t('myQuizzes.actions.archive'),
     icon: 'i-lucide-archive',
     onSelect: () => emit('archive', quiz.id)
   },
-  quiz.status === 'Archived' && {
+  quiz.status === 'archived' && {
     label: t('myQuizzes.actions.unarchive'),
     icon: 'i-lucide-archive-restore',
     onSelect: () => emit('unarchive', quiz.id)
