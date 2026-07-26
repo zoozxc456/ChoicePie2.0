@@ -96,15 +96,18 @@ public class StartQuizAttemptCommandHandlerTests
     }
 
     [Test]
-    public void Handle_GivenNonOwner_WhenCalled_ThenThrowsQuizForbiddenException()
+    public async Task Handle_GivenNonOwner_WhenCalled_ThenStartsAttemptSuccessfully()
     {
+        // 單人練習的目的就是挑戰別人發布的題庫，非擁有者不該被拒絕——擁有者身分檢查只適用於
+        // 題庫管理操作（編輯/下架等），不適用於開始挑戰。
         var othersQuiz = Quiz.Create(Guid.NewGuid(), "Someone Else's Quiz", null, "⚓", "g", Difficulty.Beginner, []);
         othersQuiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
         othersQuiz.Publish();
         _quizRepository.GetByIdAsync(othersQuiz.Id, Arg.Any<CancellationToken>()).Returns(othersQuiz);
 
-        Assert.ThrowsAsync<QuizForbiddenException>(() =>
-            _sut.Handle(new StartQuizAttemptCommand(othersQuiz.Id), CancellationToken.None));
+        var result = await _sut.Handle(new StartQuizAttemptCommand(othersQuiz.Id), CancellationToken.None);
+
+        Assert.That(result.AttemptId, Is.Not.EqualTo(Guid.Empty));
     }
 
     [Test]
