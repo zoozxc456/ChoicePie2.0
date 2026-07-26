@@ -1,62 +1,24 @@
 <template>
-  <div
-    v-if="adminAuth.adminUser"
-    class="max-w-2xl mx-auto rounded-2xl bg-white border border-neutral-200 p-6"
-  >
-    <h1 class="text-lg font-extrabold mb-4">
+  <div v-if="adminAuth.adminUser">
+    <h2 class="text-xl font-extrabold mb-1">
       {{ t('adminDashboard.welcome', { name: adminAuth.adminUser.name }) }}
-    </h1>
-    <dl class="flex flex-col gap-2 text-sm">
-      <div class="flex justify-between">
-        <dt class="text-neutral-500">
-          {{ t('adminDashboard.email') }}
-        </dt>
-        <dd>{{ adminAuth.adminUser.email }}</dd>
-      </div>
-      <div class="flex justify-between">
-        <dt class="text-neutral-500">
-          {{ t('adminDashboard.role') }}
-        </dt>
-        <dd>{{ adminAuth.adminUser.role }}</dd>
-      </div>
-    </dl>
+    </h2>
+    <p class="text-sm text-neutral-500 mb-6">
+      {{ adminAuth.adminUser.email }} · {{ adminAuth.adminUser.role }}
+    </p>
 
-    <div class="flex flex-wrap gap-3 mt-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <NuxtLink
-        to="/admin/quizzes"
-        class="flex-1 min-w-36"
+        v-for="card in navCards"
+        :key="card.to"
+        :to="card.to"
+        class="rounded-2xl bg-white border border-neutral-200 p-5 flex flex-col gap-3 hover:border-primary-300 hover:shadow-cp-md transition"
       >
-        <UButton
-          block
-          color="primary"
-          variant="soft"
-        >
-          {{ t('adminDashboard.nav.quizzes') }}
-        </UButton>
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/members"
-        class="flex-1 min-w-36"
-      >
-        <UButton
-          block
-          color="primary"
-          variant="soft"
-        >
-          {{ t('adminDashboard.nav.members') }}
-        </UButton>
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/quiz-reports"
-        class="flex-1 min-w-36"
-      >
-        <UButton
-          block
-          color="primary"
-          variant="soft"
-        >
-          {{ t('adminDashboard.nav.quizReports') }}
-        </UButton>
+        <UIcon
+          :name="card.icon"
+          class="text-2xl text-primary-500"
+        />
+        <span class="font-bold text-sm">{{ card.label }}</span>
       </NuxtLink>
     </div>
   </div>
@@ -67,6 +29,12 @@ definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
 
 const { t } = useI18n()
 const adminAuth = useAdminAuthStore()
+
+const navCards = computed(() => [
+  { to: '/admin/quizzes', icon: 'i-lucide-book-open', label: t('adminDashboard.nav.quizzes') },
+  { to: '/admin/members', icon: 'i-lucide-users', label: t('adminDashboard.nav.members') },
+  { to: '/admin/quiz-reports', icon: 'i-lucide-flag', label: t('adminDashboard.nav.quizReports') }
+])
 </script>
 
 <script lang="ts">
