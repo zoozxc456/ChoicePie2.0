@@ -17,6 +17,8 @@ export default defineNuxtConfig({
   },
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
+    // Nitro server routes 用來呼叫真正後端的位址（server-only，不會被打包進前端 bundle）。
+    backendApiUrl: 'https://choicepie-dev-api.minjie.demo',
     public: {
       apiBaseUrl: 'https://choicepie-dev-api.minjie.demo',
       googleClientId: ''

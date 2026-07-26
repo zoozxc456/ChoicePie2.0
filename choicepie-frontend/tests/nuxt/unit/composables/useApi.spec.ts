@@ -38,7 +38,6 @@ describe('useApi', () => {
       expect(result).toEqual({ id: '1' })
       expect(fetchMock).toHaveBeenCalledWith('/api/v1/quizzes/1', expect.objectContaining({
         method: 'GET',
-        baseURL: 'https://api.example.test',
         credentials: 'include'
       }))
     })
@@ -141,18 +140,18 @@ describe('useApi', () => {
       expect(fetchMock).toHaveBeenCalledTimes(2)
     })
 
-    it('refresh 失敗時呼叫 logout 並拋出原始 401 錯誤', async () => {
+    it('refresh 失敗時清除 session 並導向 /login，不拋出錯誤', async () => {
       const fetchMe = vi.fn().mockResolvedValue(false)
-      const logout = vi.fn().mockResolvedValue(undefined)
-      useAuthStoreMock.mockReturnValue({ fetchMe, logout })
+      const clearSession = vi.fn()
+      useAuthStoreMock.mockReturnValue({ fetchMe, clearSession, logout: vi.fn() })
       fetchMock.mockRejectedValue(fetchError(401))
       const { useApi } = await importUseApi()
       const api = useApi()
 
-      await expect(api.get('/api/v1/quizzes/1')).rejects.toMatchObject({ status: 401 })
+      await expect(api.get('/api/v1/quizzes/1')).resolves.toBeUndefined()
 
       expect(fetchMe).toHaveBeenCalledTimes(1)
-      expect(logout).toHaveBeenCalledWith('/')
+      expect(clearSession).toHaveBeenCalledTimes(1)
     })
 
     it('retry 後仍 401 時直接拋出，不會無限重試', async () => {
@@ -203,7 +202,7 @@ describe('useApi', () => {
 
   describe('admin 401 refresh 流程', () => {
     it('admin 路徑 401 時使用 useAdminAuthStore 而非 useAuthStore', async () => {
-      const fetchMe = vi.fn().mockResolvedValue(true)
+      const fetchMe = vi.fn().mockResolvedValue({ success: true })
       const memberFetchMe = vi.fn()
       useAdminAuthStoreMock.mockReturnValue({ fetchMe, logout: vi.fn() })
       useAuthStoreMock.mockReturnValue({ fetchMe: memberFetchMe, logout: vi.fn() })
@@ -220,17 +219,17 @@ describe('useApi', () => {
       expect(memberFetchMe).not.toHaveBeenCalled()
     })
 
-    it('admin refresh 失敗時呼叫 admin logout 並導向 /admin/login', async () => {
-      const fetchMe = vi.fn().mockResolvedValue(false)
-      const logout = vi.fn().mockResolvedValue(undefined)
-      useAdminAuthStoreMock.mockReturnValue({ fetchMe, logout })
+    it('admin refresh 失敗時清除 admin session，不拋出錯誤', async () => {
+      const fetchMe = vi.fn().mockResolvedValue({ success: false })
+      const clearSession = vi.fn()
+      useAdminAuthStoreMock.mockReturnValue({ fetchMe, clearSession, logout: vi.fn() })
       fetchMock.mockRejectedValue(fetchError(401))
       const { useApi } = await importUseApi()
       const api = useApi()
 
-      await expect(api.get('/api/v1/admin/users/1')).rejects.toMatchObject({ status: 401 })
+      await expect(api.get('/api/v1/admin/users/1')).resolves.toBeUndefined()
 
-      expect(logout).toHaveBeenCalledWith('/admin/login')
+      expect(clearSession).toHaveBeenCalledTimes(1)
     })
 
     it('admin refresh/logout 端點本身 401 不觸發 refresh，直接拋出', async () => {

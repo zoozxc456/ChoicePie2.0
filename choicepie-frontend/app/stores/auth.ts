@@ -12,6 +12,14 @@ const toUser = (member: MemberDto): User => ({
   createdAt: member.createdAt
 })
 
+// fetchMe() 的呼叫來源不只一處（useApi.ts 的 401 重試、useGameRoom.ts 的 SignalR 定時 refresh、
+// auth middleware），彼此互不知情。refresh token 在後端是一次性輪替的，若兩邊幾乎同時各自打
+// /api/v1/auth/refresh，會用同一顆 refresh token 送兩次：第一個成功並輪替掉舊 token，第二個
+// 用同一顆已撤銷的舊 token 送出去必然 401，BFF 收到 401 又會把剛寫入的新 session cookie 清掉，
+// 使用者因此被誤判登出。用模組層級的 in-flight promise 讓所有呼叫來源共用同一次 fetchMe()，
+// 從根本避免併發送出多個 refresh 請求。
+let fetchMePromise: Promise<boolean> | null = null
+
 export const useAuthStore = defineStore('auth', () => {
   const authApi = useAuthClientApi()
 
@@ -72,7 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 只有 access token 已過期（/me 失敗）時才 fallback 打 /refresh 換發新 token。
   // 避免每次進頁面都 rotate refresh token，導致同一次 SSR render 內其他請求
   // 用到已被替換的舊 cookie 而失敗。
-  const fetchMe = async () => {
+  const fetchMeInternal = async () => {
     try {
       const member = await authApi.me()
       user.value = toUser(member)
@@ -89,6 +97,15 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       return false
     }
+  }
+
+  // 見檔案頂部 fetchMePromise 註解：多個呼叫來源共用同一次 in-flight 請求，避免併發 refresh
+  // 用同一顆一次性 refresh token 送兩次而互相打架。
+  const fetchMe = () => {
+    fetchMePromise ??= fetchMeInternal().finally(() => {
+      fetchMePromise = null
+    })
+    return fetchMePromise
   }
 
   const setUser = (u: User) => {

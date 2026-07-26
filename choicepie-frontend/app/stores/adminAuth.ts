@@ -12,6 +12,17 @@ const toAdminUser = (dto: AdminUserDto): AdminUser => ({
   createdAt: dto.createdAt
 })
 
+export interface FetchMeResult {
+  success: boolean
+  // refresh 成功時的新 access token，供 useApi.ts 401 retry 時顯式帶上（x-fresh-access-token）——
+  // retry 走的是全新的 SSR sub-request，讀不到這次 refresh 剛寫入的 cookie，見 [...path].ts 註解。
+  accessToken?: string
+}
+
+// 見 stores/auth.ts 的同名變數註解：多個呼叫來源（useApi.ts 401 重試、admin-auth middleware）
+// 共用同一次 in-flight fetchMe()，避免併發 refresh 用同一顆一次性 refresh token 送兩次而互撞。
+let fetchMePromise: Promise<FetchMeResult> | null = null
+
 export const useAdminAuthStore = defineStore('adminAuth', () => {
   const adminAuthApi = useAdminAuthClientApi()
 
@@ -50,23 +61,30 @@ export const useAdminAuthStore = defineStore('adminAuth', () => {
   // 只有 access token 已過期（/me 失敗）時才 fallback 打 /refresh 換發新 token。
   // 避免每次進頁面都 rotate refresh token，導致同一次 SSR render 內其他請求
   // 用到已被替換的舊 cookie 而失敗。
-  const fetchMe = async () => {
+  const fetchMeInternal = async (): Promise<FetchMeResult> => {
     try {
       const dto = await adminAuthApi.me()
       adminUser.value = toAdminUser(dto)
-      return true
+      return { success: true }
     } catch {
       // 忽略，繼續嘗試 refresh
     }
 
     try {
-      const dto = await adminAuthApi.refresh()
+      const { adminUser: dto, accessToken } = await adminAuthApi.refresh()
       adminUser.value = toAdminUser(dto)
-      return true
+      return { success: true, accessToken }
     } catch {
       adminUser.value = null
-      return false
+      return { success: false }
     }
+  }
+
+  const fetchMe = () => {
+    fetchMePromise ??= fetchMeInternal().finally(() => {
+      fetchMePromise = null
+    })
+    return fetchMePromise
   }
 
   return {

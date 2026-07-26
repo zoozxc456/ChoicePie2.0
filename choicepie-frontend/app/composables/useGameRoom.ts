@@ -20,11 +20,21 @@ const stopTokenRefreshLoop = () => {
   }
 }
 
+/**
+ * SignalR 是瀏覽器直連後端的 WebSocket，用的是後端自己發的 access_token cookie（httpOnly），
+ * 不是本站 Nitro BFF 的 session cookie。後端的 /auth/refresh 現在只認 X-Refresh-Token header，
+ * 而該 refresh token 只存在 Nitro 自己的 session 裡（httpOnly，瀏覽器 JS 拿不到），沒辦法直接
+ * 跨網域打後端 refresh。改走 useAuthStore().fetchMe()（BFF 的 /api/v1/auth/refresh）：
+ * BFF 呼叫後端 refresh 時會把後端回應的 Set-Cookie 轉發回瀏覽器（見 server/utils/backendFetch.ts
+ * 的 forwardSetCookie），所以呼叫 BFF 一樣能把瀏覽器手上的後端 access_token cookie 輪替、延長。
+ */
+const refreshBackendCookie = () => useAuthStore().fetchMe()
+
 const startTokenRefreshLoop = () => {
   if (_tokenRefreshTimer) return
   _tokenRefreshTimer = setInterval(async () => {
     if (!useAuthStore().isLoggedIn) return
-    const refreshed = await useAuthStore().fetchMe()
+    const refreshed = await refreshBackendCookie()
     if (!refreshed) stopTokenRefreshLoop()
   }, TOKEN_REFRESH_INTERVAL_MS)
 }
@@ -133,7 +143,7 @@ export const useGameRoom = () => {
     } catch (e) {
       const isUnauthorized = e instanceof signalR.HttpError && e.statusCode === 401
       if (isUnauthorized && !isRetry) {
-        const refreshed = await useAuthStore().fetchMe()
+        const refreshed = await refreshBackendCookie()
         if (refreshed) return connect(true)
         await useAuthStore().logout('/')
         return

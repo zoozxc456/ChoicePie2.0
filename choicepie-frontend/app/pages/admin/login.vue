@@ -75,7 +75,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { ApiError } from '~/composables/useApi'
 import { useAdminLoginSchema, type AdminLoginSchema } from '~/types/adminAuth'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: false })
 
 const { t } = useI18n()
 const adminLoginSchema = useAdminLoginSchema()
@@ -90,7 +90,7 @@ const redirect = computed(() => (route.query.redirect as string) || '/admin')
 // persisted 的 isLoggedIn 只代表「曾經登入過」，須用 fetchMe() 實際驗證 session 是否仍有效，
 // 避免 session 過期時在登入頁與受保護頁之間形成 redirect loop。
 if (adminAuth.isLoggedIn) {
-  const verified = await adminAuth.fetchMe()
+  const { success: verified } = await adminAuth.fetchMe()
   if (verified) {
     await navigateTo(redirect.value)
   }
