@@ -699,7 +699,12 @@
     "rank": "第 {rank} 名",
     "score": "{score} 分",
     "you": "(你)",
-    "loading": "載入中..."
+    "loading": "載入中...",
+    "pagination": {
+      "summary": "第 {current} / {total} 頁",
+      "previous": "上一頁",
+      "next": "下一頁"
+    }
   },
   "attempt": {
     "question": {

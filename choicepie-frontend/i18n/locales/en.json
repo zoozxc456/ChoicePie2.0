@@ -699,7 +699,12 @@
     "rank": "#{rank}",
     "score": "{score} pts",
     "you": "(you)",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "pagination": {
+      "summary": "Page {current} of {total}",
+      "previous": "Previous",
+      "next": "Next"
+    }
   },
   "attempt": {
     "question": {

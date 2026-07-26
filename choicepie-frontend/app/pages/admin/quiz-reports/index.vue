@@ -96,6 +96,12 @@
       </div>
     </div>
 
+    <AdminPagination
+      :page-number="pageNumber"
+      :total-pages="totalPages"
+      @update:page-number="handlePageChange"
+    />
+
     <ResolveQuizReportModal
       :open="isModalOpen"
       :action="modalAction"
@@ -118,11 +124,18 @@ const modalAction = ref<'resolve' | 'dismiss'>('resolve')
 const targetReportId = ref<string | null>(null)
 
 const reports = computed(() => adminQuizReportStore.reports?.items ?? [])
+const pageNumber = computed(() => adminQuizReportStore.reports?.pageNumber ?? 1)
+const totalPages = computed(() => adminQuizReportStore.reports?.totalPages
+  ?? Math.ceil((adminQuizReportStore.reports?.totalCount ?? 0) / (adminQuizReportStore.reports?.pageSize ?? 1)))
 
 await adminQuizReportStore.fetchReports({ status: statusFilter.value })
 
 const handleStatusChange = () => {
-  adminQuizReportStore.fetchReports({ status: statusFilter.value })
+  adminQuizReportStore.fetchReports({ status: statusFilter.value, pageNumber: 1 })
+}
+
+const handlePageChange = (page: number) => {
+  adminQuizReportStore.fetchReports({ status: statusFilter.value, pageNumber: page })
 }
 
 const statusBadgeClass = (status: string) => ({

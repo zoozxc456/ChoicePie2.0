@@ -87,6 +87,12 @@
       </div>
     </div>
 
+    <AdminPagination
+      :page-number="pageNumber"
+      :total-pages="totalPages"
+      @update:page-number="handlePageChange"
+    />
+
     <SuspendMemberModal
       :open="isModalOpen"
       :is-submitting="adminMemberStore.isSuspending"
@@ -108,6 +114,9 @@ const targetMemberId = ref<string | null>(null)
 let searchDebounce: ReturnType<typeof setTimeout> | null = null
 
 const members = computed(() => adminMemberStore.members?.items ?? [])
+const pageNumber = computed(() => adminMemberStore.members?.pageNumber ?? 1)
+const totalPages = computed(() => adminMemberStore.members?.totalPages
+  ?? Math.ceil((adminMemberStore.members?.totalCount ?? 0) / (adminMemberStore.members?.pageSize ?? 1)))
 
 await adminMemberStore.fetchMembers()
 
@@ -116,8 +125,12 @@ const formatDate = (iso: string) => new Date(iso).toLocaleDateString(locale.valu
 const handleSearchInput = () => {
   if (searchDebounce) clearTimeout(searchDebounce)
   searchDebounce = setTimeout(() => {
-    adminMemberStore.fetchMembers({ search: search.value || undefined })
+    adminMemberStore.fetchMembers({ search: search.value || undefined, pageNumber: 1 })
   }, 300)
+}
+
+const handlePageChange = (page: number) => {
+  adminMemberStore.fetchMembers({ search: search.value || undefined, pageNumber: page })
 }
 
 const openSuspendModal = (memberId: string) => {

@@ -79,6 +79,12 @@
       </div>
     </div>
 
+    <AdminPagination
+      :page-number="pageNumber"
+      :total-pages="totalPages"
+      @update:page-number="handlePageChange"
+    />
+
     <TakeDownQuizModal
       :open="isModalOpen"
       :is-submitting="adminQuizStore.isTakingDown"
@@ -100,14 +106,21 @@ const targetQuizId = ref<string | null>(null)
 let searchDebounce: ReturnType<typeof setTimeout> | null = null
 
 const quizzes = computed(() => adminQuizStore.quizzes?.items ?? [])
+const pageNumber = computed(() => adminQuizStore.quizzes?.pageNumber ?? 1)
+const totalPages = computed(() => adminQuizStore.quizzes?.totalPages
+  ?? Math.ceil((adminQuizStore.quizzes?.totalCount ?? 0) / (adminQuizStore.quizzes?.pageSize ?? 1)))
 
 await adminQuizStore.fetchQuizzes()
 
 const handleSearchInput = () => {
   if (searchDebounce) clearTimeout(searchDebounce)
   searchDebounce = setTimeout(() => {
-    adminQuizStore.fetchQuizzes({ search: search.value || undefined })
+    adminQuizStore.fetchQuizzes({ search: search.value || undefined, pageNumber: 1 })
   }, 300)
+}
+
+const handlePageChange = (page: number) => {
+  adminQuizStore.fetchQuizzes({ search: search.value || undefined, pageNumber: page })
 }
 
 const statusLabel = (status: string) => ({
