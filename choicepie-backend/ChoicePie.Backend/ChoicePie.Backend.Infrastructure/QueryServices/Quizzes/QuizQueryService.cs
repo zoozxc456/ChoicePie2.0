@@ -1,8 +1,10 @@
+using ChoicePie.Backend.Application.AdminQuizzes.Dtos;
 using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
+using ChoicePie.Backend.Domain.Aggregates.QuizFavorite;
 using ChoicePie.Backend.Shared.Application.Contracts;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Dependencies;
@@ -37,6 +39,42 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
                     q.Questions.Count,
                     q.Tags,
                     q.ShareCount,
+                    q.CreatedAt,
+                    q.LastModifiedAt))
+            .FirstOrDefault();
+
+        return Task.FromResult(quiz);
+    }
+
+    public Task<AdminQuizDetailDto?> AdminGetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var quiz =
+            (from q in readRepository.Query<Quiz>()
+                where q.Id == id
+                join m in readRepository.Query<Member>() on q.CreatorId!.Value equals m.Id into creatorGroup
+                from creator in creatorGroup.DefaultIfEmpty()
+                select new AdminQuizDetailDto(
+                    q.Id,
+                    q.Title,
+                    q.Description,
+                    q.Cover.Emoji,
+                    q.Cover.Gradient,
+                    q.Difficulty.Name,
+                    q.Status.Name.ToLower(),
+                    q.Stats.Count,
+                    q.Stats.PassRate,
+                    q.CreatorId!.Value,
+                    creator != null ? creator.Name : "Unknown",
+                    creator != null ? creator.Avatar : null,
+                    q.Questions.Select(question => new QuestionDto(question.Id, question.Text, question.Choices.Options,
+                        question.Choices.AnswerIndex, question.Explanation)).ToList(),
+                    q.Questions.Count,
+                    q.Tags,
+                    q.ShareCount,
+                    readRepository.Query<QuizFavorite>().Count(f => f.QuizId == q.Id),
+                    q.TakedownReason,
+                    q.TakedownBy,
+                    q.TakedownAt,
                     q.CreatedAt,
                     q.LastModifiedAt))
             .FirstOrDefault();

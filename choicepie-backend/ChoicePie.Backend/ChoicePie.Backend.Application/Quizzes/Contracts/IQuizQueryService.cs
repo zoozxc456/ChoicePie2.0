@@ -1,3 +1,4 @@
+using ChoicePie.Backend.Application.AdminQuizzes.Dtos;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
 using ChoicePie.Backend.Shared.Application.Contracts;
 
@@ -6,6 +7,10 @@ namespace ChoicePie.Backend.Application.Quizzes.Contracts;
 public interface IQuizQueryService
 {
     Task<QuizDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    // Admin-facing detail: includes takedown metadata and is not restricted by ownership,
+    // unlike GetByIdAsync/GetQuizByIdQueryHandler which strips Questions for non-owners.
+    Task<AdminQuizDetailDto?> AdminGetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<QuizForAttemptDto?> GetForAttemptAsync(Guid id, CancellationToken cancellationToken);
 

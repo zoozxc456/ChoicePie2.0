@@ -24,6 +24,13 @@ public class AdminMembersController(IMediator mediator) : ControllerBase
         return Ok(ResponseHelper.Success(result));
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<AdminMemberDetailDto>>> GetAsync(Guid id)
+    {
+        var result = await mediator.Send(new AdminGetMemberByIdQuery(id));
+        return Ok(ResponseHelper.Success(result));
+    }
+
     [HttpPost("{id:guid}/suspend")]
     public async Task<ActionResult<ApiResponse>> SuspendAsync(Guid id, [FromBody] SuspendMemberRequest request)
     {

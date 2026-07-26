@@ -1,6 +1,8 @@
 using Asp.Versioning;
 using ChoicePie.Backend.Application.AdminQuizzes.Commands;
+using ChoicePie.Backend.Application.AdminQuizzes.Dtos;
 using ChoicePie.Backend.Application.AdminQuizzes.Queries;
+using ChoicePie.Backend.Application.Comments.Dtos;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
 using ChoicePie.Backend.Shared.Application.Contracts;
 using ChoicePie.Backend.Shared.Hosting.API.Response;
@@ -20,6 +22,22 @@ public class AdminQuizzesController(IMediator mediator) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ApiResponse<PagedResult<QuizSummaryDto>>>> ListAsync([FromQuery] AdminListQuizzesQuery query)
     {
+        var result = await mediator.Send(query);
+        return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<AdminQuizDetailDto>>> GetAsync(Guid id)
+    {
+        var result = await mediator.Send(new AdminGetQuizByIdQuery(id));
+        return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpGet("{id:guid}/comments")]
+    public async Task<ActionResult<ApiResponse<PagedResult<CommentDto>>>> ListCommentsAsync(
+        Guid id, [FromQuery] AdminListCommentsByQuizIdQuery query)
+    {
+        query.QuizId = id;
         var result = await mediator.Send(query);
         return Ok(ResponseHelper.Success(result));
     }

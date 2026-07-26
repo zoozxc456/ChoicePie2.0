@@ -63,4 +63,33 @@ public sealed class MemberQueryService(IReadRepository readRepository) : IMember
 
         return Task.FromResult(new PagedResult<AdminMemberSummaryDto>(items, pageNumber, pageSize, totalCount));
     }
+
+    public Task<AdminMemberDetailDto> AdminGetByIdAsync(Guid memberId, CancellationToken cancellationToken)
+    {
+        var member = readRepository.Query<Member>()
+            .Where(m => m.Id == memberId)
+            .Select(m => new
+            {
+                m.Id, m.Name, m.Avatar, m.IsSuspended, m.SuspendedReason, m.SuspendedUntil,
+                m.LastAiGenerationAt, m.CreatedAt
+            })
+            .FirstOrDefault()
+            ?? throw new MemberNotFoundException(memberId);
+
+        var authAccount = readRepository.Query<AuthAccount>()
+            .Where(a => a.MemberId == memberId)
+            .Select(a => a.Email.Value)
+            .FirstOrDefault();
+
+        return Task.FromResult(new AdminMemberDetailDto(
+            member.Id,
+            member.Name,
+            authAccount ?? "Unknown",
+            member.Avatar,
+            member.IsSuspended,
+            member.SuspendedReason,
+            member.SuspendedUntil,
+            member.LastAiGenerationAt,
+            member.CreatedAt));
+    }
 }

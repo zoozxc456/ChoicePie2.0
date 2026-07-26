@@ -10,4 +10,6 @@ public interface IMemberQueryService
 
     Task<PagedResult<AdminMemberSummaryDto>> AdminListAsync(
         string? search, int pageNumber, int pageSize, CancellationToken cancellationToken);
+
+    Task<AdminMemberDetailDto> AdminGetByIdAsync(Guid memberId, CancellationToken cancellationToken);
 }
