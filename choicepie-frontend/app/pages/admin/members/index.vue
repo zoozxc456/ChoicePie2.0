@@ -1,16 +1,13 @@
 <template>
-  <div class="max-w-4xl mx-auto">
+  <div>
     <h1 class="text-lg font-extrabold mb-4">
       {{ t('adminMembers.title') }}
     </h1>
 
-    <input
+    <AdminSearchInput
       v-model="search"
-      type="text"
-      class="w-full rounded-xl border border-neutral-200 px-4 py-2 text-sm mb-4"
       :placeholder="t('adminMembers.searchPlaceholder')"
-      @input="handleSearchInput"
-    >
+    />
 
     <div
       v-if="adminMemberStore.isLoading"
@@ -36,9 +33,15 @@
       <div
         v-for="member in members"
         :key="member.id"
-        class="rounded-2xl bg-white border border-neutral-200 p-4"
+        class="relative rounded-2xl bg-white border border-neutral-200 p-4 transition-colors hover:border-primary-300 hover:bg-primary-50/40"
       >
-        <div class="flex items-start justify-between gap-3">
+        <NuxtLink
+          :to="`/admin/members/${member.id}`"
+          class="absolute inset-0"
+          :aria-label="member.name"
+        />
+
+        <div class="flex items-start justify-between gap-3 pointer-events-none">
           <div class="min-w-0 flex-1">
             <p class="text-sm font-bold truncate">
               {{ member.name }}
@@ -63,7 +66,7 @@
           </span>
         </div>
 
-        <div class="flex justify-end mt-3">
+        <div class="relative flex justify-end mt-3">
           <UButton
             v-if="!member.isSuspended"
             size="sm"
@@ -93,7 +96,7 @@
       @update:page-number="handlePageChange"
     />
 
-    <SuspendMemberModal
+    <AdminSuspendMemberModal
       :open="isModalOpen"
       :is-submitting="adminMemberStore.isSuspending"
       @confirm="handleSuspend"
@@ -122,12 +125,12 @@ await adminMemberStore.fetchMembers()
 
 const formatDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value)
 
-const handleSearchInput = () => {
+watch(search, () => {
   if (searchDebounce) clearTimeout(searchDebounce)
   searchDebounce = setTimeout(() => {
     adminMemberStore.fetchMembers({ search: search.value || undefined, pageNumber: 1 })
   }, 300)
-}
+})
 
 const handlePageChange = (page: number) => {
   adminMemberStore.fetchMembers({ search: search.value || undefined, pageNumber: page })

@@ -233,6 +233,18 @@
     "cancel": "Cancel",
     "takedownInfo": "Takedown reason: {reason}"
   },
+  "adminQuizDetail": {
+    "back": "Back to quizzes",
+    "notFound": "Quiz not found",
+    "questionCount": "Questions",
+    "challengeCount": "Challenges",
+    "passRate": "Pass rate",
+    "favoriteCount": "Favorites",
+    "questionTab": "Questions",
+    "commentTab": "Comments",
+    "commentsEmpty": "No comments yet",
+    "commentsLoading": "Loading comments..."
+  },
   "adminMembers": {
     "title": "Member Management",
     "searchPlaceholder": "Search member names...",
@@ -249,6 +261,14 @@
     "suspendUntilLabel": "Suspend Until (leave blank for permanent)",
     "confirm": "Confirm",
     "cancel": "Cancel"
+  },
+  "adminMemberDetail": {
+    "back": "Back to members",
+    "notFound": "Member not found",
+    "createdAt": "Joined",
+    "lastAiGenerationAt": "Last AI quiz generation",
+    "never": "Never used",
+    "suspendedUntilLabel": "Suspended until"
   },
   "adminQuizReports": {
     "title": "Report Review",
@@ -703,7 +723,11 @@
     "pagination": {
       "summary": "Page {current} of {total}",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "page": "Page {page}"
+    },
+    "search": {
+      "clear": "Clear search"
     }
   },
   "attempt": {

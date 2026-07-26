@@ -1,11 +1,13 @@
 import { useAdminMemberClientApi } from '~/services/admin/member'
-import type { AdminListMembersQuery, AdminMemberSummaryDto, PagedResult } from '~/types/api'
+import type { AdminListMembersQuery, AdminMemberDetailDto, AdminMemberSummaryDto, PagedResult } from '~/types/api'
 
 export const useAdminMemberStore = defineStore('adminMember', () => {
   const adminMemberApi = useAdminMemberClientApi()
 
   const members = ref<PagedResult<AdminMemberSummaryDto> | null>(null)
+  const currentMember = ref<AdminMemberDetailDto | null>(null)
   const isLoading = ref(false)
+  const isLoadingDetail = ref(false)
   const isSuspending = ref(false)
   const isUnsuspending = ref(false)
   const error = ref<string | null>(null)
@@ -25,6 +27,21 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
     }
   }
 
+  const fetchMemberById = async (id: string) => {
+    isLoadingDetail.value = true
+    error.value = null
+    try {
+      currentMember.value = await adminMemberApi.fetchMemberById(id)
+      return currentMember.value
+    } catch (e) {
+      error.value = '無法載入會員資料'
+      console.error(e)
+      throw e
+    } finally {
+      isLoadingDetail.value = false
+    }
+  }
+
   const suspendMember = async (id: string, reason: string, until: string | null) => {
     isSuspending.value = true
     error.value = null
@@ -36,6 +53,9 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
           items: members.value.items.map(m =>
             m.id === id ? { ...m, isSuspended: true, suspendedReason: reason, suspendedUntil: until } : m)
         }
+      }
+      if (currentMember.value?.id === id) {
+        currentMember.value = { ...currentMember.value, isSuspended: true, suspendedReason: reason, suspendedUntil: until }
       }
     } catch (e) {
       error.value = '停權會員失敗，請稍後再試'
@@ -58,6 +78,9 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
             m.id === id ? { ...m, isSuspended: false, suspendedReason: null, suspendedUntil: null } : m)
         }
       }
+      if (currentMember.value?.id === id) {
+        currentMember.value = { ...currentMember.value, isSuspended: false, suspendedReason: null, suspendedUntil: null }
+      }
     } catch (e) {
       error.value = '解除停權失敗，請稍後再試'
       console.error(e)
@@ -69,11 +92,14 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
 
   return {
     members,
+    currentMember,
     isLoading,
+    isLoadingDetail,
     isSuspending,
     isUnsuspending,
     error,
     fetchMembers,
+    fetchMemberById,
     suspendMember,
     unsuspendMember
   }

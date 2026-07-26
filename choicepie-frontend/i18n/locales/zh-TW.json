@@ -233,6 +233,18 @@
     "cancel": "取消",
     "takedownInfo": "下架原因：{reason}"
   },
+  "adminQuizDetail": {
+    "back": "返回題庫列表",
+    "notFound": "找不到題庫",
+    "questionCount": "題數",
+    "challengeCount": "挑戰次數",
+    "passRate": "通過率",
+    "favoriteCount": "收藏數",
+    "questionTab": "題目",
+    "commentTab": "留言內容",
+    "commentsEmpty": "尚無留言",
+    "commentsLoading": "載入留言中..."
+  },
   "adminMembers": {
     "title": "會員管理",
     "searchPlaceholder": "搜尋會員名稱...",
@@ -249,6 +261,14 @@
     "suspendUntilLabel": "停權期限（留空表示永久停權）",
     "confirm": "確認",
     "cancel": "取消"
+  },
+  "adminMemberDetail": {
+    "back": "返回會員列表",
+    "notFound": "找不到會員",
+    "createdAt": "加入時間",
+    "lastAiGenerationAt": "最後一次 AI 出題",
+    "never": "從未使用",
+    "suspendedUntilLabel": "停權期限"
   },
   "adminQuizReports": {
     "title": "檢舉審核",
@@ -703,7 +723,11 @@
     "pagination": {
       "summary": "第 {current} / {total} 頁",
       "previous": "上一頁",
-      "next": "下一頁"
+      "next": "下一頁",
+      "page": "第 {page} 頁"
+    },
+    "search": {
+      "clear": "清除搜尋"
     }
   },
   "attempt": {

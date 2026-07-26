@@ -1,16 +1,13 @@
 <template>
-  <div class="max-w-4xl mx-auto">
+  <div>
     <h1 class="text-lg font-extrabold mb-4">
       {{ t('adminQuizzes.title') }}
     </h1>
 
-    <input
+    <AdminSearchInput
       v-model="search"
-      type="text"
-      class="w-full rounded-xl border border-neutral-200 px-4 py-2 text-sm mb-4"
       :placeholder="t('adminQuizzes.searchPlaceholder')"
-      @input="handleSearchInput"
-    >
+    />
 
     <div
       v-if="adminQuizStore.isLoading"
@@ -36,9 +33,15 @@
       <div
         v-for="quiz in quizzes"
         :key="quiz.id"
-        class="rounded-2xl bg-white border border-neutral-200 p-4"
+        class="relative rounded-2xl bg-white border border-neutral-200 p-4 transition-colors hover:border-primary-300 hover:bg-primary-50/40"
       >
-        <div class="flex items-start justify-between gap-3">
+        <NuxtLink
+          :to="`/admin/quizzes/${quiz.id}`"
+          class="absolute inset-0"
+          :aria-label="quiz.title"
+        />
+
+        <div class="flex items-start justify-between gap-3 pointer-events-none">
           <div class="min-w-0 flex-1">
             <p class="text-sm font-bold truncate">
               {{ quiz.title }}
@@ -55,7 +58,7 @@
           </span>
         </div>
 
-        <div class="flex justify-end mt-3">
+        <div class="relative flex justify-end mt-3">
           <UButton
             v-if="quiz.status !== 'takendown'"
             size="sm"
@@ -85,7 +88,7 @@
       @update:page-number="handlePageChange"
     />
 
-    <TakeDownQuizModal
+    <AdminTakeDownQuizModal
       :open="isModalOpen"
       :is-submitting="adminQuizStore.isTakingDown"
       @confirm="handleTakeDown"
@@ -112,12 +115,12 @@ const totalPages = computed(() => adminQuizStore.quizzes?.totalPages
 
 await adminQuizStore.fetchQuizzes()
 
-const handleSearchInput = () => {
+watch(search, () => {
   if (searchDebounce) clearTimeout(searchDebounce)
   searchDebounce = setTimeout(() => {
     adminQuizStore.fetchQuizzes({ search: search.value || undefined, pageNumber: 1 })
   }, 300)
-}
+})
 
 const handlePageChange = (page: number) => {
   adminQuizStore.fetchQuizzes({ search: search.value || undefined, pageNumber: page })

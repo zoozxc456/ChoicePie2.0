@@ -323,6 +323,31 @@ export interface TakeDownQuizRequest {
   reason: string
 }
 
+export interface AdminQuizDetailDto {
+  id: string
+  title: string
+  description: string | null
+  coverEmoji: string
+  coverGradient: string
+  difficulty: string
+  status: string
+  challengeCount: number
+  passRate: number
+  creatorId: string
+  creatorName: string
+  creatorAvatar: string | null
+  questions: QuestionDto[]
+  questionCount: number
+  tags: string[]
+  shareCount: number
+  favoriteCount: number
+  takedownReason: string | null
+  takedownBy: string | null
+  takedownAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface AdminMemberSummaryDto {
   id: string
   name: string
@@ -337,6 +362,18 @@ export interface AdminListMembersQuery {
   search?: string
   pageNumber?: number
   pageSize?: number
+}
+
+export interface AdminMemberDetailDto {
+  id: string
+  name: string
+  email: string
+  avatar: string | null
+  isSuspended: boolean
+  suspendedReason: string | null
+  suspendedUntil: string | null
+  lastAiGenerationAt: string | null
+  createdAt: string
 }
 
 export interface SuspendMemberRequest {

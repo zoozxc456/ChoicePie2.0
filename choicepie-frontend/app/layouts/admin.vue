@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen flex bg-neutral-100">
-    <aside class="w-60 shrink-0 bg-secondary-900 text-white flex flex-col p-4">
+  <div class="h-screen flex bg-neutral-100">
+    <aside class="w-60 shrink-0 h-screen sticky top-0 bg-secondary-900 text-white flex flex-col p-4">
       <NuxtLink
         to="/admin"
         class="flex items-center gap-2 px-2 py-2 mb-6 font-extrabold text-base"
@@ -54,13 +54,13 @@
       </div>
     </aside>
 
-    <div class="flex-1 min-w-0 flex flex-col">
+    <div class="flex-1 min-w-0 h-screen flex flex-col">
       <header class="h-14 shrink-0 bg-white border-b border-neutral-200 px-6 flex items-center">
         <h1 class="text-sm font-bold text-neutral-800">
           {{ pageTitle }}
         </h1>
       </header>
-      <main class="flex-1 p-6 overflow-y-auto">
+      <main class="flex-1 min-h-0 p-6 overflow-y-auto">
         <slot />
       </main>
     </div>

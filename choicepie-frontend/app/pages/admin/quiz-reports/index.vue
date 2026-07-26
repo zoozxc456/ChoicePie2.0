@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-4xl mx-auto">
+  <div>
     <h1 class="text-lg font-extrabold mb-4">
       {{ t('adminQuizReports.title') }}
     </h1>
