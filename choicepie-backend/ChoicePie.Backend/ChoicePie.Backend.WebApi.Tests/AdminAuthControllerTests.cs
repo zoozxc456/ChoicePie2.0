@@ -74,9 +74,11 @@ public sealed class AdminAuthControllerTests
             setCookieHeaders.Any(c =>
                 c.StartsWith($"{AuthCookieNames.AccessToken}=") && c.Contains("httponly", StringComparison.OrdinalIgnoreCase)),
             Is.True);
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<AdminUserDto>>();
-        Assert.That(result!.Data!.Email, Is.EqualTo(email));
-        Assert.That(result.Data.Role, Is.EqualTo("admin"));
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<AdminLoginResultDto>>();
+        Assert.That(result!.Data!.AdminUser.Email, Is.EqualTo(email));
+        Assert.That(result.Data.AdminUser.Role, Is.EqualTo("admin"));
+        Assert.That(result.Data.AccessToken, Is.Not.Empty);
+        Assert.That(result.Data.RefreshToken, Is.Not.Empty);
     }
 
     [Test]
@@ -106,15 +108,29 @@ public sealed class AdminAuthControllerTests
         Assert.That(body!.Code, Is.EqualTo("ADMIN_INVALID_CREDENTIALS"));
     }
 
+    private static HttpRequestMessage AdminRefreshRequest(string refreshToken)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/auth/refresh");
+        request.Headers.Add(AuthHeaderNames.RefreshToken, refreshToken);
+        return request;
+    }
+
+    private static async Task<string> LoginAdminAsync(HttpClient client, string email, string password = SeededPassword)
+    {
+        var response = await client.PostAsJsonAsync("/api/v1/admin/auth/login", new { Email = email, Password = password });
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<AdminLoginResultDto>>();
+        return result!.Data!.RefreshToken;
+    }
+
     [Test]
-    public async Task RefreshAsync_GivenValidCookieFromPriorLogin_WhenCalled_ThenRotatesCookies()
+    public async Task RefreshAsync_GivenValidRefreshTokenHeaderFromPriorLogin_WhenCalled_ThenRotatesCookies()
     {
         var email = $"{Guid.NewGuid()}@example.com";
         await SeedAdminAsync(email);
         using var client = CreateClient();
-        await client.PostAsJsonAsync("/api/v1/admin/auth/login", new { Email = email, Password = SeededPassword });
+        var refreshToken = await LoginAdminAsync(client, email);
 
-        var response = await client.PostAsync("/api/v1/admin/auth/refresh", null);
+        var response = await client.SendAsync(AdminRefreshRequest(refreshToken));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var setCookieHeaders = response.Headers.TryGetValues("Set-Cookie", out var values) ? values.ToList() : [];
@@ -123,7 +139,7 @@ public sealed class AdminAuthControllerTests
     }
 
     [Test]
-    public async Task RefreshAsync_GivenNoCookie_WhenCalled_ThenReturnsUnauthorized()
+    public async Task RefreshAsync_GivenNoRefreshTokenHeader_WhenCalled_ThenReturnsUnauthorized()
     {
         using var client = CreateClient();
 
@@ -133,7 +149,7 @@ public sealed class AdminAuthControllerTests
     }
 
     [Test]
-    public async Task RefreshAsync_GivenMemberOwnedRefreshTokenCookie_WhenCalled_ThenReturnsUnauthorized()
+    public async Task RefreshAsync_GivenMemberOwnedRefreshToken_WhenCalled_ThenReturnsUnauthorized()
     {
         using var client = CreateClient();
         var email = $"{Guid.NewGuid()}@example.com";
@@ -144,9 +160,10 @@ public sealed class AdminAuthControllerTests
             Password = "Password123!",
             ConfirmPassword = "Password123!"
         });
-        await client.PostAsJsonAsync("/api/v1/auth/login", new { Email = email, Password = "Password123!" });
+        var loginResponse = await client.PostAsJsonAsync("/api/v1/auth/login", new { Email = email, Password = "Password123!" });
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<ApiResponse<ChoicePie.Backend.Application.Identity.Dtos.LoginResultDto>>();
 
-        var response = await client.PostAsync("/api/v1/admin/auth/refresh", null);
+        var response = await client.SendAsync(AdminRefreshRequest(loginResult!.Data!.RefreshToken));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         var body = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
@@ -159,12 +176,14 @@ public sealed class AdminAuthControllerTests
         var email = $"{Guid.NewGuid()}@example.com";
         await SeedAdminAsync(email);
         using var client = CreateClient();
-        await client.PostAsJsonAsync("/api/v1/admin/auth/login", new { Email = email, Password = SeededPassword });
+        var refreshToken = await LoginAdminAsync(client, email);
 
-        var logoutResponse = await client.PostAsync("/api/v1/admin/auth/logout", null);
+        var logoutRequest = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/auth/logout");
+        logoutRequest.Headers.Add(AuthHeaderNames.RefreshToken, refreshToken);
+        var logoutResponse = await client.SendAsync(logoutRequest);
         Assert.That(logoutResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var refreshAfterLogout = await client.PostAsync("/api/v1/admin/auth/refresh", null);
+        var refreshAfterLogout = await client.SendAsync(AdminRefreshRequest(refreshToken));
         Assert.That(refreshAfterLogout.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 

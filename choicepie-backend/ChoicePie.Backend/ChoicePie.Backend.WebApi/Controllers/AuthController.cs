@@ -31,36 +31,37 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
     public async Task<ActionResult<ApiResponse<LoginResultDto>>> LoginAsync([FromBody] LoginRequest request)
     {
         var result = await mediator.Send(request.ToCommand());
-        Response.SetAuthCookies(result.AccessToken, result.RefreshToken,
-            jwtSettings.Value.AccessTokenExpirationSeconds);
-        return Ok(ResponseHelper.Success(result.Member));
+        // 除了 body 回傳 token 供 BFF（Nuxt Nitro）建立自己的 server-side session，仍要設 httpOnly
+        // cookie：SignalR 是瀏覽器直連後端的 WebSocket，不會經過 BFF，只認這顆後端自己發的 cookie
+        // （見前端 useGameRoom.ts 的註解）。
+        Response.SetAuthCookies(result.AccessToken, result.RefreshToken, jwtSettings.Value.AccessTokenExpirationSeconds);
+        return Ok(ResponseHelper.Success(result));
     }
 
     [HttpPost("google")]
-    public async Task<ActionResult<ApiResponse<MemberDto>>> GoogleLoginAsync([FromBody] GoogleLoginRequest request)
+    public async Task<ActionResult<ApiResponse<LoginResultDto>>> GoogleLoginAsync([FromBody] GoogleLoginRequest request)
     {
         var result = await mediator.Send(request.ToCommand());
-        Response.SetAuthCookies(result.AccessToken, result.RefreshToken,
-            jwtSettings.Value.AccessTokenExpirationSeconds);
-        return Ok(ResponseHelper.Success(result.Member));
+        Response.SetAuthCookies(result.AccessToken, result.RefreshToken, jwtSettings.Value.AccessTokenExpirationSeconds);
+        return Ok(ResponseHelper.Success(result));
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult<ApiResponse<MemberDto>>> RefreshAsync()
+    public async Task<ActionResult<ApiResponse<LoginResultDto>>> RefreshAsync()
     {
-        var refreshToken = Request.Cookies[AuthCookieNames.RefreshToken]
+        var refreshToken = Request.Headers[AuthHeaderNames.RefreshToken].FirstOrDefault()
                            ?? throw new InvalidRefreshTokenException();
 
         var result = await mediator.Send(new RefreshTokenCommand { RefreshToken = refreshToken });
-        Response.SetAuthCookies(result.AccessToken, result.RefreshToken,
-            jwtSettings.Value.AccessTokenExpirationSeconds);
-        return Ok(ResponseHelper.Success(result.Member));
+        Response.SetAuthCookies(result.AccessToken, result.RefreshToken, jwtSettings.Value.AccessTokenExpirationSeconds);
+        return Ok(ResponseHelper.Success(result));
     }
 
     [HttpPost("logout")]
     public async Task<ActionResult<ApiResponse>> LogoutAsync()
     {
-        if (Request.Cookies.TryGetValue(AuthCookieNames.RefreshToken, out var refreshToken))
+        var refreshToken = Request.Headers[AuthHeaderNames.RefreshToken].FirstOrDefault();
+        if (!string.IsNullOrEmpty(refreshToken))
         {
             await mediator.Send(new LogoutCommand { RefreshToken = refreshToken });
         }

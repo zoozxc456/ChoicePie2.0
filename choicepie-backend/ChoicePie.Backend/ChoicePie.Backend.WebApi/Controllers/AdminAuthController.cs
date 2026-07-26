@@ -21,28 +21,29 @@ namespace ChoicePie.Backend.WebApi.Controllers;
 public class AdminAuthController(IMediator mediator, IOptions<JwtSettings> jwtSettings) : ControllerBase
 {
     [HttpPost("login")]
-    public async Task<ActionResult<ApiResponse<AdminUserDto>>> LoginAsync([FromBody] AdminLoginRequest request)
+    public async Task<ActionResult<ApiResponse<AdminLoginResultDto>>> LoginAsync([FromBody] AdminLoginRequest request)
     {
         var result = await mediator.Send(request.ToCommand());
         Response.SetAuthCookies(result.AccessToken, result.RefreshToken, jwtSettings.Value.AccessTokenExpirationSeconds);
-        return Ok(ResponseHelper.Success(result.AdminUser));
+        return Ok(ResponseHelper.Success(result));
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult<ApiResponse<AdminUserDto>>> RefreshAsync()
+    public async Task<ActionResult<ApiResponse<AdminLoginResultDto>>> RefreshAsync()
     {
-        var refreshToken = Request.Cookies[AuthCookieNames.RefreshToken]
+        var refreshToken = Request.Headers[AuthHeaderNames.RefreshToken].FirstOrDefault()
                             ?? throw new InvalidRefreshTokenException();
 
         var result = await mediator.Send(new AdminRefreshTokenCommand { RefreshToken = refreshToken });
         Response.SetAuthCookies(result.AccessToken, result.RefreshToken, jwtSettings.Value.AccessTokenExpirationSeconds);
-        return Ok(ResponseHelper.Success(result.AdminUser));
+        return Ok(ResponseHelper.Success(result));
     }
 
     [HttpPost("logout")]
     public async Task<ActionResult<ApiResponse>> LogoutAsync()
     {
-        if (Request.Cookies.TryGetValue(AuthCookieNames.RefreshToken, out var refreshToken))
+        var refreshToken = Request.Headers[AuthHeaderNames.RefreshToken].FirstOrDefault();
+        if (!string.IsNullOrEmpty(refreshToken))
         {
             await mediator.Send(new AdminLogoutCommand { RefreshToken = refreshToken });
         }

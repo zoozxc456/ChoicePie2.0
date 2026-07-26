@@ -1,5 +1,4 @@
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Enums;
-using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Exceptions;
 using RefreshTokenAggregate = ChoicePie.Backend.Domain.Aggregates.RefreshToken.RefreshToken;
 
 namespace ChoicePie.Backend.Domain.Tests.Aggregates.RefreshToken;
@@ -48,23 +47,35 @@ public class RefreshTokenTests
     }
 
     [Test]
-    public void IsActive_GivenJustRevokedToken_WhenReadWithinGracePeriod_ThenStillReturnsTrue()
+    public void IsActive_GivenJustRotatedToken_WhenReadWithinGracePeriod_ThenStillReturnsTrue()
     {
         // Rotation 寬限期：同一次 SSR render 中 middleware 與頁面請求可能並行用舊 token 觸發 refresh，
         // 剛被替換的 token 需要在短暫緩衝期內仍視為有效，避免其中一個請求因競速而被拒絕。
         var refreshToken = CreateRefreshToken();
 
-        refreshToken.Revoke(DateTime.UtcNow);
+        refreshToken.Revoke(DateTime.UtcNow, Guid.NewGuid());
 
         Assert.That(refreshToken.IsActive, Is.True);
     }
 
     [Test]
-    public void IsActive_GivenRevokedTokenPastGracePeriod_WhenRead_ThenReturnsFalse()
+    public void IsActive_GivenRotatedTokenPastGracePeriod_WhenRead_ThenReturnsFalse()
     {
         var refreshToken = CreateRefreshToken();
 
-        refreshToken.Revoke(DateTime.UtcNow.AddSeconds(-31));
+        refreshToken.Revoke(DateTime.UtcNow.AddSeconds(-31), Guid.NewGuid());
+
+        Assert.That(refreshToken.IsActive, Is.False);
+    }
+
+    [Test]
+    public void IsActive_GivenLoggedOutToken_WhenReadImmediately_ThenReturnsFalse()
+    {
+        // 登出（Revoke 不帶 replacedByTokenId）語意上必須立即失效，不套用 rotation 寬限期，
+        // 否則使用者登出後短時間內仍能用同一顆 refresh token 換回新 session。
+        var refreshToken = CreateRefreshToken();
+
+        refreshToken.Revoke(DateTime.UtcNow);
 
         Assert.That(refreshToken.IsActive, Is.False);
     }
@@ -86,11 +97,21 @@ public class RefreshTokenTests
     }
 
     [Test]
-    public void Revoke_GivenAlreadyRevokedToken_WhenCalledAgain_ThenThrowsInvalidRefreshTokenException()
+    public void Revoke_GivenAlreadyRevokedToken_WhenCalledAgain_ThenIsNoOp()
     {
+        // 併發的 401 → refresh 可能對同一顆已被輪替的 token 各自呼叫 Revoke；拋例外會讓其中一個
+        // 呼叫端收到未預期的例外，這裡改為 no-op，維持第一次 revoke 記下的 RevokedAt/ReplacedByTokenId。
         var refreshToken = CreateRefreshToken();
-        refreshToken.Revoke(DateTime.UtcNow);
+        var firstRevokedAt = DateTime.UtcNow;
+        var firstReplacementId = Guid.NewGuid();
+        refreshToken.Revoke(firstRevokedAt, firstReplacementId);
 
-        Assert.Throws<InvalidRefreshTokenException>(() => refreshToken.Revoke(DateTime.UtcNow));
+        Assert.DoesNotThrow(() => refreshToken.Revoke(DateTime.UtcNow, Guid.NewGuid()));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(refreshToken.RevokedAt, Is.EqualTo(firstRevokedAt));
+            Assert.That(refreshToken.ReplacedByTokenId, Is.EqualTo(firstReplacementId));
+        });
     }
 }

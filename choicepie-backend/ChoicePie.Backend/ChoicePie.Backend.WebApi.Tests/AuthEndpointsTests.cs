@@ -28,7 +28,7 @@ public sealed class AuthEndpointsTests
             HandleCookies = true
         });
 
-    private static async Task<HttpClient> RegisterAndLoginAsync(HttpClient client, string email)
+    private static async Task<string> RegisterAndLoginAsync(HttpClient client, string email)
     {
         await client.PostAsJsonAsync("/api/v1/auth/register", new
         {
@@ -41,7 +41,15 @@ public sealed class AuthEndpointsTests
         var loginResponse = await client.PostAsJsonAsync("/api/v1/auth/login", new { Email = email, Password = "Password123!" });
         Assert.That(loginResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        return client;
+        var result = await loginResponse.Content.ReadFromJsonAsync<ApiResponse<LoginResultDto>>();
+        return result!.Data!.RefreshToken;
+    }
+
+    private static HttpRequestMessage RefreshRequest(string refreshToken)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/refresh");
+        request.Headers.Add(AuthHeaderNames.RefreshToken, refreshToken);
+        return request;
     }
 
     [Test]
@@ -107,7 +115,7 @@ public sealed class AuthEndpointsTests
     }
 
     [Test]
-    public async Task LoginAsync_GivenValidCredentials_WhenCalled_ThenSetsHttpOnlyCookiesAndOmitsTokensFromBody()
+    public async Task LoginAsync_GivenValidCredentials_WhenCalled_ThenSetsHttpOnlyCookiesAndReturnsTokensInBody()
     {
         using var client = CreateClient();
         var email = $"{Guid.NewGuid()}@example.com";
@@ -134,31 +142,36 @@ public sealed class AuthEndpointsTests
                 c.StartsWith($"{AuthCookieNames.RefreshToken}=") && c.Contains("httponly", StringComparison.OrdinalIgnoreCase)),
             Is.True, "refresh_token cookie 應該是 HttpOnly");
 
-        var body = await response.Content.ReadAsStringAsync();
-        Assert.That(body, Does.Not.Contain("accessToken"));
-        Assert.That(body, Does.Not.Contain("refreshToken"));
-
-        var result = await response.Content.ReadFromJsonAsync<ApiResponse<MemberDto>>();
-        Assert.That(result!.Data!.Email, Is.EqualTo(email));
+        // BFF (Nuxt Nitro) 需要從回應 body 讀出 token 來建立自己的 server-side session，
+        // 所以這裡故意讓 token 出現在 body 中，供 server-to-server 呼叫方使用；
+        // 瀏覽器端不會直接呼叫這個端點，所以不會有 token 外洩到前端 JS 的風險。
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<LoginResultDto>>();
+        Assert.That(result!.Data!.Member.Email, Is.EqualTo(email));
+        Assert.That(result.Data.AccessToken, Is.Not.Empty);
+        Assert.That(result.Data.RefreshToken, Is.Not.Empty);
     }
 
     [Test]
-    public async Task RefreshAsync_GivenValidCookieFromPriorLogin_WhenCalled_ThenRotatesCookies()
+    public async Task RefreshAsync_GivenValidRefreshTokenHeaderFromPriorLogin_WhenCalled_ThenRotatesCookiesAndReturnsNewTokens()
     {
         using var client = CreateClient();
         var email = $"{Guid.NewGuid()}@example.com";
-        await RegisterAndLoginAsync(client, email);
+        var refreshToken = await RegisterAndLoginAsync(client, email);
 
-        var response = await client.PostAsync("/api/v1/auth/refresh", null);
+        var response = await client.SendAsync(RefreshRequest(refreshToken));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var setCookieHeaders = response.Headers.TryGetValues("Set-Cookie", out var values) ? values.ToList() : [];
         Assert.That(setCookieHeaders.Any(c => c.StartsWith($"{AuthCookieNames.AccessToken}=")), Is.True);
         Assert.That(setCookieHeaders.Any(c => c.StartsWith($"{AuthCookieNames.RefreshToken}=")), Is.True);
+
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<LoginResultDto>>();
+        Assert.That(result!.Data!.AccessToken, Is.Not.Empty);
+        Assert.That(result.Data.RefreshToken, Is.Not.EqualTo(refreshToken), "refresh token 應該被輪替成新的一次性 token");
     }
 
     [Test]
-    public async Task RefreshAsync_GivenNoCookie_WhenCalled_ThenReturnsUnauthorized()
+    public async Task RefreshAsync_GivenNoRefreshTokenHeader_WhenCalled_ThenReturnsUnauthorized()
     {
         using var client = CreateClient();
 
@@ -172,12 +185,14 @@ public sealed class AuthEndpointsTests
     {
         using var client = CreateClient();
         var email = $"{Guid.NewGuid()}@example.com";
-        await RegisterAndLoginAsync(client, email);
+        var refreshToken = await RegisterAndLoginAsync(client, email);
 
-        var logoutResponse = await client.PostAsync("/api/v1/auth/logout", null);
+        var logoutRequest = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/logout");
+        logoutRequest.Headers.Add(AuthHeaderNames.RefreshToken, refreshToken);
+        var logoutResponse = await client.SendAsync(logoutRequest);
         Assert.That(logoutResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var refreshAfterLogout = await client.PostAsync("/api/v1/auth/refresh", null);
+        var refreshAfterLogout = await client.SendAsync(RefreshRequest(refreshToken));
         Assert.That(refreshAfterLogout.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 }

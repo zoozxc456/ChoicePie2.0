@@ -61,8 +61,10 @@ public static class AuthCookieExtensions
             Path = CookiePath,
             Expires = expires,
             // Domain 沒指定時瀏覽器會用 request host 本身；設定 CookieDomain 後固定在父網域，
-            // 讓子網域（例如 api.minjie.demo）也能共用同一顆 cookie。
-            Domain = cookieDomain
+            // 讓子網域（例如 api.minjie.demo）也能共用同一顆 cookie。空字串必須轉成 null——
+            // CookieOptions.Domain 若被賦予空字串（而非 null），會產生格式異常的 "Domain=" 屬性，
+            // 讓部分 HTTP client（如 System.Net.CookieContainer）直接拒收整個 cookie。
+            Domain = isCrossOrigin ? cookieDomain : null
         };
     }
 }
