@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using ChoicePie.Backend.Application.Identity.Commands;
 using ChoicePie.Backend.Application.Identity.Dtos;
+using ChoicePie.Backend.Application.Identity.Queries;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Exceptions;
 using ChoicePie.Backend.Shared.Hosting.API.Response;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
@@ -95,5 +96,13 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
     {
         await mediator.Send(new ResendVerificationEmailCommand());
         return Ok(ResponseHelper.Success());
+    }
+
+    [HttpGet("me")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse<MemberDto>>> GetCurrentMemberAsync()
+    {
+        var result = await mediator.Send(new GetCurrentMemberQuery());
+        return Ok(ResponseHelper.Success(result));
     }
 }

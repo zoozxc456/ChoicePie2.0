@@ -48,11 +48,23 @@ public class RefreshTokenTests
     }
 
     [Test]
-    public void IsActive_GivenRevokedToken_WhenRead_ThenReturnsFalse()
+    public void IsActive_GivenJustRevokedToken_WhenReadWithinGracePeriod_ThenStillReturnsTrue()
     {
+        // Rotation 寬限期：同一次 SSR render 中 middleware 與頁面請求可能並行用舊 token 觸發 refresh，
+        // 剛被替換的 token 需要在短暫緩衝期內仍視為有效，避免其中一個請求因競速而被拒絕。
         var refreshToken = CreateRefreshToken();
 
         refreshToken.Revoke(DateTime.UtcNow);
+
+        Assert.That(refreshToken.IsActive, Is.True);
+    }
+
+    [Test]
+    public void IsActive_GivenRevokedTokenPastGracePeriod_WhenRead_ThenReturnsFalse()
+    {
+        var refreshToken = CreateRefreshToken();
+
+        refreshToken.Revoke(DateTime.UtcNow.AddSeconds(-31));
 
         Assert.That(refreshToken.IsActive, Is.False);
     }

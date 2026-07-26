@@ -68,9 +68,9 @@ public class LogoutCommandHandlerTests
     }
 
     [Test]
-    public async Task Handle_GivenAlreadyRevokedToken_WhenCalled_ThenDoesNothing()
+    public async Task Handle_GivenAlreadyRevokedTokenPastGracePeriod_WhenCalled_ThenDoesNothing()
     {
-        _existingRefreshToken.Revoke(DateTime.UtcNow);
+        _existingRefreshToken.Revoke(DateTime.UtcNow.AddSeconds(-31));
 
         await _sut.Handle(new LogoutCommand { RefreshToken = "valid-raw-token" }, CancellationToken.None);
 

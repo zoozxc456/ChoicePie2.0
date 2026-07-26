@@ -180,8 +180,13 @@ const showConfirmPassword = ref(false)
 
 const redirect = computed(() => (route.query.redirect as string) || '/library')
 
+// persisted 的 isLoggedIn 只代表「曾經登入過」，須用 fetchMe() 實際驗證 session 是否仍有效，
+// 避免 session 過期時在登入頁與受保護頁之間形成 redirect loop。
 if (auth.isLoggedIn) {
-  await navigateTo(redirect.value)
+  const verified = await auth.fetchMe()
+  if (verified) {
+    await navigateTo(redirect.value)
+  }
 }
 
 const registerState = reactive<RegisterSchema>({

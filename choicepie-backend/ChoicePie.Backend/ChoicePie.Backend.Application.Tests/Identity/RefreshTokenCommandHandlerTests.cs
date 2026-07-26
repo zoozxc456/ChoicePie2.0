@@ -110,9 +110,9 @@ public class RefreshTokenCommandHandlerTests
     }
 
     [Test]
-    public void Handle_GivenRevokedToken_WhenCalled_ThenThrowsInvalidRefreshTokenException()
+    public void Handle_GivenRevokedTokenPastGracePeriod_WhenCalled_ThenThrowsInvalidRefreshTokenException()
     {
-        _existingRefreshToken.Revoke(DateTime.UtcNow);
+        _existingRefreshToken.Revoke(DateTime.UtcNow.AddSeconds(-31));
 
         Assert.ThrowsAsync<InvalidRefreshTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }
