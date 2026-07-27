@@ -20,6 +20,8 @@ public sealed class QuizConfiguration : AuditableEntityConfiguration<Quiz>
 
         builder.Property(q => q.Title).IsRequired().HasMaxLength(200);
 
+        builder.Property(q => q.ShareCount).IsRequired();
+
         builder.Property(q => q.Difficulty)
             .HasConversion(new EnumerationValueConverter<Difficulty>())
             .IsRequired();
@@ -27,6 +29,8 @@ public sealed class QuizConfiguration : AuditableEntityConfiguration<Quiz>
         builder.Property(q => q.Status)
             .HasConversion(new EnumerationValueConverter<QuizStatus>())
             .IsRequired();
+
+        builder.Property(q => q.TakedownReason).HasMaxLength(500);
 
         builder.Property(q => q.Tags)
             .HasColumnType("text[]")

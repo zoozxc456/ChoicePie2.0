@@ -2,6 +2,7 @@ using ChoicePie.Backend.Application.Identity.Commands;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
+using ChoicePie.Backend.Domain.Aggregates.EmailVerificationToken;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
@@ -15,8 +16,11 @@ public class RegisterMemberCommandHandlerTests
 {
     private IMemberRepository _memberRepository = null!;
     private IAuthAccountRepository _authAccountRepository = null!;
+    private IEmailVerificationTokenRepository _emailVerificationTokenRepository = null!;
     private IUnitOfWork _unitOfWork = null!;
     private IPasswordHasher _passwordHasher = null!;
+    private IRefreshTokenGenerator _tokenGenerator = null!;
+    private TimeProvider _timeProvider = null!;
     private RegisterMemberCommandHandler _sut = null!;
 
     [SetUp]
@@ -24,14 +28,19 @@ public class RegisterMemberCommandHandlerTests
     {
         _memberRepository = Substitute.For<IMemberRepository>();
         _authAccountRepository = Substitute.For<IAuthAccountRepository>();
+        _emailVerificationTokenRepository = Substitute.For<IEmailVerificationTokenRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _passwordHasher = Substitute.For<IPasswordHasher>();
-        _sut = new RegisterMemberCommandHandler(_memberRepository, _authAccountRepository, _passwordHasher,
-            _unitOfWork);
+        _tokenGenerator = Substitute.For<IRefreshTokenGenerator>();
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _sut = new RegisterMemberCommandHandler(_memberRepository, _authAccountRepository,
+            _emailVerificationTokenRepository, _passwordHasher, _tokenGenerator, _unitOfWork, _timeProvider);
 
         _authAccountRepository.ExistsAsync(Arg.Any<AuthAccountByEmailSpecification>(), Arg.Any<CancellationToken>())
             .Returns(false);
         _passwordHasher.Hash(Arg.Any<string>()).Returns(HashedPassword.Create("hashed-password", "salt"));
+        _tokenGenerator.Generate().Returns(("raw-token", "token-hash"));
     }
 
     [TearDown]
@@ -61,6 +70,8 @@ public class RegisterMemberCommandHandlerTests
                 a.Email.Value == "host@example.com" &&
                 a.OriginalPassword == HashedPassword.Create("hashed-password", "salt")),
             Arg.Any<CancellationToken>());
+        await _emailVerificationTokenRepository.Received(1).AddAsync(
+            Arg.Any<EmailVerificationToken>(), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

@@ -22,7 +22,8 @@ public sealed class AdminLoginCommandHandler(
     IPasswordHasher passwordHasher,
     IAdminTokenService tokenService,
     IRefreshTokenGenerator refreshTokenGenerator,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<AdminLoginCommand, AdminLoginResultDto>
 {
     public async Task<AdminLoginResultDto> Handle(AdminLoginCommand request, CancellationToken cancellationToken)
@@ -45,7 +46,7 @@ public sealed class AdminLoginCommandHandler(
         var accessToken = tokenService.GenerateAccessToken(adminUser);
         var (rawRefreshToken, refreshTokenHash) = refreshTokenGenerator.Generate();
         var refreshToken =
-            RefreshTokenAggregate.Issue(adminUser.Id, RefreshTokenOwnerType.Admin, refreshTokenHash, DateTime.UtcNow);
+            RefreshTokenAggregate.Issue(adminUser.Id, RefreshTokenOwnerType.Admin, refreshTokenHash, timeProvider.GetUtcNow().UtcDateTime);
 
         await refreshTokenRepository.AddAsync(refreshToken, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

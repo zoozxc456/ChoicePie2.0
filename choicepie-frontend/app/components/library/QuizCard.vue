@@ -20,7 +20,7 @@
         {{ quiz.title }}
       </p>
       <p class="text-xs text-neutral-400 mt-1">
-        {{ quiz.tags[0] }} · {{ t('library.card.questions', { count: quiz.questionCount }) }}
+        {{ quiz.tags[0] }}
       </p>
       <span
         class="inline-block mt-2 text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded"
@@ -42,7 +42,6 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const { t } = useI18n()
 
 const difficultyClass = computed(() => ({
   beginner: 'bg-success-100 text-success-800',

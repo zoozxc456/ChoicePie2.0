@@ -2,6 +2,7 @@
   "nav": {
     "join": "Join Game",
     "createGame": "Create Game",
+    "myLibrary": "My Library",
     "history": "History",
     "howToUse": "How to Use",
     "about": "About",
@@ -141,6 +142,8 @@
     "noAccount": "Don't have an account?",
     "registerLink": "Sign up",
     "loginError": "Incorrect email or password. Please try again.",
+    "googleLoginError": "Google sign-in failed. Please try again.",
+    "forgotPassword": "Forgot your password?",
     "validation": {
       "emailInvalid": "Please enter a valid email address",
       "passwordMin": "Password must be at least 6 characters"
@@ -150,7 +153,177 @@
       "desc": "Sign in to build your own quiz library, auto-generate questions with AI, and track your game history."
     }
   },
+  "forgotPassword": {
+    "title": "Forgot Password",
+    "description": "Enter the email you registered with and we'll send you a password reset link.",
+    "emailPlaceholder": "Email",
+    "submitBtn": "Send Reset Link",
+    "submitted": "If this email is registered, a password reset link has been sent — please check your inbox.",
+    "submitError": "Failed to send, please try again later",
+    "backToLogin": "Back to Sign In",
+    "validation": {
+      "emailInvalid": "Please enter a valid email address"
+    }
+  },
+  "resetPassword": {
+    "title": "Reset Password",
+    "missingToken": "This link is invalid. Please request a new password reset.",
+    "passwordPlaceholder": "New password (8+ characters)",
+    "confirmPasswordPlaceholder": "Confirm new password",
+    "submitBtn": "Reset Password",
+    "submitted": "Your password has been reset. Please sign in with your new password.",
+    "submitError": "Failed to reset password. The link may have expired, please request a new one",
+    "backToLogin": "Back to Sign In",
+    "validation": {
+      "passwordMin": "Password must be at least 8 characters",
+      "confirmPasswordMatch": "Passwords do not match"
+    }
+  },
+  "emailVerification": {
+    "bannerText": "Please verify your email to unlock all features.",
+    "resendAction": "Resend verification email",
+    "resent": "Sent",
+    "dismiss": "Dismiss",
+    "pageTitle": "Email Verification",
+    "success": "Your email has been verified successfully!",
+    "failed": "Verification failed. The link may have expired — please resend a verification email.",
+    "backToLibrary": "Go to Quiz Library"
+  },
+  "adminLogin": {
+    "title": "Admin Sign In",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "loginBtn": "Sign In",
+    "loginError": "Incorrect email or password. Please try again.",
+    "validation": {
+      "emailInvalid": "Please enter a valid email address",
+      "passwordRequired": "Please enter your password"
+    }
+  },
+  "adminDashboard": {
+    "title": "Admin",
+    "welcome": "Welcome back, {name}",
+    "email": "Email",
+    "role": "Role",
+    "logout": "Log out",
+    "nav": {
+      "quizzes": "Quiz Management",
+      "members": "Member Management",
+      "quizReports": "Report Review"
+    },
+    "pendingReportsAlert": "{count} pending report(s) need review",
+    "viewReports": "Review now",
+    "stats": {
+      "totalMembers": "Total Members",
+      "totalQuizzes": "Total Quizzes",
+      "suspendedMembers": "Suspended Members",
+      "takenDownQuizzes": "Taken-down Quizzes"
+    },
+    "charts": {
+      "newMembers": "New Member Trend",
+      "newQuizzes": "New Quiz Trend"
+    },
+    "topQuizzes": {
+      "title": "Top 10 Popular Quizzes",
+      "empty": "No data yet",
+      "challengeCount": "{count} challenges"
+    }
+  },
+  "adminQuizzes": {
+    "title": "Quiz Management",
+    "searchPlaceholder": "Search quiz titles...",
+    "empty": "No quizzes found",
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived",
+      "deleted": "Deleted",
+      "takendown": "Taken Down"
+    },
+    "noDescription": "No description provided",
+    "takeDownAction": "Take Down",
+    "restoreAction": "Restore",
+    "takedownReasonLabel": "Takedown Reason",
+    "takedownReasonPlaceholder": "Enter the reason for taking down this quiz (visible to the owner)",
+    "takedownReasonRequired": "Please enter a takedown reason",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "takedownInfo": "Takedown reason: {reason}"
+  },
+  "adminQuizDetail": {
+    "back": "Back to quizzes",
+    "notFound": "Quiz not found",
+    "questionCount": "Questions",
+    "challengeCount": "Challenges",
+    "passRate": "Pass rate",
+    "favoriteCount": "Favorites",
+    "questionTab": "Questions",
+    "commentTab": "Comments",
+    "commentsEmpty": "No comments yet",
+    "commentsLoading": "Loading comments..."
+  },
+  "adminMembers": {
+    "title": "Member Management",
+    "searchPlaceholder": "Search member names...",
+    "empty": "No members found",
+    "statusActive": "Active",
+    "statusSuspended": "Suspended",
+    "suspendedUntil": "Suspended until {date}",
+    "suspendedPermanently": "Permanently suspended",
+    "suspendAction": "Suspend",
+    "unsuspendAction": "Unsuspend",
+    "suspendReasonLabel": "Suspension Reason",
+    "suspendReasonPlaceholder": "Enter the suspension reason",
+    "suspendReasonRequired": "Please enter a suspension reason",
+    "suspendUntilLabel": "Suspend Until (leave blank for permanent)",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "adminMemberDetail": {
+    "back": "Back to members",
+    "notFound": "Member not found",
+    "createdAt": "Joined",
+    "lastAiGenerationAt": "Last AI quiz generation",
+    "never": "Never used",
+    "statusHealthy": "Account in good standing",
+    "quizzesTitle": "Authored Quizzes",
+    "quizzesEmpty": "No quizzes created yet",
+    "hostedSessionsTitle": "Host History",
+    "hostedSessionsEmpty": "No hosting history",
+    "playedSessionsTitle": "Play History",
+    "playedSessionsEmpty": "No play history",
+    "playedSessionsCount": "{count} sessions played",
+    "commentsTitle": "Comments",
+    "commentsEmpty": "No comments yet"
+  },
+  "adminQuizReports": {
+    "title": "Report Review",
+    "empty": "No reports match this filter",
+    "reporterLine": "Reported by: {name}",
+    "resolveAction": "Take Down Quiz",
+    "dismissAction": "Dismiss Report",
+    "noteLabel": "Resolution Note (optional)",
+    "notePlaceholder": "Enter a resolution note",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "status": {
+      "pending": "Pending",
+      "resolved": "Taken Down",
+      "dismissed": "Dismissed"
+    },
+    "reasons": {
+      "InappropriateContent": "Inappropriate Content",
+      "Spam": "Spam",
+      "Copyright": "Copyright Issue",
+      "Other": "Other"
+    }
+  },
   "library": {
+    "title": "Quiz Library",
+    "tabs": {
+      "all": "All quizzes",
+      "mine": "My quizzes"
+    },
     "searchPlaceholder": "Search quizzes...",
     "featured": "🔥 Featured",
     "latest": "🆕 Latest",
@@ -159,9 +332,6 @@
       "title": "✨ No quiz ready? Let AI generate one in seconds",
       "subtitle": "Paste text or a URL and AI will create a 4-choice quiz for you",
       "cta": "Start generating →"
-    },
-    "card": {
-      "questions": "{count} questions"
     }
   },
   "history": {
@@ -213,9 +383,11 @@
         "correctAnswer": "Correct answer",
         "explanation": "Explanation"
       },
-      "hostNote": {
-        "title": "More host analytics coming soon",
-        "desc": "Accuracy breakdowns and average answer time per question are on the way"
+      "breakdown": {
+        "title": "📊 Question Breakdown",
+        "correctRate": "{rate}% correct",
+        "noAnswers": "No one answered this question",
+        "averageAnswerTime": "Avg. {seconds}s"
       }
     }
   },
@@ -228,34 +400,14 @@
     "challenges": "{count} plays",
     "passRate": "Avg. pass rate {rate}%",
     "passRateBadge": "Pass rate {rate}%",
-    "bookmark": "♥ Save",
-    "favorited": "♥ Saved",
-    "share": "📤 Share",
-    "useForGame": "⚡ Use in Game",
-    "questionTable": {
-      "index": "#",
-      "question": "Question",
-      "passRate": "Pass Rate",
-      "timeLimit": "Time",
-      "singleChoice": "Single choice · 4 options",
-      "timeApprox": "~20s"
+    "soloPractice": "📝 Solo Practice",
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived",
+      "publishAction": "Publish",
+      "unpublishAction": "Unpublish"
     },
-    "comments": {
-      "title": "💬 Comments ({count})",
-      "placeholder": "Write your thoughts...",
-      "submit": "Post",
-      "daysAgo": "{days} days ago",
-      "justNow": "Just now"
-    },
-    "creator": {
-      "title": "About the Creator",
-      "verified": "Verified Creator",
-      "quizCount": "Quizzes",
-      "challengeCount": "Total Plays",
-      "follow": "Follow Creator",
-      "following": "Following"
-    },
-    "related": "You might also like",
     "modal": {
       "title": "Start a Game with This Quiz",
       "subtitle": "A room code and QR Code will be generated immediately",
@@ -268,6 +420,55 @@
       "joinMethodValue": "QR Code or room code, no account needed",
       "createRoom": "▶ Create Room Now",
       "cancel": "Cancel"
+    },
+    "favorite": {
+      "add": "Favorite",
+      "remove": "Favorited"
+    },
+    "creator": {
+      "quizCount": "{count} quizzes",
+      "challengeCount": "{count} plays",
+      "follow": "Follow",
+      "following": "Following"
+    },
+    "comments": {
+      "title": "Comments",
+      "empty": "No comments yet, be the first!",
+      "placeholder": "Share your thoughts…",
+      "submit": "Post Comment",
+      "loginToComment": "Log in to comment",
+      "loadMore": "Load more comments",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "related": {
+      "title": "Related Quizzes"
+    },
+    "share": {
+      "action": "Share",
+      "copied": "Link copied",
+      "copyLink": "Copy link",
+      "line": "Share to Line",
+      "facebook": "Share to Facebook",
+      "x": "Share to X"
+    },
+    "report": {
+      "action": "Report",
+      "reported": "Reported",
+      "title": "Report this quiz",
+      "reasonLabel": "Reason",
+      "descriptionLabel": "Additional details (optional)",
+      "descriptionPlaceholder": "Describe the issue",
+      "confirm": "Submit Report",
+      "cancel": "Cancel",
+      "reasons": {
+        "InappropriateContent": "Inappropriate Content",
+        "Spam": "Spam",
+        "Copyright": "Copyright Issue",
+        "Other": "Other"
+      }
     }
   },
   "signIn": {
@@ -282,6 +483,7 @@
     "haveAccount": "Already have an account?",
     "loginLink": "Sign in",
     "registerError": "This email may already be in use",
+    "googleLoginError": "Google sign-in failed. Please try again.",
     "passwordMismatch": "Passwords do not match",
     "strength": {
       "tooShort": "Too short",
@@ -420,9 +622,9 @@
       "titleRequired": "Please enter a quiz title",
       "addQuestion": "Add Question",
       "readyTitle": "Ready?",
-      "readySubtitle": "Confirm your questions, then create the game room",
+      "readySubtitle": "Confirm your questions, then save the quiz",
       "questionCount": "{count} questions",
-      "createRoomBtn": "🚀 Create Game Room"
+      "createRoomBtn": "Save Quiz"
     },
     "ai": {
       "title": "✨ AI Quiz",
@@ -446,9 +648,9 @@
       "generateBtn": "✨ Start Generating",
       "generatingBtn": "✨ AI is generating, please wait...",
       "readyTitle": "Ready?",
-      "readySubtitle": "Confirm your questions, then create the game room",
+      "readySubtitle": "Confirm your questions, then save the quiz",
       "questionCount": "{count} questions",
-      "createRoomBtn": "🚀 Create Game Room"
+      "createRoomBtn": "Save Quiz"
     }
   },
   "terms": {
@@ -543,6 +745,82 @@
     "rank": "#{rank}",
     "score": "{score} pts",
     "you": "(you)",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "pagination": {
+      "summary": "Page {current} of {total}",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page}"
+    },
+    "search": {
+      "clear": "Clear search"
+    }
+  },
+  "attempt": {
+    "question": {
+      "questionOf": "Question {current} / {total}",
+      "next": "Next",
+      "finish": "Finish"
+    },
+    "result": {
+      "score": "Score {score}",
+      "reviewTitle": "Review Answers",
+      "questionIndex": "Question {index}",
+      "correct": "✔ Correct",
+      "wrong": "✘ Wrong",
+      "backToQuiz": "Back to Quiz",
+      "backToLibrary": "Back to Library"
+    },
+    "notFound": {
+      "title": "Attempt progress not found",
+      "desc": "Refreshing or opening this link directly loses in-progress answers. Please go back and start again.",
+      "backToLibrary": "Back to Library"
+    },
+    "history": {
+      "title": "Attempt History",
+      "empty": "No attempts yet",
+      "score": "{score} pts",
+      "duration": "{seconds}s"
+    }
+  },
+  "myQuizzes": {
+    "title": "📚 My Quizzes",
+    "subtitle": "Manage all the quizzes you've created",
+    "empty": "You haven't created any quizzes yet!",
+    "emptyDesc": "Write a set of questions to create your first quiz",
+    "emptyCta": "✨ Create a Quiz",
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived",
+      "takenDown": "Taken Down"
+    },
+    "actions": {
+      "edit": "Edit",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "archive": "Archive",
+      "unarchive": "Unarchive",
+      "delete": "Delete"
+    },
+    "deleteConfirm": {
+      "title": "Delete this quiz?",
+      "subtitle": "This cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    }
+  },
+  "myQuizzesEdit": {
+    "backToList": "Back to My Quizzes",
+    "title": "✏️ Edit Quiz",
+    "titleLabel": "Quiz Title",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Briefly describe this quiz...",
+    "tagsLabel": "Tags (comma separated)",
+    "tagsPlaceholder": "e.g. History, Beginner",
+    "saveMeta": "Save Details",
+    "questionsTitle": "Questions",
+    "saveQuestion": "Save Question",
+    "addQuestion": "Add Question"
   }
 }

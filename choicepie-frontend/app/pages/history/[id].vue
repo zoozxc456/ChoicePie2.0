@@ -1,6 +1,16 @@
 <template>
   <div
-    v-if="!game"
+    v-if="gameSessionStore.isLoading"
+    class="flex justify-center py-20"
+  >
+    <UIcon
+      name="i-lucide-loader-2"
+      class="animate-spin text-4xl text-primary-500"
+    />
+  </div>
+
+  <div
+    v-else-if="!game"
     class="max-w-3xl mx-auto px-6 py-20 text-center"
   >
     <p class="text-sm text-cp-text-secondary mb-4">
@@ -106,22 +116,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Host: placeholder for future analytics -->
-        <div
-          v-else-if="isHost"
-          class="rounded-2xl bg-cp-surface-muted border border-dashed border-cp-border p-5 text-center"
-        >
-          <div class="text-2xl mb-2">
-            🚧
-          </div>
-          <p class="text-sm font-bold mb-1">
-            {{ t('history.detail.hostNote.title') }}
-          </p>
-          <p class="text-xs text-cp-text-muted leading-relaxed">
-            {{ t('history.detail.hostNote.desc') }}
-          </p>
-        </div>
       </div>
 
       <!-- ─── Right: Podium + ranking ─── -->
@@ -209,28 +203,120 @@
             </span>
           </div>
         </div>
+
+        <!-- Host: per-question breakdown -->
+        <div
+          v-if="isHost && game.questionBreakdown.length"
+          class="rounded-2xl bg-white overflow-hidden border border-cp-border p-5"
+        >
+          <h2 class="text-sm font-bold mb-4">
+            {{ t('history.detail.breakdown.title') }}
+          </h2>
+          <div class="flex flex-col gap-4">
+            <div
+              v-for="(q, qi) in game.questionBreakdown"
+              :key="qi"
+              class="rounded-xl border border-cp-border p-4"
+            >
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <p class="text-sm font-semibold leading-relaxed">
+                  {{ qi + 1 }}. {{ q.questionText }}
+                </p>
+                <div class="shrink-0 flex flex-col items-end gap-1">
+                  <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-cp-primary-light text-cp-primary whitespace-nowrap">
+                    {{ t('history.detail.breakdown.correctRate', { rate: correctRatePercent(q) }) }}
+                  </span>
+                  <span
+                    v-if="q.averageAnswerTimeMs !== null"
+                    class="text-xs text-cp-text-muted whitespace-nowrap"
+                  >
+                    {{ t('history.detail.breakdown.averageAnswerTime', { seconds: averageAnswerTimeSeconds(q) }) }}
+                  </span>
+                </div>
+              </div>
+
+              <p
+                v-if="!q.answeredCount"
+                class="text-xs text-cp-text-muted"
+              >
+                {{ t('history.detail.breakdown.noAnswers') }}
+              </p>
+              <div
+                v-else
+                class="flex flex-col gap-2"
+              >
+                <div
+                  v-for="(opt, oi) in q.options"
+                  :key="oi"
+                  class="relative rounded-lg border overflow-hidden px-3 py-2"
+                  :class="opt.isCorrect ? 'border-cp-success' : 'border-cp-border'"
+                >
+                  <div
+                    class="absolute inset-y-0 left-0"
+                    :class="opt.isCorrect ? 'bg-cp-success-bg' : 'bg-cp-surface-muted'"
+                    :style="{ width: `${optionPercent(opt, q)}%` }"
+                  />
+                  <div class="relative flex items-center justify-between gap-3 text-xs">
+                    <span :class="opt.isCorrect ? 'font-semibold text-[#2e7d32]' : 'text-cp-text-secondary'">
+                      {{ opt.text }}
+                    </span>
+                    <span class="shrink-0 tabular-nums text-cp-text-muted">
+                      {{ opt.pickedCount }} · {{ optionPercent(opt, q) }}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { mockHostedGames, mockPlayedGames } from '~/mocks/history'
+import { useGameSessionStore } from '~/stores/gameSession'
+import type { GameSessionOptionStatDto, GameSessionQuestionBreakdownDto } from '~/types/api'
 
-definePageMeta({ layout: 'content' })
+definePageMeta({ layout: 'content', middleware: ['auth'] })
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const gameSessionStore = useGameSessionStore()
 
 const id = computed(() => route.params.id as string)
 
-const hostedGame = computed(() => mockHostedGames.find(g => g.id === id.value))
-const playedGame = computed(() => mockPlayedGames.find(g => g.id === id.value))
+const session = computed(() => gameSessionStore.currentSession)
+const isHost = computed(() => session.value?.isHost ?? false)
 
-const isHost = computed(() => !!hostedGame.value)
-const game = computed(() => hostedGame.value ?? playedGame.value)
+const game = computed(() => {
+  if (!session.value) return undefined
+  return {
+    coverEmoji: session.value.coverEmoji,
+    coverGradient: `background: ${session.value.coverGradient};`,
+    quizTitle: session.value.quizTitle,
+    playerCount: session.value.playerCount,
+    questionCount: session.value.questionCount,
+    playedAt: session.value.playedAtUtc,
+    rankings: session.value.rankings,
+    questionBreakdown: session.value.questionBreakdown
+  }
+})
 
-const isMe = (nickname?: string) => !isHost.value && nickname === '你'
+const playedGame = computed(() => {
+  if (!session.value || session.value.isHost) return undefined
+  return { wrongAnswers: session.value.myWrongAnswers }
+})
+
+const myNickname = computed(() =>
+  session.value?.rankings.find(r => r.rank === session.value?.myRank)?.nickname
+)
+
+const isMe = (nickname?: string) => !isHost.value && !!nickname && nickname === myNickname.value
+
+onMounted(() => {
+  gameSessionStore.fetchSessionById(id.value)
+})
 
 // 頒獎台/排名條狀圖的動態高度、寬度無法用 CSS @keyframes 動畫（custom property 不會被插值），
 // 改用掛載後切換內聯樣式搭配 CSS transition 觸發進場動畫。
@@ -281,6 +367,15 @@ const reviewOptionClass = (qa: { myAnswerIndex: number, correctAnswerIndex: numb
   if (optionIndex === qa.myAnswerIndex) return 'border-cp-danger bg-cp-danger-bg text-cp-danger'
   return 'border-cp-border text-cp-text-secondary'
 }
+
+const correctRatePercent = (q: GameSessionQuestionBreakdownDto) =>
+  q.answeredCount ? Math.round((q.correctCount / q.answeredCount) * 100) : 0
+
+const optionPercent = (opt: GameSessionOptionStatDto, q: GameSessionQuestionBreakdownDto) =>
+  q.answeredCount ? Math.round((opt.pickedCount / q.answeredCount) * 100) : 0
+
+const averageAnswerTimeSeconds = (q: GameSessionQuestionBreakdownDto) =>
+  q.averageAnswerTimeMs === null ? 0 : (q.averageAnswerTimeMs / 1000).toFixed(1)
 </script>
 
 <script lang="ts">

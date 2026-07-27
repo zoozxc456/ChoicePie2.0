@@ -1,0 +1,260 @@
+# Todo
+
+## 題庫詳情頁 (`/library/[id]`) — 待補後端 API 的功能
+
+2026-07-12 起草，2026-07-23 更新現況：`app/pages/library/[id].vue` 原本用假資料（mock）呈現以下功能，因當時後端完全沒有對應 API，已先從 UI 移除。全部已補上 API 並重新接回前端。
+
+已完成（後端 API + 前端串接皆已上線）：
+
+- **收藏/最愛（favorite/bookmark）**：`GET/PUT/DELETE /api/v1/quizzes/{id}/favorite`，`app/services/quiz/client.ts` 的 `fetchFavoriteStatus/addFavorite/removeFavorite`。
+- **追蹤創作者（follow creator）**：`GET /api/v1/creators/{id}`、`PUT/DELETE /api/v1/creators/{id}/follow`，`app/services/creator/client.ts` + `app/stores/creator.ts`。
+- **留言/評論（comments）**：`GET/POST /api/v1/quizzes/{id}/comments`（僅新增/查詢，無編輯/刪除，查詢無分頁）。
+- **創作者統計**：已併入 `GET /api/v1/creators/{id}` 回傳的 `CreatorProfileDto`（`quizCount`、`challengeCount`），非獨立 endpoint。
+- **相關題庫推薦（related quizzes）**：`GET /api/v1/quizzes/{id}/related`，依共同標籤比對已發布題庫並依挑戰次數排序，`app/services/quiz/client.ts` 的 `fetchRelatedQuizzes`。
+- **分享功能（share）**：`POST /api/v1/quizzes/{id}/share` 累加 `Quiz.ShareCount`（無需登入），前端點擊分享按鈕會複製題庫連結到剪貼簿並呼叫此 API，`app/services/quiz/client.ts` 的 `recordShare`。目前僅記錄次數，未產生短連結或自訂分享頁。
+
+已確認存在、可正常使用真實資料的欄位：`QuizDto`/`QuizSummaryDto` 的 `challengeCount`、`passRate`、`creatorName`、`questions` 等。
+
+## 主持人賽後數據分析 (`/history/[id]`) — 已完成
+
+2026-07-23：`history/[id].vue` 主持人視角的逐題數據分析（答對率、每個選項被選次數）已完成並接回真實資料。
+
+2026-07-24：**每題平均作答時間**已實作並接回前端。後端 `GameRoom.SubmitAnswer` 原本就會計算 `elapsed`（作答耗時）
+但只用於計分後即丟棄，現已將其以毫秒形式（`AnswerTimeMs`）一路帶入 `PlayerAnswer` → `GameSessionAnswerLogEntry`
+（`ChoicePie.Backend.Domain/Aggregates/GameSession/ValueObjects/GameSessionAnswerLogEntry.cs`，新增欄位帶預設值 `0`
+以相容既有 jsonb 資料，無需 EF migration）。`GameSessionQuestionBreakdownDto` 新增 `AverageAnswerTimeMs`（`double?`，
+無人作答時為 `null`），由 `GameSessionQueryService.BuildQuestionBreakdown()` 計算平均值。前端逐題分析卡片
+（`app/pages/history/[id].vue`）在答對率旁補上「平均作答 X 秒」顯示。
+
+## AI 出題 — 只差真實 LLM provider
+
+2026-07-24 更新：前端頁面（`library/new/ai.vue`）、額度控管、controller、DTO 端到端流程都已接好，**但後端 `PlaceholderQuizGenerationService`
+（`ChoicePie.Backend.Infrastructure/ExternalServices/Quizzes/PlaceholderQuizGenerationService.cs`）目前只回傳寫死的
+「Placeholder question N」，沒有呼叫任何真實 LLM**（`TokensUsed` 也固定回 0）。需要：
+1. 選定並串接真實 LLM provider，取代 `PlaceholderQuizGenerationService` 的實作
+2. 確認現有輸入介面（主題/關鍵字/難度）、產生題目後的審核與編輯流程是否足夠，不需要另外規劃
+3. 成本控管（token 用量、額度限制）——確認現有額度邏輯是否已涵蓋真實 API 呼叫成本
+
+## Google 註冊登入 — 已完成
+
+2026-07-25：採用前端 Google Identity Services（GIS，ID Token 流程），而非傳統 Authorization Code redirect——
+不需要 client secret，前端 Client ID 本來就設計成公開值，安全性靠後端驗證 ID Token 簽章（`aud`/`iss`/過期時間），
+不是靠保密。Google 帳號是 `AuthAccount` 的其中一種 `LoginMethod`（`LoginProvider.Google`），與既有 `Original`
+密碼登入共存於同一聚合，符合「Google 登入只是其中一種登入方式」的設計目標。
+
+後端：
+- `AuthAccount.RegisterWithExternalLogin(...)`（`Domain/Aggregates/AuthAccount/AuthAccount.cs`）——外部登入
+  註冊時直接 `IsVerified = true`（Google 已驗證過 email），沿用既有 `AddLoginMethod`/`LoginMethodAlreadyLinkedException`。
+- 新增 `AuthAccountByExternalIdentitySpecification`，查詢 owned collection `LoginMethods` 中匹配的 provider + providerUserId。
+- `IGoogleIdTokenVerifier`（`Application/Identity/Contracts/`）+ `GoogleIdTokenVerifier` 實作
+  （`Infrastructure/Identity/`，用 `Google.Apis.Auth` 套件的 `GoogleJsonWebSignature.ValidateAsync` 驗證簽章/audience），
+  驗證失敗丟 `InvalidGoogleTokenException`。
+- `GoogleSettings`（`Shared.Kernel/Abstractions/Settings/`，只有 `ClientId`，無 secret）、`appsettings.json` 新增
+  `Google:ClientId`（需自行填入）。
+- `GoogleLoginCommand`/`GoogleLoginCommandHandler`：依序嘗試「Google 身分已存在」→「email 已註冊但未綁定 Google
+  （自動補綁 `AddLoginMethod`）」→「全新使用者（建立 Member + AuthAccount）」，其餘登入/發 token 流程與
+  `LoginCommandHandler` 一致（复用 `ITokenService`/`IRefreshTokenGenerator`）。
+- `AuthController` 新增 `POST /api/v1/auth/google`（匿名，回傳 `MemberDto` 並設定 auth cookies，與既有 `/login` 相同模式）。
+- 測試：`AuthAccountTests`（`RegisterWithExternalLogin`）、`GoogleLoginCommandHandlerTests`（新使用者/既有 Google
+  帳號/自動綁定既有 email 帳號/停權會員）。
+
+前端：
+- `app/composables/useGoogleIdentity.ts`：動態載入 Google GIS script（`accounts.google.com/gsi/client`），
+  包裝 `google.accounts.id.initialize/prompt`，回傳 Promise-based `requestIdToken()`。
+- `app/services/auth.ts` 新增 `loginWithGoogle(idToken)` → `POST /api/v1/auth/google`。
+- `app/stores/auth.ts` 的 `loginWithGoogle()` 補上真正邏輯（原本是導到不存在的 `/api/auth/google` 的空殼）。
+- `login.vue`/`sign-in/index.vue` 的 Google 按鈕接上 `handleGoogleLogin`（含錯誤處理與 loading 狀態）。
+- `nuxt.config.ts`/`.env.example` 新增 `NUXT_PUBLIC_GOOGLE_CLIENT_ID`（公開值）。
+- i18n 新增 `login.googleLoginError`/`signIn.googleLoginError`（zh-TW + en）。
+- 測試：`useGoogleIdentity.spec.ts`（成功/使用者取消）、`auth.spec.ts`/`authClient.spec.ts` 補上 `loginWithGoogle` case。
+
+部署前待辦：需要在 Google Cloud Console 建立 OAuth Client ID（類型選 Web application，Authorized JavaScript
+origins 設定前端網域），並將 Client ID 填入後端 `Google:ClientId` 與前端 `NUXT_PUBLIC_GOOGLE_CLIENT_ID`。
+
+## 留言功能補強 — 編輯/刪除/分頁皆已完成
+
+2026-07-24：留言的編輯/刪除已完成並接回前端。後端新增 `Comment.UpdateText()`/`EnsureModifiableBy()` 網域方法
+（僅留言作者可編輯/刪除，比照 `Quiz.EnsureModifiableBy` 的模式，違反時丟出 `CommentForbiddenException`），
+新增 `UpdateCommentCommand`/`DeleteCommentCommand` 與對應 handler，controller 補上
+`PUT/DELETE /api/v1/quizzes/{id}/comments/{commentId}`（`[Authorize(Policy = "MemberOnly")]`）。刪除採沿用
+`AuditableEntity.Delete(userId)` 的軟刪除。前端將留言區塊從 `library/[id].vue` 抽出為
+`app/components/library/CommentList.vue` + `CommentItem.vue`，僅留言本人（`auth.user.id === comment.userId`）
+會看到編輯/刪除按鈕，`app/stores/quiz.ts` 新增 `updateComment`/`deleteComment` actions。
+
+2026-07-24：**留言分頁**已完成，比照既有 `PaginationParameters`/`PagedResult<T>` 慣例（`ListQuizzesQuery`/
+`QuizQueryService.ListAsync` 的模式）。`ListCommentsByQuizIdQuery` 改為 `record(QuizId, PageNumber, PageSize)`，
+回傳型別由 `IReadOnlyList<CommentDto>` 改為 `PagedResult<CommentDto>`；`ICommentQueryService.ListByQuizIdAsync`
+補上 `pageNumber`/`pageSize` 參數與 `Count()` + `Skip/Take` 分頁查詢。Controller `GET /api/v1/quizzes/{id}/comments`
+比照 `GameSessionsController`（route id + `[FromQuery(Name = "page")]`/`[FromQuery(Name = "pageSize")]`，
+預設 `page=1`、`pageSize=20`）的寫法。前端採「載入更多」模式：`quizStore.comments` 維持攤平陣列並用新頁附加，
+新增 `hasMoreComments`/`isLoadingMoreComments`/`fetchMoreComments` state 與 action，`CommentList.vue` 底部顯示
+「載入更多留言」按鈕（`hasMoreComments` 為 true 時才出現）。
+
+## Admin：題庫下架 / 會員管理 — 已完成
+
+2026-07-24：決策——題庫下架新增獨立的 `TakenDown` 狀態（與作者自行封存的 `Archived` 語意區分）；
+會員停權支援期限（`SuspendedUntil` 為 `null` 代表永久停權，到期後登入判斷自動視為未停權，
+沒有背景工作定期清除 `IsSuspended`）；複權/解除停權權限沿用現有單一 Admin 角色（`AdminOnly` policy），
+未做角色分級。
+
+後端：
+
+- `QuizStatus` 新增 `TakenDown`；`Quiz.cs` 新增 `TakeDown(adminId, reason, utcNow)` /
+  `RestoreFromTakedown()`，記錄 `TakedownReason`/`TakedownBy`/`TakedownAt`；`Archive()` 補上防呆
+  （已下架題庫不可被作者封存）。
+- `Member.cs` 新增 `IsSuspended`/`SuspendedReason`/`SuspendedUntil` 與 `Suspend(reason, until)` /
+  `Unsuspend()` / `IsCurrentlySuspended(nowUtc)`；`LoginCommandHandler` 登入時呼叫
+  `IsCurrentlySuspended` 擋下停權會員（`MemberSuspendedException`，403）。
+- 新增 `AdminQuizzes`（`AdminTakeDownQuizCommand`/`AdminRestoreQuizCommand`/`AdminListQuizzesQuery`）與
+  `AdminMembers`（`AdminSuspendMemberCommand`/`AdminUnsuspendMemberCommand`/`AdminListMembersQuery`）
+  application slice，`IQuizQueryService`/`IMemberQueryService` 各補上一個不受狀態限制的
+  `AdminListAsync`（一般會員端查詢仍只回傳 `Published`/自己的 `Draft`）。
+- Controller：`AdminQuizzesController`（`GET/POST /api/v1/admin/quizzes`,
+  `POST .../{id}/takedown`, `POST .../{id}/restore`）與 `AdminMembersController`
+  （`GET /api/v1/admin/members`, `POST .../{id}/suspend`, `POST .../{id}/unsuspend`），皆掛
+  `[Authorize(Policy = "AdminOnly")]`。
+- EF migration `AddQuizTakedownAndMemberSuspension` 新增對應欄位（`quiz.takedown_reason/by/at`,
+  `member.is_suspended/suspended_reason/suspended_until`）。
+
+前端：
+
+- `app/pages/admin/quizzes/index.vue`（搜尋 + 列表 + 下架/還原，下架需透過
+  `components/admin/TakeDownQuizModal.vue` 填寫原因）與 `app/pages/admin/members/index.vue`
+  （搜尋 + 列表 + 停權/解除停權，停權透過 `components/admin/SuspendMemberModal.vue` 填寫原因與
+  可選的停權期限）。`app/stores/adminQuiz.ts`/`adminMember.ts` + `app/services/admin/quiz.ts`/
+  `member.ts` 皆為新檔案。`app/pages/admin/index.vue` 儀表板補上兩個管理頁面的導覽按鈕。
+- `useApi.ts` 既有的 `/api/v1/admin/*` 401 refresh 邏輯（`ADMIN_PATH_PREFIX`）直接涵蓋新
+  endpoint，未額外調整。
+
+## 忘記密碼 / Email 驗證 — 已完成（Email 通知類其他功能仍待規劃）
+
+2026-07-24：決策——寄信服務採用 SMTP（MailKit），不綁定特定 SaaS；一次實作忘記密碼與 Email 驗證兩條流程。
+
+後端：
+
+- 新增 `ChoicePie.Backend.Shared.Infrastructure.Email` 專案（比照 `Shared.Infrastructure.Security` 的
+  「小型、單一用途 infra 專案」慣例），`SmtpEmailSender : IEmailSender`（MailKit）、
+  `SmtpSettings : IAppSetting`（`Host`/`Port`/`Username`/`Password`/`FromAddress`/`FromName`/`UseSsl`/
+  `FrontendBaseUrl`，對應 `appsettings.json` 的 `Smtp`區段）、`FrontendUrlProvider : IFrontendUrlProvider`
+  （供 Application 層組信件連結，不需依賴 Infra 層的 `SmtpSettings`）。`IEmailSender`/`IFrontendUrlProvider`
+  介面定義在 `Shared.Application/Interfaces/`，維持依賴方向正確。
+- `AuthAccount.cs` 新增 `ChangePassword(HashedPassword)`（委派給 `LoginMethod.SetPassword`，找不到
+  `Original` 登入方式時丟出 `NoOriginalLoginMethodException`）與 `Verify()`（已驗證時為 no-op）。
+- 新增 `PasswordResetToken`/`EmailVerificationToken` aggregate（比照 `RefreshToken` 的 hash-only 儲存 +
+  `ExpiresAt`/`UsedAt` 過期機制，`EnsureUsable(nowUtc)`/`MarkUsed(utcNow)`），`Issue(...)` 靜態工廠同時
+  raise `PasswordResetRequestedDomainEvent`/`EmailVerificationRequestedDomainEvent`（攜帶明文 raw token，
+  僅供事件處理器組信件連結，資料庫只存 hash）。Token 產生沿用既有 `IRefreshTokenGenerator`
+  （32 bytes random + SHA-256 hash），未另外寫 token 產生邏輯。
+- Application 新增 `ForgotPasswordCommand`（找不到 email 時靜默返回，避免帳號枚舉）、
+  `ResetPasswordCommand`、`VerifyEmailCommand`、`ResendVerificationEmailCommand`（`MemberOnly`，已驗證時
+  丟出 `EmailAlreadyVerifiedException`）。`RegisterMemberCommandHandler` 註冊時一併簽發
+  `EmailVerificationToken`。兩個 `INotificationHandler<DomainEventNotification<T>>`
+  （`SendPasswordResetEmailHandler`/`SendEmailVerificationEmailHandler`）比照既有
+  `LogAuthAccountRegisteredHandler` 的模式監聽事件並呼叫 `IEmailSender` 寄出中文 HTML 信件。
+- Controller：`AuthController` 新增 `POST /api/v1/auth/forgot-password`、`.../reset-password`、
+  `.../verify-email`（皆匿名）與 `.../resend-verification`（`[Authorize(Policy = "MemberOnly")]`）。
+- EF migration `AddPasswordResetAndEmailVerificationTokens` 新增
+  `password_reset_token`/`email_verification_token` 兩張表。
+
+前端：
+
+- `app/types/auth.ts` 新增 `useForgotPasswordSchema`/`useResetPasswordSchema`，
+  `app/services/auth.ts`/`app/stores/auth.ts` 新增對應 4 個 action（`forgotPassword`/`resetPassword`/
+  `verifyEmail`/`resendVerification`），`verifyEmail` 成功時同步更新 `user.isVerified`。
+- `app/pages/forgot-password.vue`/`reset-password.vue`（`token` 讀取自 query string）/`verify-email.vue`
+  三個新頁面，皆比照 `login.vue` 的卡片版型。`login.vue` 密碼欄位下方加上「忘記密碼？」連結。
+- `app/components/common/EmailVerificationBanner.vue`（未驗證會員登入後顯示的可關閉提示 bar，含
+  「重新發送驗證信」按鈕），掛載於 `app/layouts/content.vue`（`library` 等主要頁面使用的 layout）。
+
+**仍待規劃**：一般性 Email 通知（例如遊戲/題庫相關通知信）目前仍無需求與設計，寄信基礎設施已備妥，
+之後若有需要可直接復用 `IEmailSender`。
+
+## 單人練習 (`/attempt/[id]`) — 計時/歷史記錄/續作限制皆已完成
+
+2026-07-24 新增：核心作答流程（開始挑戰 → 逐題作答 → 完成計分 → 結果頁逐題檢討）已完整串接前後端，
+可正常遊玩。
+
+2026-07-24：**計時功能**已完成，決策為「每題固定 30 秒，純前端倒數，不影響計分、不落地到後端」——
+單人練習沒有對手也沒有名次壓力，計時只是節奏提示，不需要像多人遊戲（`GameRoom`）那樣做 elapsed-time
+計分或後端時限驗證。`app/pages/attempt/[id].vue` 直接內嵌計時邏輯（比照 `app/stores/game.ts` 的
+`_startTimer`/`_stopTimer` 寫法，UI 沿用 `components/gameRoom/GamingRoom.vue` 的數字倒數 + 進度條風格），
+`questionIndex` 改變時透過 `watch` 重啟計時；時間到會呼叫既有的 `handleNext()`（此時
+`selectedOptionIndex` 若仍是 `null` 則視為跳過該題，不送出答案，直接前進到下一題或結算）。
+
+2026-07-24：**作答歷史記錄**已完成，範圍為「單一題庫的歷史清單（分數、時間、次數），在題庫詳情頁展開」。
+後端新增 `GET /api/v1/quiz-attempts/history?quizId=...`（`ListQuizAttemptHistoryQuery` +
+`QuizAttemptQueryService.ListHistoryAsync`），只回傳當前登入會員、該題庫、`Status == Completed` 的
+attempts，依 `CompletedAt` 新到舊排序，`QuizAttemptHistoryItemDto` 額外算出 `DurationMs`
+（`CompletedAt - StartedAt`）。前端 `app/components/attempt/AttemptHistoryList.vue` 嵌入
+`library/[id].vue` 題目列表下方，僅登入會員可見。
+
+2026-07-24：**中途離開無法續作 / 無重複挑戰限制**已一併處理完成，決策為「同一題庫同一會員最多只有一個
+進行中的 attempt，重新開始會續用而非產生新記錄；已完成的挑戰不限制次數」（練習性質題庫，允許重複挑戰
+以求進步，但避免中途離開造成的 `InProgress` 記錄無限累積）。實作：
+
+- 後端新增 `QuizAttemptInProgressByQuizAndMemberSpecification`
+  （`ChoicePie.Backend.Domain/Aggregates/QuizAttempt/Specifications/`），`StartQuizAttemptCommandHandler`
+  改為先查詢是否已有進行中的 attempt，若有則直接複用（回傳同一個 `attemptId` 與完整題目資料），
+  沒有才建立新的 `QuizAttempt`。
+- 修正一併發現的安全性問題：`GetQuizAttemptByIdQuery`（`GET /api/v1/quiz-attempts/{id}`）先前對進行中的
+  attempt 也會回傳每題的 `CorrectOptionIndex`/`IsCorrect`/`Explanation`，等於作答途中就能從 API 回應看到正確答案。
+  現在 `QuizAttemptQueryService.GetByIdAsync` 會在 `Status == InProgress` 時將這三個欄位遮蔽為 `null`/`false`
+  （`QuizAttemptAnswerResultDto` 的 `CorrectOptionIndex`/`Explanation` 因此改為可為 `null`）。
+- 前端 `app/pages/attempt/[id].vue`：直接連到 `/attempt/[id]`（重新整理或分享連結）且 store 內沒有對應
+  `currentAttempt` 時，改為呼叫 `fetchAttemptById` 判斷是否為進行中的 attempt，若是則呼叫 `startAttempt`
+  取回完整題目資料以續作（同一 attempt id，不會建立新記錄），並依已作答數量跳到對應題目；
+  `quizAttempt.ts` store 的 `fetchAttemptById` 也只在 `completedAt` 存在時才寫入 `result`，避免進行中的
+  attempt 誤觸發結果頁畫面。
+
+## 題庫檢舉功能 — 已完成
+
+2026-07-24：決策——檢舉併入既有 Admin 審核機制（沿用「題庫下架」的 `TakeDown` 狀態，而非另建獨立審核佇列）；
+檢舉原因採固定分類（`InappropriateContent`/`Spam`/`Copyright`/`Other`）+ 選填說明；同一題庫同一會員在檢舉
+「待處理」期間只能檢舉一次，該筆被處理（下架或駁回）後才能再次檢舉。
+
+後端：新增 `QuizReport` aggregate（`ChoicePie.Backend.Domain/Aggregates/QuizReport/`），欄位
+`QuizId`/`Reason`（`ReportReason` enumeration）/`Description`/`Status`（`ReportStatus`：
+`Pending`/`Resolved`/`Dismissed`）/`ResolvedBy`/`ResolvedAt`/`ResolutionNote`，檢舉人透過既有
+`AuditableEntity.CreatorId`記錄（`ReporterId` 計算屬性）。`Resolve(adminId, note, utcNow)` /
+`Dismiss(adminId, note, utcNow)` 只允許在 `Pending` 狀態呼叫。新增
+`PendingQuizReportByQuizAndReporterSpecification` 供重複檢舉檢查（比照
+`QuizAttemptInProgressByQuizAndMemberSpecification` 的模式）。
+
+- 會員端：`CreateQuizReportCommand`/Handler（`ChoicePie.Backend.Application/QuizReports/`），驗證題庫存在、
+  原因合法、無待處理中的重複檢舉後建立 `QuizReport`。Controller 新增
+  `POST /api/v1/quizzes/{id}/report`（`[Authorize(Policy = "MemberOnly")]`）。
+- Admin 端：新增 `AdminQuizReports` application slice（`AdminListQuizReportsQuery`——比照
+  `PaginationParameters`/`PagedResult<T>` 慣例、`AdminResolveQuizReportCommand`——標記檢舉為 `Resolved`
+  並連動呼叫既有的 `Quiz.TakeDown()` 下架題庫、`AdminDismissQuizReportCommand`——標記為 `Dismissed`，
+  題庫不受影響）。`IQuizReportQueryService.AdminListAsync` 查詢時 join `Quiz`/`Member` 取得題庫標題與檢舉人
+  名稱。新增 `AdminQuizReportsController`（`GET /api/v1/admin/quiz-reports`,
+  `POST .../{id}/resolve`, `POST .../{id}/dismiss`），皆掛 `[Authorize(Policy = "AdminOnly")]`。
+- EF migration `AddQuizReport` 新增 `quiz_report` table。
+
+前端：`app/components/library/ReportQuizModal.vue`（原因下拉 + 選填說明），嵌入
+`app/pages/library/[id].vue`（`ShareMenu` 旁的檢舉按鈕，非題庫擁有者且已登入才顯示，送出後按鈕鎖定為
+「已檢舉」）；`app/pages/admin/quiz-reports/index.vue`（狀態篩選 + 列表 + 下架/駁回，透過
+`components/admin/ResolveQuizReportModal.vue` 填寫選填處理備註），`app/stores/adminQuizReport.ts` +
+`app/services/admin/quizReport.ts` 為新檔案，`app/stores/quiz.ts` 新增 `reportQuiz`/`isReporting`/
+`hasReported`。`app/pages/admin/index.vue` 儀表板補上第三個導覽按鈕。
+
+## 分享連結功能補強 — 已完成
+
+2026-07-24：決定範圍為「分享代碼但不做真正短網址」——沿用 `/library/{id}` 原頁面網址，
+不另外產生短碼/redirect endpoint。已完成：
+
+- **分享來源追蹤代碼**：所有分享連結改為附加 `?ref={channel}` 查詢參數（`copy`/`line`/`facebook`/`x`），
+  可從網址判斷使用者是從哪個管道點進來，但不落地成後端分析資料表——後端 `RecordQuizShareCommandHandler`
+  維持原本的 `Quiz.ShareCount` 純計數，不記錄管道。
+- **社群分享整合**：題庫詳情頁的分享按鈕改為下拉選單（`app/components/library/ShareMenu.vue`，
+  使用 `UDropdownMenu`），提供複製連結／分享到 Line／分享到 Facebook／分享到 X 四個選項，
+  各平台使用官方 web share intent 網址（`social-plugins.line.me/lineit/share`、
+  `facebook.com/sharer/sharer.php`、`twitter.com/intent/tweet`）開新視窗分享。圖示沿用專案既有的
+  `@iconify-json/lucide`（未安裝 `simple-icons` 之類的品牌圖示集，故用近似的 lucide 圖示代替）。
+- **OG meta 標籤**：`app/pages/library/[id].vue` 新增 `useSeoMeta`（`title`/`ogTitle`/`description`/
+  `ogDescription`/`ogType`），分享到聊天軟體或社群平台時會顯示題庫標題與描述。**沒有加上 `ogImage`**——
+  題庫本身沒有真正的封面圖片欄位（只有 `coverEmoji` + `coverGradient` CSS 漸層，不是圖片網址），
+  專案目前也只有一個 favicon，沒有符合 OG 建議尺寸（1200×630）的靜態圖，之後若要做圖片預覽需要另外
+  設計（例如伺服器端產生的動態卡片圖）。
+
+`app/stores/quiz.ts` 的 `recordShare` action 與後端 API 皆未變動。

@@ -21,27 +21,31 @@ public sealed class Quiz : AggregateRoot<Guid>
 
     // Reuses the inherited audit CreatorId (set by SetCreated below) rather than storing the
     // owner twice - the creator IS the owner for authorization purposes in this phase.
-    [NotMapped]
-    public Guid OwnerId => CreatorId!.Value;
+    [NotMapped] public Guid OwnerId => CreatorId!.Value;
 
     // Updated by RecordChallengeOutcome, called from a QuizAttemptCompletedDomainEvent handler.
     // EfUnitOfWork dispatches domain events after commit, outside any transaction, so that
     // handler is at-least-once delivery, not exactly-once - best effort, not deduplicated.
     public ChallengeStats Stats { get; private set; } = ChallengeStats.None;
 
-    [NotMapped]
-    public int ChallengeCount => Stats.Count;
+    // Incremented each time a client records a share action (RecordShare). Best-effort counter,
+    // not deduplicated per user - mirrors the same at-least-once tolerance as ChallengeStats.
+    public int ShareCount { get; private set; }
 
-    [NotMapped]
-    public decimal PassRate => Stats.PassRate;
+    public string? TakedownReason { get; private set; }
+    public Guid? TakedownBy { get; private set; }
+    public DateTime? TakedownAt { get; private set; }
+
+    [NotMapped] public int ChallengeCount => Stats.Count;
+
+    [NotMapped] public decimal PassRate => Stats.PassRate;
 
     public IReadOnlyList<Question> Questions => _questions.AsReadOnly();
     public IReadOnlyList<string> Tags => _tags.AsReadOnly();
 
     // Fully derivable from data this aggregate already owns - must stay computed, not persisted,
     // or it becomes a second source of truth alongside Questions.
-    [NotMapped]
-    public int QuestionCount => _questions.Count;
+    [NotMapped] public int QuestionCount => _questions.Count;
 
     private Quiz()
     {
@@ -75,6 +79,12 @@ public sealed class Quiz : AggregateRoot<Guid>
         return quiz;
     }
 
+    public new void Delete(Guid deleterId)
+    {
+        Status = QuizStatus.Deleted;
+        base.Delete(deleterId);
+    }
+
     public void EnsureModifiableBy(Guid userId)
     {
         if (OwnerId != userId)
@@ -105,7 +115,7 @@ public sealed class Quiz : AggregateRoot<Guid>
         EnsureQuestionsEditable();
 
         var question = _questions.SingleOrDefault(q => q.Id == questionId)
-                        ?? throw new InvalidQuestionException("找不到指定的題目。");
+                       ?? throw new InvalidQuestionException("找不到指定的題目。");
 
         question.Update(text, options, answerIndex, explanation);
         Touch();
@@ -159,7 +169,23 @@ public sealed class Quiz : AggregateRoot<Guid>
             throw new InvalidQuizException("題庫已經是封存狀態。");
         }
 
+        if (Status == QuizStatus.TakenDown)
+        {
+            throw new InvalidQuizException("題庫已被下架，無法封存。");
+        }
+
         Status = QuizStatus.Archived;
+        Touch();
+    }
+
+    public void Unarchive()
+    {
+        if (Status != QuizStatus.Archived)
+        {
+            throw new InvalidQuizException("只有封存狀態的題庫可以取消封存。");
+        }
+
+        Status = QuizStatus.Draft;
         Touch();
     }
 
@@ -168,11 +194,49 @@ public sealed class Quiz : AggregateRoot<Guid>
         Stats = Stats.RecordOutcome(passed);
     }
 
+    public void RecordShare()
+    {
+        ShareCount++;
+    }
+
+    public void TakeDown(Guid adminId, string reason, DateTime utcNow)
+    {
+        if (Status == QuizStatus.TakenDown)
+        {
+            throw new InvalidQuizException("題庫已經被下架。");
+        }
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new InvalidQuizException("下架原因不能為空。");
+        }
+
+        Status = QuizStatus.TakenDown;
+        TakedownReason = reason;
+        TakedownBy = adminId;
+        TakedownAt = utcNow;
+        Touch();
+    }
+
+    public void RestoreFromTakedown()
+    {
+        if (Status != QuizStatus.TakenDown)
+        {
+            throw new InvalidQuizException("題庫目前不是下架狀態。");
+        }
+
+        Status = QuizStatus.Draft;
+        TakedownReason = null;
+        TakedownBy = null;
+        TakedownAt = null;
+        Touch();
+    }
+
     private void EnsureEditable()
     {
-        if (Status == QuizStatus.Archived)
+        if (Status == QuizStatus.Archived || Status == QuizStatus.TakenDown)
         {
-            throw new InvalidQuizException("封存狀態的題庫無法修改。");
+            throw new InvalidQuizException("此題庫目前無法修改。");
         }
     }
 

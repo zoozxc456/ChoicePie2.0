@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
 using ChoicePie.Backend.Shared.Kernel.Auth;
@@ -14,6 +15,12 @@ public static class JwtAuthenticationExtensions
         public IServiceCollection AddJwtAuthentication(IConfiguration configuration)
         {
             services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+
+            // JwtSecurityTokenHandler 預設會把 "role"/"sub" 等短名稱 claim 重新映射成
+            // 長格式的 ws-2008 claim URI，導致簽發時用的 JwtClaimValues.RoleClaimType ("role")
+            // 在驗證後對不上，讓 RequireClaim("role", ...) 之類的 policy 一律判定失敗（403）。
+            // 關閉 inbound claim 映射，讓驗證後的 claim type 與簽發時一致。
+            JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer();

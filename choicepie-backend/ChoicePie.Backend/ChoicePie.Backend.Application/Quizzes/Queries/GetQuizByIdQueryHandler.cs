@@ -16,11 +16,8 @@ public sealed class GetQuizByIdQueryHandler(IQuizQueryService quizQueryService, 
         var quiz = await quizQueryService.GetByIdAsync(request.Id, cancellationToken)
                    ?? throw new QuizNotFoundException(request.Id);
 
-        if (quiz.CreatorId != userId)
-        {
-            throw new QuizForbiddenException(request.Id, userId);
-        }
-
-        return quiz;
+        // Non-owners can see basic info and ratings but not question content - Questions is
+        // stripped here rather than throwing, so browsing someone else's quiz works.
+        return quiz.CreatorId == userId ? quiz : quiz with { Questions = [] };
     }
 }

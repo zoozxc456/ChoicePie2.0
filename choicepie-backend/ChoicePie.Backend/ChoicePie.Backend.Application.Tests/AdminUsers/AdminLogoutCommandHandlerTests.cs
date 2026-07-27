@@ -15,6 +15,7 @@ public class AdminLogoutCommandHandlerTests
     private IRefreshTokenRepository _refreshTokenRepository = null!;
     private IRefreshTokenGenerator _refreshTokenGenerator = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private TimeProvider _timeProvider = null!;
     private AdminLogoutCommandHandler _sut = null!;
     private RefreshTokenAggregate _existingRefreshToken = null!;
 
@@ -24,7 +25,9 @@ public class AdminLogoutCommandHandlerTests
         _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
         _refreshTokenGenerator = Substitute.For<IRefreshTokenGenerator>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new AdminLogoutCommandHandler(_refreshTokenRepository, _refreshTokenGenerator, _unitOfWork);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _sut = new AdminLogoutCommandHandler(_refreshTokenRepository, _refreshTokenGenerator, _unitOfWork, _timeProvider);
 
         _existingRefreshToken =
             RefreshTokenAggregate.Issue(Guid.NewGuid(), RefreshTokenOwnerType.Admin, "old-hash", DateTime.UtcNow);

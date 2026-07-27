@@ -1,13 +1,45 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/image', '@vueuse/motion/nuxt', '@vueuse/nuxt', '@pinia/nuxt', '@nuxt/fonts', '@nuxtjs/sitemap', 'pinia-plugin-persistedstate/nuxt', '@nuxtjs/i18n'],
+  modules: [
+    '@nuxt/eslint',
+    '@nuxt/ui',
+    '@nuxt/image',
+    '@vueuse/motion/nuxt',
+    '@vueuse/nuxt',
+    '@pinia/nuxt',
+    '@nuxt/fonts',
+    '@nuxtjs/sitemap',
+    'pinia-plugin-persistedstate/nuxt',
+    '@nuxtjs/i18n'
+  ],
   devtools: {
     enabled: true
   },
-  css: [
-    '~/assets/css/main.css'
-  ],
+  css: ['~/assets/css/main.css'],
+  runtimeConfig: {
+    // Nitro server routes 用來呼叫真正後端的位址（server-only，不會被打包進前端 bundle）。
+    backendApiUrl: 'https://choicepie-dev-api.minjie.demo',
+    public: {
+      apiBaseUrl: 'https://choicepie-dev-api.minjie.demo',
+      googleClientId: ''
+    }
+  },
+  devServer: {
+    https: {
+      key: './cert/key.pem',
+      cert: './cert/cert.pem'
+    },
+    host: '0.0.0.0',
+    port: 3000
+  },
   compatibilityDate: '2025-07-15',
+  vite: {
+    server: {
+      warmup: {
+        clientFiles: ['./app/layouts/**/*.vue', './app/components/common/**/*.vue']
+      }
+    }
+  },
   fonts: {
     families: [
       { name: 'Outfit', provider: 'google', weights: [400, 500, 600, 700, 800] },

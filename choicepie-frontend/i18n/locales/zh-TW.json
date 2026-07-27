@@ -2,6 +2,7 @@
   "nav": {
     "join": "加入遊戲",
     "createGame": "建立遊戲",
+    "myLibrary": "遊戲題庫",
     "history": "歷史紀錄",
     "howToUse": "如何使用",
     "about": "關於我們",
@@ -110,7 +111,7 @@
     "rejoinFailed": {
       "title": "找不到這個房間",
       "desc": "房間可能已經結束或房間碼有誤",
-      "backToLibrary": "返回題庫"
+      "backToLibrary": "返回遊戲題庫"
     }
   },
   "bigscreen": {
@@ -141,6 +142,8 @@
     "noAccount": "還沒有帳號？",
     "registerLink": "註冊",
     "loginError": "帳號或密碼錯誤，請再試一次",
+    "googleLoginError": "Google 登入失敗，請再試一次",
+    "forgotPassword": "忘記密碼？",
     "validation": {
       "emailInvalid": "請輸入有效的 Email",
       "passwordMin": "密碼至少需要 6 個字元"
@@ -150,7 +153,177 @@
       "desc": "登入後即可建立自己的題庫、AI 自動出題，並追蹤每一場遊戲的成績紀錄。"
     }
   },
+  "forgotPassword": {
+    "title": "忘記密碼",
+    "description": "輸入您註冊時使用的 Email，我們將寄送重設密碼連結給您。",
+    "emailPlaceholder": "Email",
+    "submitBtn": "發送重設連結",
+    "submitted": "如果此 Email 已註冊，重設密碼連結將會寄送至您的信箱，請至信箱查收。",
+    "submitError": "發送失敗，請稍後再試",
+    "backToLogin": "返回登入",
+    "validation": {
+      "emailInvalid": "請輸入有效的 Email"
+    }
+  },
+  "resetPassword": {
+    "title": "重設密碼",
+    "missingToken": "連結無效，請重新申請忘記密碼。",
+    "passwordPlaceholder": "新密碼（8 字以上）",
+    "confirmPasswordPlaceholder": "確認新密碼",
+    "submitBtn": "重設密碼",
+    "submitted": "密碼已重設成功，請使用新密碼登入。",
+    "submitError": "重設密碼失敗，連結可能已失效，請重新申請",
+    "backToLogin": "返回登入",
+    "validation": {
+      "passwordMin": "密碼至少需要 8 個字元",
+      "confirmPasswordMatch": "兩次輸入的密碼不一致"
+    }
+  },
+  "emailVerification": {
+    "bannerText": "請驗證您的 Email 以完整使用所有功能。",
+    "resendAction": "重新發送驗證信",
+    "resent": "已發送",
+    "dismiss": "關閉",
+    "pageTitle": "Email 驗證",
+    "success": "您的 Email 已成功驗證！",
+    "failed": "驗證失敗，連結可能已失效，請重新發送驗證信。",
+    "backToLibrary": "前往遊戲題庫"
+  },
+  "adminLogin": {
+    "title": "管理後台登入",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "密碼",
+    "loginBtn": "登入",
+    "loginError": "帳號或密碼錯誤，請再試一次",
+    "validation": {
+      "emailInvalid": "請輸入有效的 Email",
+      "passwordRequired": "請輸入密碼"
+    }
+  },
+  "adminDashboard": {
+    "title": "管理後台",
+    "welcome": "歡迎回來，{name}",
+    "email": "Email",
+    "role": "角色",
+    "logout": "登出",
+    "nav": {
+      "quizzes": "題庫管理",
+      "members": "會員管理",
+      "quizReports": "檢舉審核"
+    },
+    "pendingReportsAlert": "有 {count} 筆待審核檢舉",
+    "viewReports": "前往審核",
+    "stats": {
+      "totalMembers": "會員總數",
+      "totalQuizzes": "題庫總數",
+      "suspendedMembers": "已停權會員",
+      "takenDownQuizzes": "已下架題庫"
+    },
+    "charts": {
+      "newMembers": "新增會員趨勢",
+      "newQuizzes": "新增題庫趨勢"
+    },
+    "topQuizzes": {
+      "title": "熱門題庫 Top 10",
+      "empty": "尚無資料",
+      "challengeCount": "{count} 次挑戰"
+    }
+  },
+  "adminQuizzes": {
+    "title": "題庫管理",
+    "searchPlaceholder": "搜尋題庫標題...",
+    "empty": "找不到題庫",
+    "status": {
+      "draft": "草稿",
+      "published": "已發布",
+      "archived": "已封存",
+      "deleted": "已刪除",
+      "takendown": "已下架"
+    },
+    "noDescription": "尚未填寫題庫描述",
+    "takeDownAction": "下架",
+    "restoreAction": "還原",
+    "takedownReasonLabel": "下架原因",
+    "takedownReasonPlaceholder": "請輸入下架原因（會員將會看到此原因）",
+    "takedownReasonRequired": "請輸入下架原因",
+    "confirm": "確認",
+    "cancel": "取消",
+    "takedownInfo": "下架原因：{reason}"
+  },
+  "adminQuizDetail": {
+    "back": "返回題庫列表",
+    "notFound": "找不到題庫",
+    "questionCount": "題數",
+    "challengeCount": "挑戰次數",
+    "passRate": "通過率",
+    "favoriteCount": "收藏數",
+    "questionTab": "題目",
+    "commentTab": "留言內容",
+    "commentsEmpty": "尚無留言",
+    "commentsLoading": "載入留言中..."
+  },
+  "adminMembers": {
+    "title": "會員管理",
+    "searchPlaceholder": "搜尋會員名稱...",
+    "empty": "找不到會員",
+    "statusActive": "正常",
+    "statusSuspended": "停權中",
+    "suspendedUntil": "停權至 {date}",
+    "suspendedPermanently": "永久停權",
+    "suspendAction": "停權",
+    "unsuspendAction": "解除停權",
+    "suspendReasonLabel": "停權原因",
+    "suspendReasonPlaceholder": "請輸入停權原因",
+    "suspendReasonRequired": "請輸入停權原因",
+    "suspendUntilLabel": "停權期限（留空表示永久停權）",
+    "confirm": "確認",
+    "cancel": "取消"
+  },
+  "adminMemberDetail": {
+    "back": "返回會員列表",
+    "notFound": "找不到會員",
+    "createdAt": "加入時間",
+    "lastAiGenerationAt": "最後一次 AI 出題",
+    "never": "從未使用",
+    "statusHealthy": "帳號狀態良好",
+    "quizzesTitle": "出題題庫",
+    "quizzesEmpty": "尚未出過任何題庫",
+    "hostedSessionsTitle": "Host 歷史",
+    "hostedSessionsEmpty": "尚無主持紀錄",
+    "playedSessionsTitle": "遊玩歷史",
+    "playedSessionsEmpty": "尚無遊玩紀錄",
+    "playedSessionsCount": "共遊玩 {count} 場",
+    "commentsTitle": "留言",
+    "commentsEmpty": "尚無留言"
+  },
+  "adminQuizReports": {
+    "title": "檢舉審核",
+    "empty": "沒有符合條件的檢舉紀錄",
+    "reporterLine": "檢舉人：{name}",
+    "resolveAction": "下架題庫",
+    "dismissAction": "駁回檢舉",
+    "noteLabel": "處理備註（選填）",
+    "notePlaceholder": "請輸入處理備註",
+    "confirm": "確認",
+    "cancel": "取消",
+    "status": {
+      "pending": "待處理",
+      "resolved": "已下架",
+      "dismissed": "已駁回"
+    },
+    "reasons": {
+      "InappropriateContent": "內容不當",
+      "Spam": "垃圾廣告",
+      "Copyright": "版權問題",
+      "Other": "其他"
+    }
+  },
   "library": {
+    "title": "遊戲題庫",
+    "tabs": {
+      "all": "所有題庫",
+      "mine": "我的題庫"
+    },
     "searchPlaceholder": "搜尋題庫...",
     "featured": "🔥 精選題庫",
     "latest": "🆕 最新上架",
@@ -159,9 +332,6 @@
       "title": "✨ 沒有現成題庫？讓 AI 幫你在幾秒內出題",
       "subtitle": "貼上文字或網址，AI 自動生成 4 選 1 問答遊戲",
       "cta": "開始出題 →"
-    },
-    "card": {
-      "questions": "{count} 道題"
     }
   },
   "history": {
@@ -213,14 +383,16 @@
         "correctAnswer": "正確答案",
         "explanation": "詳解"
       },
-      "hostNote": {
-        "title": "更多主持數據，敬請期待",
-        "desc": "答題正確率、每題平均作答時間等分析功能正在路上"
+      "breakdown": {
+        "title": "📊 逐題數據分析",
+        "correctRate": "答對率 {rate}%",
+        "noAnswers": "這題沒有人作答",
+        "averageAnswerTime": "平均作答 {seconds} 秒"
       }
     }
   },
   "libraryDetail": {
-    "backToLibrary": "返回題庫",
+    "backToLibrary": "返回遊戲題庫",
     "knowledgePack": "知識包",
     "creatorLine": "{name} 出題",
     "questionList": "題目列表",
@@ -228,34 +400,14 @@
     "challenges": "{count} 人挑戰",
     "passRate": "平均答對率 {rate}%",
     "passRateBadge": "答對率 {rate}%",
-    "bookmark": "♥ 收藏",
-    "favorited": "♥ 已收藏",
-    "share": "📤 分享",
-    "useForGame": "⚡ 用於遊戲",
-    "questionTable": {
-      "index": "#",
-      "question": "題目",
-      "passRate": "答對率",
-      "timeLimit": "限時",
-      "singleChoice": "單選題 · 4 個選項",
-      "timeApprox": "~20s"
+    "soloPractice": "📝 單人練習",
+    "status": {
+      "published": "已發布",
+      "draft": "草稿",
+      "archived": "已封存",
+      "publishAction": "發布",
+      "unpublishAction": "下架"
     },
-    "comments": {
-      "title": "💬 評論（{count}）",
-      "placeholder": "寫下你的想法...",
-      "submit": "送出",
-      "daysAgo": "{days} 天前",
-      "justNow": "剛剛"
-    },
-    "creator": {
-      "title": "關於創作者",
-      "verified": "認證創作者",
-      "quizCount": "題庫",
-      "challengeCount": "挑戰次數",
-      "follow": "關注創作者",
-      "following": "已關注"
-    },
-    "related": "你可能也喜歡",
     "modal": {
       "title": "用此題庫開遊戲",
       "subtitle": "確認後系統會立即產生房間碼和 QR Code",
@@ -268,6 +420,55 @@
       "joinMethodValue": "QR Code ＋ 房間碼，無需帳號",
       "createRoom": "▶ 立即建立房間",
       "cancel": "取消"
+    },
+    "favorite": {
+      "add": "收藏",
+      "remove": "已收藏"
+    },
+    "creator": {
+      "quizCount": "{count} 個題庫",
+      "challengeCount": "{count} 次挑戰",
+      "follow": "追蹤",
+      "following": "追蹤中"
+    },
+    "comments": {
+      "title": "留言",
+      "empty": "還沒有留言，搶頭香吧！",
+      "placeholder": "留下你的想法……",
+      "submit": "送出留言",
+      "loginToComment": "登入後即可留言",
+      "loadMore": "載入更多留言",
+      "edit": "編輯",
+      "delete": "刪除",
+      "save": "儲存",
+      "cancel": "取消"
+    },
+    "related": {
+      "title": "相關題庫"
+    },
+    "share": {
+      "action": "分享",
+      "copied": "已複製連結",
+      "copyLink": "複製連結",
+      "line": "分享到 Line",
+      "facebook": "分享到 Facebook",
+      "x": "分享到 X"
+    },
+    "report": {
+      "action": "檢舉",
+      "reported": "已檢舉",
+      "title": "檢舉此題庫",
+      "reasonLabel": "檢舉原因",
+      "descriptionLabel": "補充說明（選填）",
+      "descriptionPlaceholder": "請描述問題內容",
+      "confirm": "送出檢舉",
+      "cancel": "取消",
+      "reasons": {
+        "InappropriateContent": "內容不當",
+        "Spam": "垃圾廣告",
+        "Copyright": "版權問題",
+        "Other": "其他"
+      }
     }
   },
   "signIn": {
@@ -282,6 +483,7 @@
     "haveAccount": "已有帳號？",
     "loginLink": "直接登入",
     "registerError": "此 Email 可能已被使用",
+    "googleLoginError": "Google 登入失敗，請再試一次",
     "passwordMismatch": "密碼不一致",
     "strength": {
       "tooShort": "太短",
@@ -420,9 +622,9 @@
       "titleRequired": "請輸入題庫名稱",
       "addQuestion": "新增題目",
       "readyTitle": "準備好了？",
-      "readySubtitle": "確認題目後即可建立遊戲房間",
+      "readySubtitle": "確認題目後即可儲存題庫",
       "questionCount": "{count} 題",
-      "createRoomBtn": "🚀 建立遊戲房間"
+      "createRoomBtn": "儲存題庫"
     },
     "ai": {
       "title": "✨ AI 出題",
@@ -446,9 +648,9 @@
       "generateBtn": "✨ 開始生成題目",
       "generatingBtn": "✨ AI 出題中，請稍候...",
       "readyTitle": "準備好了？",
-      "readySubtitle": "確認題目後即可建立遊戲房間",
+      "readySubtitle": "確認題目後即可儲存題庫",
       "questionCount": "{count} 題",
-      "createRoomBtn": "🚀 建立遊戲房間"
+      "createRoomBtn": "儲存題庫"
     }
   },
   "terms": {
@@ -543,6 +745,82 @@
     "rank": "第 {rank} 名",
     "score": "{score} 分",
     "you": "(你)",
-    "loading": "載入中..."
+    "loading": "載入中...",
+    "pagination": {
+      "summary": "第 {current} / {total} 頁",
+      "previous": "上一頁",
+      "next": "下一頁",
+      "page": "第 {page} 頁"
+    },
+    "search": {
+      "clear": "清除搜尋"
+    }
+  },
+  "attempt": {
+    "question": {
+      "questionOf": "第 {current} / {total} 題",
+      "next": "下一題",
+      "finish": "完成作答"
+    },
+    "result": {
+      "score": "得分 {score}",
+      "reviewTitle": "逐題複習",
+      "questionIndex": "第 {index} 題",
+      "correct": "✔ 答對了",
+      "wrong": "✘ 答錯了",
+      "backToQuiz": "返回題庫",
+      "backToLibrary": "回遊戲題庫首頁"
+    },
+    "notFound": {
+      "title": "找不到作答進度",
+      "desc": "重新整理或直接開啟連結會遺失作答中的進度，請回到題庫重新開始。",
+      "backToLibrary": "回遊戲題庫首頁"
+    },
+    "history": {
+      "title": "作答歷史",
+      "empty": "還沒有挑戰紀錄",
+      "score": "{score} 分",
+      "duration": "耗時 {seconds} 秒"
+    }
+  },
+  "myQuizzes": {
+    "title": "📚 我的題庫",
+    "subtitle": "管理你建立的所有題庫",
+    "empty": "還沒有建立任何題庫耶！",
+    "emptyDesc": "出一組題目，開始你的第一個題庫吧",
+    "emptyCta": "✨ 建立新題庫",
+    "status": {
+      "published": "已發布",
+      "draft": "草稿",
+      "archived": "已封存",
+      "takenDown": "已下架"
+    },
+    "actions": {
+      "edit": "編輯",
+      "publish": "發布",
+      "unpublish": "取消發布",
+      "archive": "封存",
+      "unarchive": "取消封存",
+      "delete": "刪除"
+    },
+    "deleteConfirm": {
+      "title": "確定要刪除這個題庫嗎？",
+      "subtitle": "刪除後將無法復原。",
+      "confirm": "確定刪除",
+      "cancel": "取消"
+    }
+  },
+  "myQuizzesEdit": {
+    "backToList": "返回我的題庫",
+    "title": "✏️ 編輯題庫",
+    "titleLabel": "題庫名稱",
+    "descriptionLabel": "描述",
+    "descriptionPlaceholder": "簡單介紹這個題庫...",
+    "tagsLabel": "標籤（以逗號分隔）",
+    "tagsPlaceholder": "例如：歷史, 入門",
+    "saveMeta": "儲存基本資料",
+    "questionsTitle": "題目列表",
+    "saveQuestion": "儲存本題",
+    "addQuestion": "新增題目"
   }
 }

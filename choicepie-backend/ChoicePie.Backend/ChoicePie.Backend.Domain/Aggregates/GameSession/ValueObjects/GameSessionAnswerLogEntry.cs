@@ -6,4 +6,5 @@ public sealed record GameSessionAnswerLogEntry(
     int QuestionIndex,
     int SelectedOptionIndex,
     bool IsCorrect,
-    int ScoreAwarded) : ValueObject;
+    int ScoreAwarded,
+    long AnswerTimeMs = 0) : ValueObject;

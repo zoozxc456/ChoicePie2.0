@@ -17,6 +17,7 @@ public class GenerateQuizQuestionsCommandHandlerTests
     private ICurrentUserService _currentUserService = null!;
     private IQuizGenerationService _generationService = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private TimeProvider _timeProvider = null!;
     private GenerateQuizQuestionsCommandHandler _sut = null!;
     private Member _member = null!;
 
@@ -27,7 +28,9 @@ public class GenerateQuizQuestionsCommandHandlerTests
         _currentUserService = Substitute.For<ICurrentUserService>();
         _generationService = Substitute.For<IQuizGenerationService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new GenerateQuizQuestionsCommandHandler(_memberRepository, _currentUserService, _generationService, _unitOfWork);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _sut = new GenerateQuizQuestionsCommandHandler(_memberRepository, _currentUserService, _generationService, _unitOfWork, _timeProvider);
 
         _member = Member.Create("Host Name");
         _currentUserService.UserId.Returns(_member.Id);

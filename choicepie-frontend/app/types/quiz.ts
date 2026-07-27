@@ -27,9 +27,13 @@ export interface Quiz {
   creatorId: string
   creatorName: string
   creatorAvatar?: string
+  // Empty when the viewer isn't the quiz owner - use questionIds for room creation instead.
   questions: Question[]
+  questionIds: string[]
   tags: string[]
   isPublic: boolean
+  status: string
+  shareCount?: number
   createdAt: string
   updatedAt: string
 }

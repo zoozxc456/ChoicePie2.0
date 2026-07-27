@@ -9,7 +9,8 @@ namespace ChoicePie.Backend.Application.AdminUsers.Commands;
 public sealed class AdminLogoutCommandHandler(
     IRefreshTokenRepository refreshTokenRepository,
     IRefreshTokenGenerator refreshTokenGenerator,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<AdminLogoutCommand>
 {
     public async Task Handle(AdminLogoutCommand request, CancellationToken cancellationToken)
@@ -24,7 +25,7 @@ public sealed class AdminLogoutCommandHandler(
             return;
         }
 
-        existingToken.Revoke(DateTime.UtcNow);
+        existingToken.Revoke(timeProvider.GetUtcNow().UtcDateTime);
         await refreshTokenRepository.UpdateAsync(existingToken, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }

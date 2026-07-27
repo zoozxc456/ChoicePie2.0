@@ -14,7 +14,8 @@ public sealed class CompleteQuizAttemptCommandHandler(
     IQuizAttemptRepository quizAttemptRepository,
     IQuizRepository quizRepository,
     ICurrentUserService currentUserService,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<CompleteQuizAttemptCommand, QuizAttemptResultDto>
 {
     public async Task<QuizAttemptResultDto> Handle(CompleteQuizAttemptCommand request, CancellationToken cancellationToken)
@@ -29,7 +30,7 @@ public sealed class CompleteQuizAttemptCommandHandler(
                    ?? throw new QuizNotFoundException(attempt.QuizId);
 
         var correctAnswerIndexByQuestionId = quiz.Questions.ToDictionary(q => q.Id, q => q.AnswerIndex);
-        attempt.Complete(correctAnswerIndexByQuestionId, DateTime.UtcNow);
+        attempt.Complete(correctAnswerIndexByQuestionId, timeProvider.GetUtcNow().UtcDateTime);
 
         await quizAttemptRepository.UpdateAsync(attempt, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

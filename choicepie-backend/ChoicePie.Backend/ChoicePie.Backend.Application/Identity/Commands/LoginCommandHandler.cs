@@ -22,7 +22,8 @@ public sealed class LoginCommandHandler(
     IPasswordHasher passwordHasher,
     ITokenService tokenService,
     IRefreshTokenGenerator refreshTokenGenerator,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<LoginCommand, LoginResultDto>
 {
     public async Task<LoginResultDto> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -42,10 +43,15 @@ public sealed class LoginCommandHandler(
         var member = await memberRepository.GetByIdAsync(authAccount.MemberId, cancellationToken)
                      ?? throw new MemberNotFoundException(authAccount.MemberId);
 
+        if (member.IsCurrentlySuspended(timeProvider.GetUtcNow().UtcDateTime))
+        {
+            throw new MemberSuspendedException(member.Id, member.SuspendedReason);
+        }
+
         var accessToken = tokenService.GenerateAccessToken(member);
         var (rawRefreshToken, refreshTokenHash) = refreshTokenGenerator.Generate();
         var refreshToken =
-            RefreshTokenAggregate.Issue(member.Id, RefreshTokenOwnerType.Member, refreshTokenHash, DateTime.UtcNow);
+            RefreshTokenAggregate.Issue(member.Id, RefreshTokenOwnerType.Member, refreshTokenHash, timeProvider.GetUtcNow().UtcDateTime);
 
         await refreshTokenRepository.AddAsync(refreshToken, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

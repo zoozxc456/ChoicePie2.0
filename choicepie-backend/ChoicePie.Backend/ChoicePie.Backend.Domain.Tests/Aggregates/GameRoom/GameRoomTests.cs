@@ -22,10 +22,10 @@ public class GameRoomTests
     ];
 
     private static Domain.Aggregates.GameRoom.GameRoom CreateRoom(int timeLimitSeconds = 20) =>
-        Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", OneQuestion(), timeLimitSeconds, CreatedAtUtc);
+        Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", OneQuestion(), timeLimitSeconds, CreatedAtUtc);
 
     private static Domain.Aggregates.GameRoom.GameRoom CreateRoomWithTwoQuestions(int timeLimitSeconds = 20) =>
-        Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", TwoQuestions(), timeLimitSeconds, CreatedAtUtc);
+        Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", TwoQuestions(), timeLimitSeconds, CreatedAtUtc);
 
     [Test]
     public void Create_GivenValidInput_WhenCalled_ThenFieldsAreSetAndPhaseIsLobby()
@@ -47,7 +47,7 @@ public class GameRoomTests
     public void Create_GivenEmptyQuestions_WhenCalled_ThenThrowsInvalidGameRoomException()
     {
         Assert.Throws<InvalidGameRoomException>(() =>
-            Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", [], 20, CreatedAtUtc));
+            Domain.Aggregates.GameRoom.GameRoom.Create(HostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", [], 20, CreatedAtUtc));
     }
 
     [TestCase(5)]
@@ -98,7 +98,7 @@ public class GameRoomTests
     public void Join_GivenRoomAlreadyStarted_WhenCalled_ThenThrowsRoomAlreadyStartedException()
     {
         var room = CreateRoom();
-        room.StartGame(CreatedAtUtc.AddSeconds(30));
+        room.StartGame(HostUserId, CreatedAtUtc.AddSeconds(30));
 
         Assert.Throws<RoomAlreadyStartedException>(() =>
             room.Join("遲到玩家", "connection-late", CreatedAtUtc.AddMinutes(1)));
@@ -110,7 +110,7 @@ public class GameRoomTests
         var room = CreateRoom();
         var startedAt = CreatedAtUtc.AddMinutes(1);
 
-        room.StartGame(startedAt);
+        room.StartGame(HostUserId, startedAt);
 
         Assert.Multiple(() =>
         {
@@ -124,9 +124,9 @@ public class GameRoomTests
     public void StartGame_GivenRoomAlreadyStarted_WhenCalled_ThenThrowsInvalidGamePhaseException()
     {
         var room = CreateRoom();
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(HostUserId, CreatedAtUtc.AddMinutes(1));
 
-        Assert.Throws<InvalidGamePhaseException>(() => room.StartGame(CreatedAtUtc.AddMinutes(2)));
+        Assert.Throws<InvalidGamePhaseException>(() => room.StartGame(HostUserId, CreatedAtUtc.AddMinutes(2)));
     }
 
     [Test]
@@ -135,7 +135,7 @@ public class GameRoomTests
         var room = CreateRoom();
         var startedAt = CreatedAtUtc.AddMinutes(1);
         var player = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30));
-        room.StartGame(startedAt);
+        room.StartGame(HostUserId, startedAt);
 
         var outcome = room.SubmitAnswer(player.Id, answerIndex: 1, startedAt.AddSeconds(2));
 
@@ -154,7 +154,7 @@ public class GameRoomTests
         var room = CreateRoom();
         var startedAt = CreatedAtUtc.AddMinutes(1);
         var player = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30));
-        room.StartGame(startedAt);
+        room.StartGame(HostUserId, startedAt);
 
         var outcome = room.SubmitAnswer(player.Id, answerIndex: 0, startedAt.AddSeconds(2));
 
@@ -168,7 +168,7 @@ public class GameRoomTests
         var room = CreateRoom();
         var startedAt = CreatedAtUtc.AddMinutes(1);
         var player = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30));
-        room.StartGame(startedAt);
+        room.StartGame(HostUserId, startedAt);
         room.SubmitAnswer(player.Id, answerIndex: 1, startedAt.AddSeconds(2));
 
         Assert.Throws<AnswerAlreadySubmittedException>(() =>
@@ -189,7 +189,7 @@ public class GameRoomTests
     public void SubmitAnswer_GivenUnknownPlayerId_WhenCalled_ThenThrowsPlayerNotFoundException()
     {
         var room = CreateRoom();
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(HostUserId, CreatedAtUtc.AddMinutes(1));
 
         Assert.Throws<PlayerNotFoundException>(() =>
             room.SubmitAnswer(Guid.NewGuid(), answerIndex: 1, CreatedAtUtc.AddMinutes(2)));
@@ -201,10 +201,10 @@ public class GameRoomTests
         var room = CreateRoom();
         var startedAt = CreatedAtUtc.AddMinutes(1);
         var player = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30));
-        room.StartGame(startedAt);
+        room.StartGame(HostUserId, startedAt);
         room.SubmitAnswer(player.Id, answerIndex: 1, startedAt.AddSeconds(2));
 
-        var rankings = room.EndCurrentQuestion(startedAt.AddSeconds(20));
+        var rankings = room.EndCurrentQuestion(HostUserId, startedAt.AddSeconds(20));
 
         Assert.Multiple(() =>
         {
@@ -221,7 +221,7 @@ public class GameRoomTests
     {
         var room = CreateRoom();
 
-        Assert.Throws<InvalidGamePhaseException>(() => room.EndCurrentQuestion(CreatedAtUtc.AddMinutes(1)));
+        Assert.Throws<InvalidGamePhaseException>(() => room.EndCurrentQuestion(HostUserId, CreatedAtUtc.AddMinutes(1)));
     }
 
     [Test]
@@ -230,12 +230,12 @@ public class GameRoomTests
         var room = CreateRoomWithTwoQuestions();
         var startedAt = CreatedAtUtc.AddMinutes(1);
         var player = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30));
-        room.StartGame(startedAt);
+        room.StartGame(HostUserId, startedAt);
         room.SubmitAnswer(player.Id, answerIndex: 1, startedAt.AddSeconds(2));
-        room.EndCurrentQuestion(startedAt.AddSeconds(20));
+        room.EndCurrentQuestion(HostUserId, startedAt.AddSeconds(20));
 
         var nextStartedAt = startedAt.AddSeconds(25);
-        var ended = room.AdvanceToNextQuestion(nextStartedAt);
+        var ended = room.AdvanceToNextQuestion(HostUserId, nextStartedAt);
 
         Assert.Multiple(() =>
         {
@@ -254,12 +254,12 @@ public class GameRoomTests
         var room = CreateRoom();
         var startedAt = CreatedAtUtc.AddMinutes(1);
         var player = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30));
-        room.StartGame(startedAt);
+        room.StartGame(HostUserId, startedAt);
         room.SubmitAnswer(player.Id, answerIndex: 1, startedAt.AddSeconds(2));
-        room.EndCurrentQuestion(startedAt.AddSeconds(20));
+        room.EndCurrentQuestion(HostUserId, startedAt.AddSeconds(20));
 
         var endedAt = startedAt.AddSeconds(25);
-        var ended = room.AdvanceToNextQuestion(endedAt);
+        var ended = room.AdvanceToNextQuestion(HostUserId, endedAt);
 
         Assert.Multiple(() =>
         {
@@ -277,7 +277,7 @@ public class GameRoomTests
     {
         var room = CreateRoom();
 
-        Assert.Throws<InvalidGamePhaseException>(() => room.AdvanceToNextQuestion(CreatedAtUtc.AddMinutes(1)));
+        Assert.Throws<InvalidGamePhaseException>(() => room.AdvanceToNextQuestion(HostUserId, CreatedAtUtc.AddMinutes(1)));
     }
 
     [Test]
@@ -286,10 +286,10 @@ public class GameRoomTests
         var room = CreateRoom();
         var startedAt = CreatedAtUtc.AddMinutes(1);
         var player = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30));
-        room.StartGame(startedAt);
+        room.StartGame(HostUserId, startedAt);
 
-        room.TogglePause(startedAt.AddSeconds(2));
-        room.TogglePause(startedAt.AddSeconds(7));
+        room.TogglePause(HostUserId, startedAt.AddSeconds(2));
+        room.TogglePause(HostUserId, startedAt.AddSeconds(7));
 
         // Paused for 5s, so answering 8s after question start should still land in the "<=3s elapsed" band.
         var outcome = room.SubmitAnswer(player.Id, answerIndex: 1, startedAt.AddSeconds(8));
@@ -302,7 +302,59 @@ public class GameRoomTests
     {
         var room = CreateRoom();
 
-        Assert.Throws<InvalidGamePhaseException>(() => room.TogglePause(CreatedAtUtc.AddMinutes(1)));
+        Assert.Throws<InvalidGamePhaseException>(() => room.TogglePause(HostUserId, CreatedAtUtc.AddMinutes(1)));
+    }
+
+    [Test]
+    public void StartGame_GivenCallerIsNotHost_WhenCalled_ThenThrowsRoomAccessDeniedException()
+    {
+        var room = CreateRoom();
+
+        Assert.Throws<RoomAccessDeniedException>(() => room.StartGame(Guid.NewGuid(), CreatedAtUtc.AddMinutes(1)));
+    }
+
+    [Test]
+    public void TogglePause_GivenCallerIsNotHost_WhenCalled_ThenThrowsRoomAccessDeniedException()
+    {
+        var room = CreateRoom();
+        room.StartGame(HostUserId, CreatedAtUtc.AddMinutes(1));
+
+        Assert.Throws<RoomAccessDeniedException>(() => room.TogglePause(Guid.NewGuid(), CreatedAtUtc.AddMinutes(2)));
+    }
+
+    [Test]
+    public void EndCurrentQuestion_GivenCallerIsNotHost_WhenCalled_ThenThrowsRoomAccessDeniedException()
+    {
+        var room = CreateRoom();
+        room.StartGame(HostUserId, CreatedAtUtc.AddMinutes(1));
+
+        Assert.Throws<RoomAccessDeniedException>(() => room.EndCurrentQuestion(Guid.NewGuid(), CreatedAtUtc.AddMinutes(2)));
+    }
+
+    [Test]
+    public void AdvanceToNextQuestion_GivenCallerIsNotHost_WhenCalled_ThenThrowsRoomAccessDeniedException()
+    {
+        var room = CreateRoomWithTwoQuestions();
+        room.StartGame(HostUserId, CreatedAtUtc.AddMinutes(1));
+        room.EndCurrentQuestion(HostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(5));
+
+        Assert.Throws<RoomAccessDeniedException>(() => room.AdvanceToNextQuestion(Guid.NewGuid(), CreatedAtUtc.AddMinutes(2)));
+    }
+
+    [Test]
+    public void EnsureHost_GivenCallerIsHost_WhenCalled_ThenDoesNotThrow()
+    {
+        var room = CreateRoom();
+
+        Assert.DoesNotThrow(() => room.EnsureHost(HostUserId));
+    }
+
+    [Test]
+    public void EnsureHost_GivenCallerIsNotHost_WhenCalled_ThenThrowsRoomAccessDeniedException()
+    {
+        var room = CreateRoom();
+
+        Assert.Throws<RoomAccessDeniedException>(() => room.EnsureHost(Guid.NewGuid()));
     }
 
     [Test]
@@ -310,9 +362,9 @@ public class GameRoomTests
     {
         var room = CreateRoomWithTwoQuestions();
         var player = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30));
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(HostUserId, CreatedAtUtc.AddMinutes(1));
         room.SubmitAnswer(player.Id, answerIndex: 1, CreatedAtUtc.AddMinutes(1).AddSeconds(2));
-        room.EndCurrentQuestion(CreatedAtUtc.AddMinutes(1).AddSeconds(5));
+        room.EndCurrentQuestion(HostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(5));
 
         var restored = Domain.Aggregates.GameRoom.GameRoom.Restore(room.ToMemento());
 

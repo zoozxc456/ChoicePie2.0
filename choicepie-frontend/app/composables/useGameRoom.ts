@@ -4,6 +4,57 @@ import type { Player } from '~/types/gameRoom'
 import type { AnswerProgressPayload, QuestionPayload, AnswerResultPayload, QuestionEndPayload, RankEntry, RoomStateSyncPayload } from '~/types/other'
 
 let _connection: signalR.HubConnection | null = null
+let _reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let _tokenRefreshTimer: ReturnType<typeof setInterval> | null = null
+let _manuallyDisconnected = false
+
+const RECONNECT_DELAYS_MS = [2000, 5000, 10000, 30000]
+// Access token 效期很短（後端預設 60 秒），SignalR 是長連線，token 過期不會中斷 WebSocket，
+// 也不會觸發任何錯誤，所以連線期間必須主動定期 refresh，否則 Host 操作最終會被 401 拒絕。
+const TOKEN_REFRESH_INTERVAL_MS = 45000
+
+const stopTokenRefreshLoop = () => {
+  if (_tokenRefreshTimer) {
+    clearInterval(_tokenRefreshTimer)
+    _tokenRefreshTimer = null
+  }
+}
+
+/**
+ * SignalR 是瀏覽器直連後端的 WebSocket，用的是後端自己發的 access_token cookie（httpOnly），
+ * 不是本站 Nitro BFF 的 session cookie。後端的 /auth/refresh 現在只認 X-Refresh-Token header，
+ * 而該 refresh token 只存在 Nitro 自己的 session 裡（httpOnly，瀏覽器 JS 拿不到），沒辦法直接
+ * 跨網域打後端 refresh。改走 useAuthStore().fetchMe()（BFF 的 /api/v1/auth/refresh）：
+ * BFF 呼叫後端 refresh 時會把後端回應的 Set-Cookie 轉發回瀏覽器（見 server/utils/backendFetch.ts
+ * 的 forwardSetCookie），所以呼叫 BFF 一樣能把瀏覽器手上的後端 access_token cookie 輪替、延長。
+ */
+const refreshBackendCookie = () => useAuthStore().fetchMe()
+
+const startTokenRefreshLoop = () => {
+  if (_tokenRefreshTimer) return
+  _tokenRefreshTimer = setInterval(async () => {
+    if (!useAuthStore().isLoggedIn) return
+    const refreshed = await refreshBackendCookie()
+    if (!refreshed) stopTokenRefreshLoop()
+  }, TOKEN_REFRESH_INTERVAL_MS)
+}
+
+const scheduleReconnect = (attempt = 0) => {
+  if (_manuallyDisconnected) return
+  if (_reconnectTimer) return
+
+  const delay = RECONNECT_DELAYS_MS[Math.min(attempt, RECONNECT_DELAYS_MS.length - 1)]
+  _reconnectTimer = setTimeout(async () => {
+    _reconnectTimer = null
+    if (_manuallyDisconnected) return
+
+    try {
+      await useGameRoom().connect()
+    } catch {
+      scheduleReconnect(attempt + 1)
+    }
+  }, delay)
+}
 
 export const useGameRoom = () => {
   const gameStore = useGameStore()
@@ -11,8 +62,12 @@ export const useGameRoom = () => {
   // ── Connection ──
 
   const _build = () => {
+    const config = useRuntimeConfig()
+
     _connection = new signalR.HubConnectionBuilder()
-      .withUrl('/api/gamehub')
+      .withUrl(`${config.public.apiBaseUrl}/api/gamehub`, {
+        withCredentials: true
+      })
       .withAutomaticReconnect([0, 2000, 5000, 10000])
       .configureLogging(signalR.LogLevel.Warning)
       .build()
@@ -27,6 +82,9 @@ export const useGameRoom = () => {
 
     _connection.onclose((err) => {
       if (err) console.error('[SignalR] 連線關閉', err)
+      stopTokenRefreshLoop()
+      // withAutomaticReconnect 重試 4 次後仍失敗才會走到這裡，全新重建連線再試一次
+      scheduleReconnect()
     })
 
     // ── Host Events ──
@@ -39,8 +97,8 @@ export const useGameRoom = () => {
       gameStore.addPlayer(player)
     })
 
-    _connection.on('PlayerLeft', (connectionId: string) => {
-      gameStore.removePlayer(connectionId)
+    _connection.on('PlayerLeft', (playerId: string) => {
+      gameStore.removePlayer(playerId)
     })
 
     _connection.on('AnswerProgress', (payload: AnswerProgressPayload) => {
@@ -66,7 +124,6 @@ export const useGameRoom = () => {
 
     _connection.on('GameEnd', (rankings: RankEntry[]) => {
       gameStore.endGame(rankings)
-      navigateTo(`/room/${gameStore.roomCode}/result`)
     })
 
     // ── Reconnect Sync ──
@@ -75,13 +132,35 @@ export const useGameRoom = () => {
     })
   }
 
-  const connect = async () => {
+  const connect = async (isRetry = false): Promise<void> => {
     if (_connection?.state === signalR.HubConnectionState.Connected) return
+    _manuallyDisconnected = false
     _build()
-    await _connection!.start()
+
+    try {
+      await _connection!.start()
+      startTokenRefreshLoop()
+    } catch (e) {
+      const isUnauthorized = e instanceof signalR.HttpError && e.statusCode === 401
+      if (isUnauthorized && !isRetry) {
+        const refreshed = await refreshBackendCookie()
+        if (refreshed) return connect(true)
+        await useAuthStore().logout('/')
+        return
+      }
+      // negotiate/連線本身失敗（例如後端還沒起來），withAutomaticReconnect 不會處理這種情況，需自行排程重試
+      scheduleReconnect()
+      throw e
+    }
   }
 
   const disconnect = async () => {
+    _manuallyDisconnected = true
+    stopTokenRefreshLoop()
+    if (_reconnectTimer) {
+      clearTimeout(_reconnectTimer)
+      _reconnectTimer = null
+    }
     if (_connection) {
       await _connection.stop()
       _connection = null
@@ -91,7 +170,7 @@ export const useGameRoom = () => {
 
   // ── Host Actions ──
 
-  const createRoom = async (request: { quizId?: string, questionIds: string[], timeLimit?: number }) => {
+  const createRoom = async (request: { quizId: string, questionIds?: string[], timeLimit?: number }) => {
     await connect()
     await _connection!.invoke('CreateRoom', { timeLimit: 20, ...request })
   }

@@ -20,6 +20,7 @@
       <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Caching\ChoicePie.Backend.Shared.Infrastructure.Caching.csproj" />
       <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Persistence\ChoicePie.Backend.Shared.Infrastructure.Persistence.csproj" />
       <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Security\ChoicePie.Backend.Shared.Infrastructure.Security.csproj" />
+      <ProjectReference Include="..\ChoicePie.Backend.Shared.Infrastructure.Email\ChoicePie.Backend.Shared.Infrastructure.Email.csproj" />
     </ItemGroup>
 
     <ItemGroup>

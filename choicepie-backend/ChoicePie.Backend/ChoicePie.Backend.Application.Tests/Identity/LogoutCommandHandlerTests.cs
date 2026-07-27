@@ -15,6 +15,7 @@ public class LogoutCommandHandlerTests
     private IRefreshTokenRepository _refreshTokenRepository = null!;
     private IRefreshTokenGenerator _refreshTokenGenerator = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private TimeProvider _timeProvider = null!;
     private LogoutCommandHandler _sut = null!;
     private RefreshTokenAggregate _existingRefreshToken = null!;
 
@@ -24,7 +25,9 @@ public class LogoutCommandHandlerTests
         _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
         _refreshTokenGenerator = Substitute.For<IRefreshTokenGenerator>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new LogoutCommandHandler(_refreshTokenRepository, _refreshTokenGenerator, _unitOfWork);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _sut = new LogoutCommandHandler(_refreshTokenRepository, _refreshTokenGenerator, _unitOfWork, _timeProvider);
 
         _existingRefreshToken =
             RefreshTokenAggregate.Issue(Guid.NewGuid(), RefreshTokenOwnerType.Member, "old-hash", DateTime.UtcNow);
@@ -65,9 +68,9 @@ public class LogoutCommandHandlerTests
     }
 
     [Test]
-    public async Task Handle_GivenAlreadyRevokedToken_WhenCalled_ThenDoesNothing()
+    public async Task Handle_GivenAlreadyRevokedTokenPastGracePeriod_WhenCalled_ThenDoesNothing()
     {
-        _existingRefreshToken.Revoke(DateTime.UtcNow);
+        _existingRefreshToken.Revoke(DateTime.UtcNow.AddSeconds(-31));
 
         await _sut.Handle(new LogoutCommand { RefreshToken = "valid-raw-token" }, CancellationToken.None);
 

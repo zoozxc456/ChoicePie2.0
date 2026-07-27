@@ -23,7 +23,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\ChoicePie.Backend.Shared.Application\ChoicePie.Backend.Shared.Application.csproj" />
-        <ProjectReference Include="..\ChoicePie.Backend.Shared.Hosting\ChoicePie.Backend.Shared.Hosting.csproj" />
     </ItemGroup>
 
 </Project>

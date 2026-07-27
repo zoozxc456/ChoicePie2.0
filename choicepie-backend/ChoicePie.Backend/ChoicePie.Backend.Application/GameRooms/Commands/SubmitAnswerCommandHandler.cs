@@ -5,7 +5,7 @@ using MediatR;
 
 namespace ChoicePie.Backend.Application.GameRooms.Commands;
 
-public sealed class SubmitAnswerCommandHandler(IGameRoomRepository gameRoomRepository)
+public sealed class SubmitAnswerCommandHandler(IGameRoomRepository gameRoomRepository, TimeProvider timeProvider)
     : IRequestHandler<SubmitAnswerCommand, SubmitAnswerResultDto>
 {
     public async Task<SubmitAnswerResultDto> Handle(SubmitAnswerCommand request, CancellationToken cancellationToken)
@@ -14,7 +14,7 @@ public sealed class SubmitAnswerCommandHandler(IGameRoomRepository gameRoomRepos
                    ?? throw new RoomNotFoundException(request.RoomCode);
 
         // 得分完全由後端依時間制計分表計算，前端只送 answerIndex，避免作弊。
-        var outcome = room.SubmitAnswer(request.PlayerId, request.AnswerIndex, DateTime.UtcNow);
+        var outcome = room.SubmitAnswer(request.PlayerId, request.AnswerIndex, timeProvider.GetUtcNow().UtcDateTime);
 
         await gameRoomRepository.SaveAsync(room, cancellationToken);
 

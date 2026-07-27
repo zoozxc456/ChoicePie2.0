@@ -36,7 +36,7 @@ public class SkipQuestionCommandHandlerTests
         var questions = Enumerable.Range(0, questionCount)
             .Select(i => new GameQuestionSnapshot(Guid.NewGuid(), $"Q{i}", ["1", "2", "3", "4"], 1, "解析"))
             .ToList();
-        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", questions, 20, CreatedAtUtc);
+        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
         room.Join("小明", "conn-1", CreatedAtUtc.AddSeconds(1));
         return room;
     }
@@ -45,7 +45,7 @@ public class SkipQuestionCommandHandlerTests
     public async Task Handle_GivenRoomInQuestionPhase_WhenCalled_ThenEndsQuestionWithoutPersistingSession()
     {
         var room = CreateRoom(2);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new SkipQuestionCommand("ABC123", _hostUserId), CancellationToken.None);
@@ -59,8 +59,8 @@ public class SkipQuestionCommandHandlerTests
     public async Task Handle_GivenLastQuestionInRevealPhase_WhenCalled_ThenPersistsGameSessionAndReturnsGameEnded()
     {
         var room = CreateRoom(1);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
-        room.EndCurrentQuestion(CreatedAtUtc.AddMinutes(1).AddSeconds(5));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
+        room.EndCurrentQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(5));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new SkipQuestionCommand("ABC123", _hostUserId), CancellationToken.None);
@@ -76,7 +76,7 @@ public class SkipQuestionCommandHandlerTests
     public void Handle_GivenCallerIsNotHost_WhenCalled_ThenThrowsRoomAccessDeniedException()
     {
         var room = CreateRoom(1);
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var command = new SkipQuestionCommand("ABC123", Guid.NewGuid());

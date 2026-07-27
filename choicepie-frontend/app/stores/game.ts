@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { GameRoom, GamePhase, Player } from '~/types/gameRoom'
-import type { QuestionPayload, RankEntry, AnswerResultPayload, QuestionEndPayload, RoomStateSyncPayload, AnswerProgressPayload } from '~/types/other'
+import type { QuestionPayload, RankEntry, AnswerResultPayload, QuestionEndPayload, RoomStateSyncPayload, AnswerProgressPayload, BackendGamePhase } from '~/types/other'
 
 export const useGameStore = defineStore('game', () => {
   // ── 房間狀態 ──
@@ -19,6 +19,9 @@ export const useGameStore = defineStore('game', () => {
   const timeLeft = ref(0)
   const timeLimitTotal = ref(20)
   let _timerInterval: ReturnType<typeof setInterval> | null = null
+
+  /** 公布答案畫面停留秒數，時間到由 Host 端自動呼叫 SkipQuestion 推進下一題 */
+  const REVEAL_DURATION_SECONDS = 5
 
   // ── 排名 ──
   const rankings = ref<RankEntry[]>([])
@@ -42,6 +45,13 @@ export const useGameStore = defineStore('game', () => {
   )
   const myRankEntry = computed(() =>
     rankings.value.find(r => r.nickname === myNickname.value)
+  )
+  /** 作答階段內，所有人提前送出答案（尚未倒數結束）即可提前結算 */
+  const isAllAnsweredEarly = computed(() =>
+    phase.value === 'question'
+    && timeLeft.value > 0
+    && totalCount.value > 0
+    && answeredCount.value >= totalCount.value
   )
   /** 各選項目前已選人數（僅計入已作答者，公布答案前僅 Host 頁面使用） */
   const optionVoteCounts = computed(() => {
@@ -86,12 +96,22 @@ export const useGameStore = defineStore('game', () => {
     phase.value = 'waiting'
   }
 
+  /** 後端 GamePhase 字串（lobby/question/reveal/ended）對應前端 GamePhase（waiting/question/result/ended） */
+  const BACKEND_PHASE_MAP: Record<BackendGamePhase, GamePhase> = {
+    lobby: 'waiting',
+    question: 'question',
+    reveal: 'result',
+    ended: 'ended'
+  }
+
   /** 重新連線後套用伺服器同步回來的完整房間快照（重新整理 / 直接開啟房間頁時使用） */
   const setRoomState = (payload: RoomStateSyncPayload) => {
-    room.value = payload.room
-    phase.value = payload.phase
+    const mappedPhase = BACKEND_PHASE_MAP[payload.phase]
 
-    if (payload.phase === 'question' && payload.currentQuestion) {
+    room.value = payload.room
+    phase.value = mappedPhase
+
+    if (mappedPhase === 'question' && payload.currentQuestion) {
       currentQuestion.value = payload.currentQuestion
       selectedAnswerIndex.value = null
       isCorrect.value = null
@@ -101,12 +121,12 @@ export const useGameStore = defineStore('game', () => {
       answeredCount.value = payload.answeredCount ?? 0
       totalCount.value = payload.totalCount ?? players.value.length
       _startTimer(payload.currentQuestion.timeLimit)
-    } else if (payload.phase === 'result' && payload.questionEnd) {
+    } else if (mappedPhase === 'result' && payload.questionEnd) {
       correctAnswerIndex.value = payload.questionEnd.answerIndex
       currentExplanation.value = payload.questionEnd.explanation
       rankings.value = payload.questionEnd.rankings
-      _stopTimer()
-    } else if (payload.phase === 'ended' && payload.rankings) {
+      _startTimer(REVEAL_DURATION_SECONDS)
+    } else if (mappedPhase === 'ended' && payload.rankings) {
       rankings.value = payload.rankings
       _stopTimer()
     }
@@ -114,13 +134,13 @@ export const useGameStore = defineStore('game', () => {
 
   const addPlayer = (player: Player) => {
     if (!room.value) return
-    const exists = room.value.players.some(p => p.connectionId === player.connectionId)
+    const exists = room.value.players.some(p => p.id === player.id)
     if (!exists) room.value.players.push(player)
   }
 
-  const removePlayer = (connectionId: string) => {
+  const removePlayer = (playerId: string) => {
     if (!room.value) return
-    room.value.players = room.value.players.filter(p => p.connectionId !== connectionId)
+    room.value.players = room.value.players.filter(p => p.id !== playerId)
   }
 
   const setQuestion = (q: QuestionPayload) => {
@@ -153,7 +173,7 @@ export const useGameStore = defineStore('game', () => {
     answeredCount.value = payload.answered
     totalCount.value = payload.total
     if (!room.value) return
-    const player = room.value.players.find(p => p.connectionId === payload.connectionId)
+    const player = room.value.players.find(p => p.id === payload.playerId)
     if (player) {
       player.hasAnswered = true
       player.selectedOptionIndex = payload.selectedOptionIndex
@@ -165,7 +185,7 @@ export const useGameStore = defineStore('game', () => {
     currentExplanation.value = payload.explanation
     rankings.value = payload.rankings
     phase.value = 'result'
-    _stopTimer()
+    _startTimer(REVEAL_DURATION_SECONDS)
 
     const me = payload.rankings.find(r => r.nickname === myNickname.value)
     if (me) {
@@ -217,6 +237,7 @@ export const useGameStore = defineStore('game', () => {
     answeredCount, totalCount,
     // computed
     players, roomCode, playerCount, isTimerUrgent, timerPercent, myRankEntry, optionVoteCounts,
+    isAllAnsweredEarly,
     // actions
     setRoom, setRoomState, addPlayer, removePlayer,
     setQuestion, selectAnswer,

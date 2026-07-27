@@ -22,7 +22,7 @@
         variant="outline"
         class="font-bold h-12 rounded-2xl"
         :loading="auth.isLoading"
-        @click="auth.loginWithGoogle"
+        @click="handleGoogleLogin"
       >
         <template #leading>
           <span class="font-extrabold text-[#4285F4]">G</span>
@@ -74,6 +74,12 @@
             </template>
           </UInput>
         </UFormField>
+        <NuxtLink
+          to="/forgot-password"
+          class="text-xs text-neutral-500 text-right -mt-1"
+        >
+          {{ t('login.forgotPassword') }}
+        </NuxtLink>
         <p
           v-if="error"
           class="text-sm text-error-500"
@@ -109,7 +115,9 @@
     </div>
 
     <!-- Host benefits -->
-    <div class="w-full max-w-md mt-5 rounded-2xl bg-white border border-neutral-200 p-4 text-sm text-neutral-600 leading-relaxed">
+    <div
+      class="w-full max-w-md mt-5 rounded-2xl bg-white border border-neutral-200 p-4 text-sm text-neutral-600 leading-relaxed"
+    >
       <p class="font-bold text-neutral-900 mb-1">
         {{ t('login.hostBenefits.title') }}
       </p>
@@ -119,11 +127,14 @@
 </template>
 
 <script setup lang="ts">
-import * as z from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import { ApiError } from '~/composables/useApi'
+import { useLoginSchema, type LoginSchema } from '~/types/auth'
 
 definePageMeta({ layout: 'default' })
 
 const { t } = useI18n()
+const loginSchema = useLoginSchema()
 const auth = useAuthStore()
 const route = useRoute()
 
@@ -132,34 +143,44 @@ const showPassword = ref(false)
 
 const redirect = computed(() => (route.query.redirect as string) || '/library')
 
+// persisted 的 isLoggedIn 只代表「曾經登入過」，須用 fetchMe() 實際驗證 session 是否仍有效，
+// 避免 session 過期時在登入頁與受保護頁之間形成 redirect loop。
 if (auth.isLoggedIn) {
-  await navigateTo(redirect.value)
+  const verified = await auth.fetchMe()
+  if (verified) {
+    await navigateTo(redirect.value)
+  }
 }
 
-const loginSchema = z.object({
-  email: z.email(t('login.validation.emailInvalid')),
-  password: z.string().min(6, t('login.validation.passwordMin'))
-})
-
-type LoginForm = z.infer<typeof loginSchema>
-
-const loginState = reactive<LoginForm>({
+const loginState = reactive<LoginSchema>({
   email: '',
   password: ''
 })
 
-const handleEmailLogin = async () => {
+const handleEmailLogin = async (event: FormSubmitEvent<LoginSchema>) => {
   error.value = ''
-  try {
-    await auth.loginWithEmail(loginState.email, loginState.password)
-    await navigateTo(redirect.value)
-  } catch {
-    error.value = t('login.loginError')
+  if (event.data) {
+    try {
+      await auth.loginWithEmail(loginState)
+      await navigateTo(redirect.value)
+    } catch (e: unknown) {
+      error.value = e instanceof ApiError ? e.message : t('login.loginError')
+    }
   }
 }
 
 const onToggleShowPassword = () => {
   showPassword.value = !showPassword.value
+}
+
+const handleGoogleLogin = async () => {
+  error.value = ''
+  try {
+    await auth.loginWithGoogle()
+    await navigateTo(redirect.value)
+  } catch (e: unknown) {
+    error.value = e instanceof ApiError ? e.message : t('login.googleLoginError')
+  }
 }
 </script>
 
@@ -169,5 +190,4 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-</style>
+<style scoped lang="scss"></style>

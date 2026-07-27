@@ -13,6 +13,7 @@ public class CreateRoomCommandHandlerTests
 {
     private IQuizRepository _quizRepository = null!;
     private IGameRoomRepository _gameRoomRepository = null!;
+    private TimeProvider _timeProvider = null!;
     private CreateRoomCommandHandler _sut = null!;
     private readonly Guid _hostUserId = Guid.NewGuid();
     private readonly Guid _quizId = Guid.NewGuid();
@@ -22,7 +23,9 @@ public class CreateRoomCommandHandlerTests
     {
         _quizRepository = Substitute.For<IQuizRepository>();
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
-        _sut = new CreateRoomCommandHandler(_quizRepository, _gameRoomRepository);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _sut = new CreateRoomCommandHandler(_quizRepository, _gameRoomRepository, _timeProvider);
     }
 
     private Quiz CreateQuizWithQuestions(int count)
