@@ -22,7 +22,8 @@ public sealed class RefreshTokenCommandHandler(
     IMemberRepository memberRepository,
     ITokenService tokenService,
     IRefreshTokenGenerator refreshTokenGenerator,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<RefreshTokenCommand, LoginResultDto>
 {
     public async Task<LoginResultDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
@@ -46,10 +47,11 @@ public sealed class RefreshTokenCommandHandler(
 
         var accessToken = tokenService.GenerateAccessToken(member);
         var (rawRefreshToken, refreshTokenHash) = refreshTokenGenerator.Generate();
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         var newRefreshToken =
-            RefreshTokenAggregate.Issue(member.Id, RefreshTokenOwnerType.Member, refreshTokenHash, DateTime.UtcNow);
+            RefreshTokenAggregate.Issue(member.Id, RefreshTokenOwnerType.Member, refreshTokenHash, now);
 
-        existingToken.Revoke(DateTime.UtcNow, newRefreshToken.Id);
+        existingToken.Revoke(now, newRefreshToken.Id);
 
         await refreshTokenRepository.AddAsync(newRefreshToken, cancellationToken);
         await refreshTokenRepository.UpdateAsync(existingToken, cancellationToken);

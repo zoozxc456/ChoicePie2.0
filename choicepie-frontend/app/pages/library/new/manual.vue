@@ -83,7 +83,7 @@
       :questions="validQuestions"
       :quiz-title="title"
       :loading="isCreatingRoom"
-      @confirm="handleCreateRoom"
+      @confirm="handleSaveQuiz"
       @cancel="isPreviewOpen = false"
     />
   </div>
@@ -92,6 +92,7 @@
 <script setup lang="ts">
 import HostQuestionEditor from '~/components/host/QuestionEditor.vue'
 import HostPreviewQuizModal from '~/components/host/PreviewQuizModal.vue'
+import { useQuizStore } from '~/stores/quiz'
 import type { Question } from '~/types/quiz'
 
 definePageMeta({
@@ -100,7 +101,7 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-const gameRoom = useGameRoom()
+const quizStore = useQuizStore()
 
 const blankQuestion = (): Question => ({
   id: `manual-q-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -153,10 +154,11 @@ const openPreview = () => {
   isPreviewOpen.value = true
 }
 
-const handleCreateRoom = async () => {
+const handleSaveQuiz = async () => {
   isCreatingRoom.value = true
   try {
-    await gameRoom.createRoom({ questionIds: validQuestions.value.map(q => q.id) })
+    const quiz = await quizStore.saveQuiz(validQuestions.value, title.value.trim(), 'intermediate')
+    await navigateTo(`/library/${quiz.id}`)
   } catch {
     isCreatingRoom.value = false
   }

@@ -27,7 +27,7 @@ public sealed record QuizSummaryDto(
         quiz.Cover.Emoji,
         quiz.Cover.Gradient,
         quiz.Difficulty.Name,
-        quiz.Status.Name,
+        quiz.Status.Name.ToLowerInvariant(),
         quiz.QuestionCount,
         quiz.ChallengeCount,
         quiz.PassRate,

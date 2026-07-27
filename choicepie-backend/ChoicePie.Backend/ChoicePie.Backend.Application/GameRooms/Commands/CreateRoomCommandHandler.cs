@@ -8,7 +8,8 @@ namespace ChoicePie.Backend.Application.GameRooms.Commands;
 
 public sealed class CreateRoomCommandHandler(
     IQuizRepository quizRepository,
-    IGameRoomRepository gameRoomRepository)
+    IGameRoomRepository gameRoomRepository,
+    TimeProvider timeProvider)
     : IRequestHandler<CreateRoomCommand, CreateRoomResultDto>
 {
     public async Task<CreateRoomResultDto> Handle(CreateRoomCommand request, CancellationToken cancellationToken)
@@ -26,7 +27,9 @@ public sealed class CreateRoomCommandHandler(
 
         var roomCode = await GenerateUniqueRoomCodeAsync(cancellationToken);
 
-        var room = GameRoom.Create(request.HostUserId, roomCode, questions, request.TimeLimitSeconds, DateTime.UtcNow);
+        var room = GameRoom.Create(
+            request.HostUserId, roomCode, quiz.Id, quiz.Title, quiz.Cover.Emoji, quiz.Cover.Gradient,
+            questions, request.TimeLimitSeconds, timeProvider.GetUtcNow().UtcDateTime);
 
         await gameRoomRepository.SaveAsync(room, cancellationToken);
 

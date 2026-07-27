@@ -6,6 +6,7 @@ using ChoicePie.Backend.Domain.Aggregates.Quiz.Entities;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt;
+using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
@@ -21,6 +22,7 @@ public class StartQuizAttemptCommandHandlerTests
     private IMemberRepository _memberRepository = null!;
     private ICurrentUserService _currentUserService = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private TimeProvider _timeProvider = null!;
     private StartQuizAttemptCommandHandler _sut = null!;
     private readonly Guid _memberId = Guid.NewGuid();
     private Quiz _quiz = null!;
@@ -33,10 +35,13 @@ public class StartQuizAttemptCommandHandlerTests
         _memberRepository = Substitute.For<IMemberRepository>();
         _currentUserService = Substitute.For<ICurrentUserService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
         _sut = new StartQuizAttemptCommandHandler(
-            _quizRepository, _quizAttemptRepository, _memberRepository, _currentUserService, _unitOfWork);
+            _quizRepository, _quizAttemptRepository, _memberRepository, _currentUserService, _unitOfWork,
+            _timeProvider);
 
-        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(_memberId, "Title", null, "⚓", "g", Difficulty.Beginner, []);
         _quiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
         _quiz.Publish();
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
@@ -64,13 +69,45 @@ public class StartQuizAttemptCommandHandlerTests
     }
 
     [Test]
+    public async Task Handle_GivenExistingInProgressAttempt_WhenCalled_ThenReusesItInsteadOfCreatingNew()
+    {
+        var existingAttempt = QuizAttemptAggregate.Start(_quiz.Id, _memberId, [_quiz.Questions[0].Id], DateTime.UtcNow);
+        _quizAttemptRepository
+            .FirstOrDefaultAsync(
+                Arg.Any<QuizAttemptInProgressByQuizAndMemberSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(existingAttempt);
+
+        var result = await _sut.Handle(new StartQuizAttemptCommand(_quiz.Id), CancellationToken.None);
+
+        Assert.That(result.AttemptId, Is.EqualTo(existingAttempt.Id));
+        await _quizAttemptRepository.DidNotReceive().AddAsync(
+            Arg.Any<QuizAttemptAggregate>(), Arg.Any<CancellationToken>());
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
     public void Handle_GivenDraftQuiz_WhenCalled_ThenThrowsQuizNotPublishedException()
     {
-        var draftQuiz = Quiz.Create(Guid.NewGuid(), "Draft", null, "⚓", "g", Difficulty.Beginner, []);
+        var draftQuiz = Quiz.Create(_memberId, "Draft", null, "⚓", "g", Difficulty.Beginner, []);
         _quizRepository.GetByIdAsync(draftQuiz.Id, Arg.Any<CancellationToken>()).Returns(draftQuiz);
 
         Assert.ThrowsAsync<QuizNotPublishedException>(() =>
             _sut.Handle(new StartQuizAttemptCommand(draftQuiz.Id), CancellationToken.None));
+    }
+
+    [Test]
+    public async Task Handle_GivenNonOwner_WhenCalled_ThenStartsAttemptSuccessfully()
+    {
+        // 單人練習的目的就是挑戰別人發布的題庫，非擁有者不該被拒絕——擁有者身分檢查只適用於
+        // 題庫管理操作（編輯/下架等），不適用於開始挑戰。
+        var othersQuiz = Quiz.Create(Guid.NewGuid(), "Someone Else's Quiz", null, "⚓", "g", Difficulty.Beginner, []);
+        othersQuiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
+        othersQuiz.Publish();
+        _quizRepository.GetByIdAsync(othersQuiz.Id, Arg.Any<CancellationToken>()).Returns(othersQuiz);
+
+        var result = await _sut.Handle(new StartQuizAttemptCommand(othersQuiz.Id), CancellationToken.None);
+
+        Assert.That(result.AttemptId, Is.Not.EqualTo(Guid.Empty));
     }
 
     [Test]

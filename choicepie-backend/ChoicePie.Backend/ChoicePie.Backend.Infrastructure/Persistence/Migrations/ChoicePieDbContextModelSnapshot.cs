@@ -177,12 +177,178 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                     b.ToTable("auth_account", (string)null);
                 });
 
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.Comment.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quiz_id");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("text");
+
+                    b.HasKey("Id")
+                        .HasName("pk_comment");
+
+                    b.HasIndex("QuizId")
+                        .HasDatabaseName("ix_comment_quiz_id");
+
+                    b.ToTable("comment", (string)null);
+                });
+
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.CreatorFollow.CreatorFollow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<Guid>("FollowedCreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("followed_creator_id");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_creator_follow");
+
+                    b.HasIndex("CreatorId", "FollowedCreatorId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_creator_follow_creator_id_followed_creator_id");
+
+                    b.ToTable("creator_follow", (string)null);
+                });
+
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.EmailVerificationToken.EmailVerificationToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AuthAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("auth_account_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_email_verification_token");
+
+                    b.HasIndex("AuthAccountId")
+                        .HasDatabaseName("ix_email_verification_token_auth_account_id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_email_verification_token_token_hash");
+
+                    b.ToTable("email_verification_token", (string)null);
+                });
+
             modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.GameSession.GameSession", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("CoverEmoji")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("cover_emoji");
+
+                    b.Property<string>("CoverGradient")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("cover_gradient");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -215,6 +381,15 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("PlayedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("played_at_utc");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quiz_id");
+
+                    b.Property<string>("QuizTitle")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("quiz_title");
 
                     b.Property<string>("RoomCode")
                         .IsRequired()
@@ -261,6 +436,10 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("deleter_id");
 
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_suspended");
+
                     b.Property<DateTime?>("LastAiGenerationAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_ai_generation_at");
@@ -279,10 +458,80 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("name");
 
+                    b.Property<string>("SuspendedReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("suspended_reason");
+
+                    b.Property<DateTime?>("SuspendedUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("suspended_until");
+
                     b.HasKey("Id")
                         .HasName("pk_member");
 
                     b.ToTable("member", (string)null);
+                });
+
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.PasswordResetToken.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AuthAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("auth_account_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_password_reset_token");
+
+                    b.HasIndex("AuthAccountId")
+                        .HasDatabaseName("ix_password_reset_token_auth_account_id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_password_reset_token_token_hash");
+
+                    b.ToTable("password_reset_token", (string)null);
                 });
 
             modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.Quiz.Quiz", b =>
@@ -324,6 +573,10 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_at");
 
+                    b.Property<int>("ShareCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("share_count");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("status");
@@ -332,6 +585,19 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text[]")
                         .HasColumnName("tags");
+
+                    b.Property<DateTime?>("TakedownAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("takedown_at");
+
+                    b.Property<Guid?>("TakedownBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("takedown_by");
+
+                    b.Property<string>("TakedownReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("takedown_reason");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -408,6 +674,124 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_quiz_attempt_quiz_id_member_id");
 
                     b.ToTable("quiz_attempt", (string)null);
+                });
+
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.QuizFavorite.QuizFavorite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quiz_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_quiz_favorite");
+
+                    b.HasIndex("CreatorId", "QuizId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_quiz_favorite_creator_id_quiz_id");
+
+                    b.ToTable("quiz_favorite", (string)null);
+                });
+
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.QuizReport.QuizReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quiz_id");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("integer")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("ResolutionNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("resolution_note");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<Guid?>("ResolvedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_quiz_report");
+
+                    b.HasIndex("QuizId")
+                        .HasDatabaseName("ix_quiz_report_quiz_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_quiz_report_status");
+
+                    b.ToTable("quiz_report", (string)null);
                 });
 
             modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.RefreshToken.RefreshToken", b =>
@@ -713,6 +1097,10 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                                 .HasColumnType("integer")
                                 .HasColumnName("final_score");
 
+                            b1.Property<Guid?>("MemberId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("member_id");
+
                             b1.Property<string>("Nickname")
                                 .IsRequired()
                                 .HasColumnType("text")
@@ -728,6 +1116,9 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("GameSessionId", "Id")
                                 .HasName("pk_game_session_player_result");
+
+                            b1.HasIndex("MemberId")
+                                .HasDatabaseName("ix_game_session_player_result_member_id");
 
                             b1.ToTable("game_session_player_result", (string)null);
 

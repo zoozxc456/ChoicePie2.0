@@ -1,7 +1,7 @@
 import type { RankEntry } from './other'
 
 export interface Player {
-  connectionId: string
+  id: string
   nickname: string
   score: number
   rank: number

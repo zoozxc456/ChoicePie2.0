@@ -16,6 +16,7 @@ public static class DependencyInjectionExtensions
                 cfg.RegisterServicesFromAssembly(assembly);
                 cfg.AddOpenBehavior(typeof(ValidationBehaviour<,>));
             });
+            services.AddSingleton(TimeProvider.System);
             services.ScanDependencies(assembly);
             return services;
         }

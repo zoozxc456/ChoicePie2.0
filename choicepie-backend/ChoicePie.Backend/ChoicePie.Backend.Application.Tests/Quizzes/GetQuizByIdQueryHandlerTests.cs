@@ -26,8 +26,11 @@ public class GetQuizByIdQueryHandlerTests
         _currentUserService.UserId.Returns(_ownerId);
     }
 
+    private static readonly QuestionDto Question = new(Guid.NewGuid(), "What is a Pod?", ["A", "B", "C", "D"], 0, "Explanation");
+
     private QuizDto MakeDto(Guid quizId) => new(
-        quizId, "Kubernetes 101", null, "⚓", "g", "beginner", "draft", 0, 0, _ownerId, "Host Name", null, [], [],
+        quizId, "Kubernetes 101", null, "⚓", "g", "beginner", "draft", 0, 0, _ownerId, "Host Name", null,
+        [Question], [new QuestionStubDto(Question.Id)], 1, [], 0,
         DateTime.UtcNow, DateTime.UtcNow);
 
     [Test]
@@ -52,14 +55,18 @@ public class GetQuizByIdQueryHandlerTests
     }
 
     [Test]
-    public void Handle_GivenNonOwner_WhenCalled_ThenThrowsQuizForbiddenException()
+    public async Task Handle_GivenNonOwner_WhenCalled_ThenReturnsQuizWithoutQuestions()
     {
         var quizId = Guid.NewGuid();
         var dto = MakeDto(quizId);
         _quizQueryService.GetByIdAsync(quizId, Arg.Any<CancellationToken>()).Returns(dto);
         _currentUserService.UserId.Returns(Guid.NewGuid());
 
-        Assert.ThrowsAsync<QuizForbiddenException>(() => _sut.Handle(new GetQuizByIdQuery(quizId), CancellationToken.None));
+        var result = await _sut.Handle(new GetQuizByIdQuery(quizId), CancellationToken.None);
+
+        Assert.That(result.Questions, Is.Empty);
+        Assert.That(result.QuestionStubs, Is.Not.Empty);
+        Assert.That(result.QuestionCount, Is.EqualTo(1));
     }
 
     [Test]

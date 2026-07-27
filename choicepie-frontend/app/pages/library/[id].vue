@@ -35,29 +35,73 @@
     <!-- ── Action bar ── -->
     <div class="flex items-center gap-3 px-8 py-5 bg-white rounded-b-2xl mb-6 flex-wrap shadow-cp-md">
       <button
-        class="w-14 h-14 rounded-full flex items-center justify-center text-2xl text-white shrink-0 bg-primary-500 transition-transform hover:scale-105"
+        class="w-11 h-11 rounded-full flex items-center justify-center text-lg text-white shrink-0 bg-primary-500 cursor-pointer transition-transform hover:scale-110 hover:rotate-6"
         @click="isStartModalOpen = true"
       >
         ▶
       </button>
 
       <button
-        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap"
-        @click="isFavorite = !isFavorite"
+        v-if="isOwner"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer"
+        :disabled="isStartingAttempt"
+        @click="handleSoloPractice"
       >
-        {{ isFavorite ? t('libraryDetail.favorited') : t('libraryDetail.bookmark') }}
+        {{ t('libraryDetail.soloPractice') }}
       </button>
-      <button class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap">
-        {{ t('libraryDetail.share') }}
+
+      <button
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap cursor-pointer disabled:opacity-60"
+        :class="quizStore.isFavorited
+          ? 'border-error-200 bg-error-100 text-error-800'
+          : 'border-neutral-200 bg-white'"
+        :disabled="quizStore.isTogglingFavorite"
+        @click="handleToggleFavorite"
+      >
+        {{ quizStore.isFavorited ? `♥ ${t('libraryDetail.favorite.remove')}` : `♡ ${t('libraryDetail.favorite.add')}` }}
+      </button>
+
+      <button
+        v-if="isOwner && quiz.status !== 'published'"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold text-white bg-primary-500 whitespace-nowrap cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+        :disabled="isTogglingStatus"
+        @click="handlePublish"
+      >
+        <UIcon name="i-lucide-upload" />
+        {{ t('libraryDetail.status.publishAction') }}
       </button>
       <button
-        class="h-10 px-4 rounded-full text-[13px] font-semibold text-white bg-secondary-800 whitespace-nowrap"
-        @click="isStartModalOpen = true"
+        v-if="isOwner && quiz.status === 'published'"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+        :disabled="isTogglingStatus"
+        @click="handleUnpublish"
       >
-        {{ t('libraryDetail.useForGame') }}
+        <UIcon name="i-lucide-eye-off" />
+        {{ t('libraryDetail.status.unpublishAction') }}
+      </button>
+
+      <ShareMenu
+        :quiz-id="quiz.id"
+        :quiz-title="quiz.title"
+      />
+
+      <button
+        v-if="!isOwner && auth.isLoggedIn"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer disabled:opacity-60"
+        :disabled="quizStore.hasReported"
+        @click="isReportModalOpen = true"
+      >
+        {{ quizStore.hasReported ? t('libraryDetail.report.reported') : t('libraryDetail.report.action') }}
       </button>
 
       <div class="ml-auto flex gap-2 items-center">
+        <span
+          v-if="isOwner"
+          class="text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap"
+          :class="statusBadgeClass"
+        >
+          {{ statusLabel }}
+        </span>
         <span class="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-success-100 text-success-800 whitespace-nowrap">
           {{ t('libraryDetail.passRateBadge', { rate: quiz.passRate }) }}
         </span>
@@ -74,7 +118,10 @@
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
       <!-- Left: Question list + Comments -->
       <div class="flex flex-col gap-6">
-        <div class="bg-white border border-neutral-200 rounded-2xl p-5">
+        <div
+          v-if="isOwner"
+          class="bg-white border border-neutral-200 rounded-2xl p-5"
+        >
           <h2 class="text-base font-bold mb-3">
             {{ t('libraryDetail.questionList') }}
           </h2>
@@ -90,129 +137,77 @@
               <div class="flex-1 text-sm font-medium">
                 {{ q.text }}
               </div>
-              <div class="text-xs text-neutral-600 w-12 text-right">
-                —
-              </div>
-              <div class="text-xs text-neutral-400 w-10 text-right">
-                {{ t('libraryDetail.questionTable.timeApprox') }}
-              </div>
             </div>
           </div>
         </div>
 
+        <!-- Attempt history -->
+        <AttemptHistoryList :quiz-id="quizId" />
+
         <!-- Comments -->
-        <div class="bg-white border border-neutral-200 rounded-2xl p-5">
-          <h3 class="text-base font-bold mb-4">
-            {{ t('libraryDetail.comments.title', { count: comments.length }) }}
-          </h3>
+        <CommentList :quiz-id="quizId" />
 
-          <div class="flex gap-2 mb-4">
-            <UInput
-              v-model="commentDraft"
-              :placeholder="t('libraryDetail.comments.placeholder')"
-              size="lg"
-              class="flex-1"
-              :ui="{ base: 'bg-neutral-100 h-10 text-sm px-4' }"
-            />
-            <UButton
-              color="primary"
-              class="rounded-full font-semibold px-4"
-              @click="submitComment"
+        <!-- Related quizzes -->
+        <div
+          v-if="quizStore.relatedQuizzes.length > 0"
+          class="bg-white border border-neutral-200 rounded-2xl p-5"
+        >
+          <h2 class="text-base font-bold mb-3">
+            {{ t('libraryDetail.related.title') }}
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <NuxtLink
+              v-for="related in quizStore.relatedQuizzes"
+              :key="related.id"
+              :to="`/library/${related.id}`"
+              class="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-100 transition-colors"
             >
-              {{ t('libraryDetail.comments.submit') }}
-            </UButton>
-          </div>
-
-          <div class="flex flex-col gap-3">
-            <div
-              v-for="c in comments"
-              :key="c.name + c.time"
-              class="flex gap-2.5"
-            >
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-neutral-600 bg-neutral-100 shrink-0">
-                {{ c.initial }}
+              <div
+                class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
+                :style="related.coverGradient"
+              >
+                {{ related.coverEmoji }}
               </div>
-              <div class="bg-neutral-100 rounded-tl-none rounded-2xl px-3.5 py-2.5 max-w-md">
-                <p class="text-xs font-bold mb-0.5">
-                  {{ c.name }}
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate">
+                  {{ related.title }}
                 </p>
-                <p class="text-sm leading-relaxed">
-                  {{ c.text }}
-                </p>
-                <p class="text-[11px] text-neutral-400 mt-1">
-                  {{ c.time }}
+                <p class="text-xs text-neutral-400">
+                  {{ t('libraryDetail.questions', { count: related.questionCount }) }} · {{ t('libraryDetail.challenges', { count: related.challengeCount.toLocaleString() }) }}
                 </p>
               </div>
-            </div>
+            </NuxtLink>
           </div>
         </div>
       </div>
 
-      <!-- Right: Creator + Related -->
+      <!-- Right: Creator -->
       <div class="flex flex-col gap-6">
         <div class="bg-white border border-neutral-200 rounded-2xl p-5 flex flex-col items-center gap-2.5 text-center">
           <div class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white bg-secondary-800 shrink-0">
             {{ quiz.creatorName[0] }}
           </div>
           <p class="text-sm font-bold flex items-center gap-1">
-            {{ quiz.creatorName }} <span class="text-info-500">✔️</span>
+            {{ quiz.creatorName }}
           </p>
-          <div class="grid grid-cols-2 gap-3 w-full mt-2">
-            <div>
-              <p class="text-lg font-extrabold text-primary-500">
-                12
-              </p>
-              <p class="text-[11px] text-neutral-400">
-                {{ t('libraryDetail.creator.quizCount') }}
-              </p>
-            </div>
-            <div>
-              <p class="text-lg font-extrabold text-primary-500">
-                8.4k
-              </p>
-              <p class="text-[11px] text-neutral-400">
-                {{ t('libraryDetail.creator.challengeCount') }}
-              </p>
-            </div>
-          </div>
-          <button
-            class="w-full h-9 rounded-full text-[13px] font-semibold border-[1.5px] border-primary-500 text-primary-500 mt-2"
-            @click="isFollowing = !isFollowing"
+          <p
+            v-if="creatorStore.profile"
+            class="text-xs text-neutral-400"
           >
-            {{ isFollowing ? t('libraryDetail.creator.following') : t('libraryDetail.creator.follow') }}
-          </button>
-        </div>
-
-        <div class="bg-white border border-neutral-200 rounded-2xl p-5">
-          <p class="text-sm font-bold mb-3">
-            {{ t('libraryDetail.related') }}
+            {{ t('libraryDetail.creator.quizCount', { count: creatorStore.profile.quizCount }) }} ·
+            {{ t('libraryDetail.creator.challengeCount', { count: creatorStore.profile.challengeCount }) }}
           </p>
-          <div class="flex flex-col gap-3">
-            <NuxtLink
-              v-for="related in relatedQuizzes"
-              :key="related.id"
-              :to="`/library/${related.id}`"
-              class="flex items-center gap-2.5"
-            >
-              <div
-                class="w-12 h-12 rounded-lg flex items-center justify-center text-xl shrink-0"
-                :style="related.coverGradient"
-              >
-                {{ related.coverEmoji }}
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-[13px] font-semibold truncate">
-                  {{ related.title }}
-                </p>
-                <p class="text-[11px] text-neutral-400 truncate">
-                  {{ related.tags[0] }} · {{ t('libraryDetail.questions', { count: related.questionCount }) }}
-                </p>
-              </div>
-              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 bg-primary-100 text-primary-500">
-                ▶
-              </div>
-            </NuxtLink>
-          </div>
+          <button
+            v-if="!isOwner && creatorStore.profile"
+            class="h-8 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap cursor-pointer disabled:opacity-60"
+            :class="creatorStore.profile.isFollowing
+              ? 'border-neutral-200 bg-white'
+              : 'border-transparent bg-primary-500 text-white'"
+            :disabled="creatorStore.isTogglingFollow"
+            @click="handleToggleFollow"
+          >
+            {{ creatorStore.profile.isFollowing ? t('libraryDetail.creator.following') : t('libraryDetail.creator.follow') }}
+          </button>
         </div>
       </div>
     </div>
@@ -280,7 +275,7 @@
                     v-for="option in timeLimitOptions"
                     :key="option"
                     type="button"
-                    class="h-8 px-3 rounded-full text-xs font-semibold transition-colors"
+                    class="h-8 px-3 rounded-full text-xs font-semibold cursor-pointer transition-colors"
                     :class="option === timeLimit
                       ? 'bg-primary-500 text-white'
                       : 'bg-neutral-100 text-neutral-600'"
@@ -315,6 +310,13 @@
         </div>
       </div>
     </Transition>
+
+    <ReportQuizModal
+      :open="isReportModalOpen"
+      :is-submitting="quizStore.isReporting"
+      @confirm="handleReport"
+      @cancel="isReportModalOpen = false"
+    />
   </div>
 
   <!-- Loading -->
@@ -331,29 +333,44 @@
 
 <script setup lang="ts">
 import { DIFFICULTY_LABEL } from '~/types/quiz'
-import { mockQuizzes } from '~/mocks/quiz'
 
 definePageMeta({ layout: 'content' })
 
 const { t } = useI18n()
 const route = useRoute()
 const quizStore = useQuizStore()
+const quizAttemptStore = useQuizAttemptStore()
+const creatorStore = useCreatorStore()
 const gameRoom = useGameRoom()
+const auth = useAuthStore()
 
 const quiz = computed(() => quizStore.currentQuiz)
 const isStartModalOpen = ref(false)
 const isCreatingRoom = ref(false)
-const isFavorite = ref(false)
-const isFollowing = ref(false)
-const commentDraft = ref('')
+const isStartingAttempt = ref(false)
+const isTogglingStatus = ref(false)
 
 const timeLimitOptions = [10, 20, 30, 60] as const
 const timeLimit = ref<typeof timeLimitOptions[number]>(20)
 
-// 暫時用假資料，之後接上真實 API 後移除
-quizStore.setCurrentQuiz(
-  mockQuizzes.find(q => q.id === route.params.id) ?? mockQuizzes[0]!
-)
+const quizId = route.params.id as string
+await quizStore.fetchQuizById(quizId)
+await quizStore.fetchComments(quizId)
+await quizStore.fetchRelatedQuizzes(quizId)
+if (quiz.value) {
+  await creatorStore.fetchCreatorProfile(quiz.value.creatorId)
+}
+if (auth.isLoggedIn) {
+  await quizStore.fetchFavoriteStatus(quizId)
+}
+
+useSeoMeta({
+  title: () => quiz.value?.title,
+  ogTitle: () => quiz.value?.title,
+  description: () => quiz.value?.description ?? undefined,
+  ogDescription: () => quiz.value?.description ?? undefined,
+  ogType: 'website'
+})
 
 const difficultyClass = computed(() => ({
   beginner: 'bg-success-100 text-success-800',
@@ -361,15 +378,38 @@ const difficultyClass = computed(() => ({
   expert: 'bg-error-100 text-error-800'
 }[quiz.value!.difficulty]))
 
-const comments = ref([
-  { initial: 'Y', name: 'YuHao', text: '這題庫出得很到位，第 3 題我猜了兩次才搞懂 😂', time: t('libraryDetail.comments.daysAgo', { days: 2 }) },
-  { initial: 'C', name: 'ChiaEn', text: '題庫品質很高！解析說明很清楚，推薦給正在準備的朋友 👍', time: t('libraryDetail.comments.daysAgo', { days: 4 }) }
-])
+const isOwner = computed(() => !!auth.user && auth.user.id === quiz.value?.creatorId)
 
-const submitComment = () => {
-  if (!commentDraft.value.trim()) return
-  comments.value.unshift({ initial: 'M', name: 'Mingyu', text: commentDraft.value.trim(), time: t('libraryDetail.comments.justNow') })
-  commentDraft.value = ''
+const statusLabel = computed(() => ({
+  published: t('libraryDetail.status.published'),
+  draft: t('libraryDetail.status.draft'),
+  archived: t('libraryDetail.status.archived')
+}[quiz.value?.status ?? ''] ?? quiz.value?.status))
+
+const statusBadgeClass = computed(() => ({
+  published: 'bg-success-100 text-success-800',
+  draft: 'bg-neutral-100 text-neutral-600',
+  archived: 'bg-warning-100 text-warning-800'
+}[quiz.value?.status ?? ''] ?? 'bg-neutral-100 text-neutral-600'))
+
+const handlePublish = async () => {
+  if (!quiz.value) return
+  isTogglingStatus.value = true
+  try {
+    await quizStore.publishQuiz(quiz.value.id)
+  } finally {
+    isTogglingStatus.value = false
+  }
+}
+
+const handleUnpublish = async () => {
+  if (!quiz.value) return
+  isTogglingStatus.value = true
+  try {
+    await quizStore.unpublishQuiz(quiz.value.id)
+  } finally {
+    isTogglingStatus.value = false
+  }
 }
 
 const handleCreateRoom = async () => {
@@ -378,7 +418,7 @@ const handleCreateRoom = async () => {
   try {
     await gameRoom.createRoom({
       quizId: quiz.value.id,
-      questionIds: quiz.value.questions.map(q => q.id),
+      questionIds: quiz.value.questionIds,
       timeLimit: timeLimit.value
     })
   } catch {
@@ -386,14 +426,64 @@ const handleCreateRoom = async () => {
   }
 }
 
-const relatedQuizzes = computed(() =>
-  mockQuizzes.filter(q => q.id !== quiz.value?.id).slice(0, 3)
-)
+const handleSoloPractice = async () => {
+  if (!quiz.value) return
+  const auth = useAuthStore()
+  if (!auth.isLoggedIn) {
+    await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    return
+  }
+  isStartingAttempt.value = true
+  try {
+    const result = await quizAttemptStore.startAttempt(quiz.value.id)
+    await navigateTo(`/attempt/${result.attemptId}`)
+  } catch {
+    isStartingAttempt.value = false
+  }
+}
 
 const gameSettings = computed(() => [
   { label: t('libraryDetail.modal.allQuestions'), value: t('libraryDetail.modal.allQuestionsValue') },
   { label: t('libraryDetail.modal.joinMethod'), value: t('libraryDetail.modal.joinMethodValue') }
 ])
+
+const isReportModalOpen = ref(false)
+
+const handleReport = async (reason: string, description?: string) => {
+  if (!quiz.value) return
+  try {
+    await quizStore.reportQuiz(quiz.value.id, reason, description)
+    isReportModalOpen.value = false
+  } catch {
+    // 錯誤已寫入 quizStore.error，這裡不需要額外處理
+  }
+}
+
+const handleToggleFavorite = async () => {
+  if (!quiz.value) return
+  if (!auth.isLoggedIn) {
+    await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    return
+  }
+  try {
+    await quizStore.toggleFavorite(quiz.value.id)
+  } catch {
+    // 錯誤已寫入 quizStore.error，這裡不需要額外處理
+  }
+}
+
+const handleToggleFollow = async () => {
+  if (!quiz.value) return
+  if (!auth.isLoggedIn) {
+    await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    return
+  }
+  try {
+    await creatorStore.toggleFollow(quiz.value.creatorId)
+  } catch {
+    // 錯誤已寫入 creatorStore.error，這裡不需要額外處理
+  }
+}
 </script>
 
 <script lang="ts">

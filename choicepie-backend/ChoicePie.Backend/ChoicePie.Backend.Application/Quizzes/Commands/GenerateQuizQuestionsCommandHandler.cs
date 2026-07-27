@@ -15,7 +15,8 @@ public sealed class GenerateQuizQuestionsCommandHandler(
     IMemberRepository memberRepository,
     ICurrentUserService currentUserService,
     IQuizGenerationService generationService,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
     : IRequestHandler<GenerateQuizQuestionsCommand, GenerateQuestionsResultDto>
 {
     private static readonly int[] AllowedQuestionCounts = [3, 5, 10];
@@ -35,7 +36,7 @@ public sealed class GenerateQuizQuestionsCommandHandler(
         var member = await memberRepository.GetByIdAsync(memberId, cancellationToken)
                      ?? throw new MemberNotFoundException(memberId);
 
-        var now = DateTime.UtcNow;
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         if (!member.CanGenerateQuizToday(now))
         {
             throw new AiGenerationQuotaExceededException(memberId);

@@ -61,6 +61,14 @@
                 class="dropdown-item__icon"
               />{{ t('nav.createGame') }}</NuxtLink>
               <NuxtLink
+                to="/library?tab=mine"
+                class="dropdown-item dropdown-item--info"
+                @click="closeMenu"
+              ><UIcon
+                name="i-lucide-library"
+                class="dropdown-item__icon"
+              />{{ t('nav.myLibrary') }}</NuxtLink>
+              <NuxtLink
                 to="/history"
                 class="dropdown-item dropdown-item--info"
                 @click="closeMenu"
@@ -73,7 +81,7 @@
             <div class="py-1">
               <button
                 class="dropdown-item dropdown-item--danger text-left"
-                @click="auth.logout"
+                @click="auth.logout()"
               >
                 <UIcon
                   name="i-lucide-log-out"

@@ -28,7 +28,7 @@ public class StartGameCommandHandlerTests
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "基本加法"),
             new(Guid.NewGuid(), "2+2=?", ["1", "2", "3", "4"], AnswerIndex: 3, "基本加法")
         };
-        return Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", questions, 20, CreatedAtUtc);
+        return Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
     }
 
     [Test]
@@ -75,7 +75,7 @@ public class StartGameCommandHandlerTests
     public void Handle_GivenGameAlreadyStarted_WhenCalled_ThenThrowsInvalidGamePhaseException()
     {
         var room = CreateLobbyRoom();
-        room.StartGame(CreatedAtUtc.AddMinutes(1));
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var command = new StartGameCommand("ABC123", _hostUserId);

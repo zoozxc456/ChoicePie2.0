@@ -1,14 +1,11 @@
-export default defineNuxtRouteMiddleware(() => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore()
 
-  // 暫時用假使用者，之後接上真實 API 後移除
+  // persisted 的 user 只代表「曾經登入過」，session cookie 可能早已過期，
+  // 所以每次都要用 fetchMe() 向後端實際驗證，不能只看 isLoggedIn 就放行。
+  await auth.fetchMe()
+
   if (!auth.isLoggedIn) {
-    auth.setUser({
-      id: 'mock-user-1',
-      email: 'mingyu@example.com',
-      name: 'Mingyu',
-      isVerified: true,
-      createdAt: '2026-01-01T00:00:00.000Z'
-    })
+    return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`)
   }
 })

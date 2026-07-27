@@ -68,4 +68,82 @@ public class MemberTests
 
         Assert.That(member.CanGenerateQuizToday(yesterday.AddDays(1)), Is.True);
     }
+
+    [Test]
+    public void Suspend_GivenValidReason_WhenCalled_ThenSetsSuspensionFields()
+    {
+        var member = MemberAggregate.Create("Host Name");
+        var until = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        member.Suspend("spamming", until);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(member.IsSuspended, Is.True);
+            Assert.That(member.SuspendedReason, Is.EqualTo("spamming"));
+            Assert.That(member.SuspendedUntil, Is.EqualTo(until));
+        });
+    }
+
+    [TestCase("")]
+    [TestCase("   ")]
+    public void Suspend_GivenEmptyOrWhitespaceReason_WhenCalled_ThenThrowsInvalidMemberSuspensionException(string reason)
+    {
+        var member = MemberAggregate.Create("Host Name");
+
+        Assert.Throws<InvalidMemberSuspensionException>(() => member.Suspend(reason, null));
+    }
+
+    [Test]
+    public void Unsuspend_GivenSuspendedMember_WhenCalled_ThenClearsSuspensionFields()
+    {
+        var member = MemberAggregate.Create("Host Name");
+        member.Suspend("spamming", null);
+
+        member.Unsuspend();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(member.IsSuspended, Is.False);
+            Assert.That(member.SuspendedReason, Is.Null);
+            Assert.That(member.SuspendedUntil, Is.Null);
+        });
+    }
+
+    [Test]
+    public void IsCurrentlySuspended_GivenNotSuspended_WhenChecked_ThenReturnsFalse()
+    {
+        var member = MemberAggregate.Create("Host Name");
+
+        Assert.That(member.IsCurrentlySuspended(DateTime.UtcNow), Is.False);
+    }
+
+    [Test]
+    public void IsCurrentlySuspended_GivenPermanentSuspension_WhenChecked_ThenReturnsTrue()
+    {
+        var member = MemberAggregate.Create("Host Name");
+        member.Suspend("spamming", null);
+
+        Assert.That(member.IsCurrentlySuspended(DateTime.UtcNow.AddYears(10)), Is.True);
+    }
+
+    [Test]
+    public void IsCurrentlySuspended_GivenSuspensionNotYetExpired_WhenChecked_ThenReturnsTrue()
+    {
+        var member = MemberAggregate.Create("Host Name");
+        var now = new DateTime(2026, 7, 10, 9, 0, 0, DateTimeKind.Utc);
+        member.Suspend("spamming", now.AddDays(7));
+
+        Assert.That(member.IsCurrentlySuspended(now.AddDays(1)), Is.True);
+    }
+
+    [Test]
+    public void IsCurrentlySuspended_GivenSuspensionExpired_WhenChecked_ThenReturnsFalse()
+    {
+        var member = MemberAggregate.Create("Host Name");
+        var now = new DateTime(2026, 7, 10, 9, 0, 0, DateTimeKind.Utc);
+        member.Suspend("spamming", now.AddDays(7));
+
+        Assert.That(member.IsCurrentlySuspended(now.AddDays(8)), Is.False);
+    }
 }

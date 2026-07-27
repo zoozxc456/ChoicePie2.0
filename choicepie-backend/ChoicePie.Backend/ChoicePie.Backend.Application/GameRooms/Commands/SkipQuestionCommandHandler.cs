@@ -20,22 +20,20 @@ public sealed class SkipQuestionCommandHandler(
         var room = await gameRoomRepository.GetByRoomCodeAsync(request.RoomCode, cancellationToken)
                    ?? throw new RoomNotFoundException(request.RoomCode);
 
-        GameRoomCommandGuards.EnsureHost(room, request.HostUserId);
-
         var now = DateTime.UtcNow;
 
         var result = room.Phase == GamePhase.Question
-            ? EndCurrentQuestion(room, now)
-            : await AdvanceAsync(room, now, cancellationToken);
+            ? EndCurrentQuestion(room, request.HostUserId, now)
+            : await AdvanceAsync(room, request.HostUserId, now, cancellationToken);
 
         await gameRoomRepository.SaveAsync(room, cancellationToken);
 
         return result;
     }
 
-    private static SkipQuestionResultDto EndCurrentQuestion(Domain.Aggregates.GameRoom.GameRoom room, DateTime now)
+    private static SkipQuestionResultDto EndCurrentQuestion(Domain.Aggregates.GameRoom.GameRoom room, Guid hostUserId, DateTime now)
     {
-        var rankings = room.EndCurrentQuestion(now);
+        var rankings = room.EndCurrentQuestion(hostUserId, now);
         var question = room.Questions[room.CurrentQuestionIndex];
 
         var questionEnd = new QuestionEndPayloadDto(
@@ -47,9 +45,9 @@ public sealed class SkipQuestionCommandHandler(
     }
 
     private async Task<SkipQuestionResultDto> AdvanceAsync(
-        Domain.Aggregates.GameRoom.GameRoom room, DateTime now, CancellationToken ct)
+        Domain.Aggregates.GameRoom.GameRoom room, Guid hostUserId, DateTime now, CancellationToken ct)
     {
-        var ended = room.AdvanceToNextQuestion(now);
+        var ended = room.AdvanceToNextQuestion(hostUserId, now);
 
         if (!ended)
         {
