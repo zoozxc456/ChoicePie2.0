@@ -29,18 +29,15 @@
       v-else
       class="flex flex-col gap-4"
     >
-      <div class="rounded-2xl bg-white border border-neutral-200 p-6">
+      <div class="rounded-2xl bg-white border border-neutral-200 p-6 flex flex-col">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0 flex-1">
-            <p class="text-base font-bold">
+            <p class="text-lg font-bold">
               {{ quiz.title }}
-            </p>
-            <p class="text-sm text-neutral-400 mt-0.5">
-              {{ t('adminQuizzes.creatorLine', { name: quiz.creatorName }) }}
             </p>
             <p
               v-if="quiz.description"
-              class="text-sm text-neutral-500 mt-2"
+              class="text-base text-neutral-500 mt-2"
             >
               {{ quiz.description }}
             </p>
@@ -102,7 +99,28 @@
           </div>
         </dl>
 
-        <div class="flex justify-end mt-6">
+        <div class="flex items-center justify-between mt-6">
+          <NuxtLink
+            :to="`/admin/members/${quiz.creatorId}`"
+            class="flex items-center gap-2 group"
+          >
+            <img
+              v-if="quiz.creatorAvatar"
+              :src="quiz.creatorAvatar"
+              class="w-8 h-8 rounded-full object-cover shrink-0"
+              alt=""
+            >
+            <div
+              v-else
+              class="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-400 shrink-0"
+            >
+              {{ quiz.creatorName.charAt(0) }}
+            </div>
+            <span class="text-sm text-neutral-500 group-hover:text-primary-500 group-hover:underline">
+              {{ quiz.creatorName }}
+            </span>
+          </NuxtLink>
+
           <UButton
             v-if="quiz.status !== 'takendown'"
             size="sm"
@@ -142,22 +160,22 @@
                   {{ index + 1 }}
                 </span>
                 <div class="min-w-0 flex-1">
-                  <p class="text-sm font-bold">
+                  <p class="text-lg font-bold">
                     {{ question.text }}
                   </p>
                   <p
                     v-if="question.explanation"
-                    class="text-xs text-neutral-400 mt-1"
+                    class="text-base text-neutral-400 mt-1"
                   >
                     {{ question.explanation }}
                   </p>
                 </div>
               </div>
-              <ul class="flex flex-col gap-1.5 mt-3">
+              <ul class="grid grid-cols-2 gap-1.5 mt-3">
                 <li
                   v-for="(option, optionIndex) in question.options"
                   :key="optionIndex"
-                  class="text-sm px-3 py-1.5 rounded-lg"
+                  class="text-base px-3 py-1.5 rounded-lg"
                   :class="optionIndex === question.answerIndex
                     ? 'bg-success-100 text-success-800 font-semibold'
                     : 'bg-neutral-100 text-neutral-600'"
