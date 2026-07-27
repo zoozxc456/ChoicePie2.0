@@ -257,4 +257,82 @@ public class QuizQueryServiceTests
             Assert.That(result.TakenDownCountLast7Days, Is.EqualTo(0));
         });
     }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_WhenCalled_ThenReturnsSevenDaysOfBucketsInAscendingOrderIncludingToday()
+    {
+        var quiz = MakeQuiz("New Quiz");
+        _readRepository.Query<Quiz>().Returns(new List<Quiz> { quiz }.AsQueryable());
+        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime.Date);
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.NewQuizzesByDay, Has.Count.EqualTo(7));
+            Assert.That(result.NewQuizzesByDay.Select(d => d.Date), Is.Ordered);
+            Assert.That(result.NewQuizzesByDay[^1].Date, Is.EqualTo(today));
+            Assert.That(result.NewQuizzesByDay[^1].Count, Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenQuizTakenDownYesterday_WhenCalled_ThenBucketsItOnTheCorrectDay()
+    {
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var takenDown = MakeQuiz("Bad Quiz");
+        takenDown.TakeDown(Guid.NewGuid(), "reason", now.AddDays(-1));
+        _readRepository.Query<Quiz>().Returns(new List<Quiz> { takenDown }.AsQueryable());
+        var yesterday = DateOnly.FromDateTime(now.Date.AddDays(-1));
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        var yesterdayBucket = result.TakenDownQuizzesByDay.Single(d => d.Date == yesterday);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.TakenDownQuizzesByDay, Has.Count.EqualTo(7));
+            Assert.That(yesterdayBucket.Count, Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public async Task AdminGetTopQuizzesAsync_GivenQuizzesWithDifferentChallengeCounts_WhenCalled_ThenOrdersByCountDescending()
+    {
+        var lowCount = MakeQuiz("Low Count Quiz");
+        lowCount.RecordChallengeOutcome(true);
+        var highCount = MakeQuiz("High Count Quiz");
+        highCount.RecordChallengeOutcome(true);
+        highCount.RecordChallengeOutcome(true);
+        highCount.RecordChallengeOutcome(false);
+        _readRepository.Query<Quiz>().Returns(new List<Quiz> { lowCount, highCount }.AsQueryable());
+
+        var result = await _sut.AdminGetTopQuizzesAsync(10, CancellationToken.None);
+
+        Assert.That(result.Select(q => q.Title), Is.EqualTo(new[] { "High Count Quiz", "Low Count Quiz" }));
+    }
+
+    [Test]
+    public async Task AdminGetTopQuizzesAsync_GivenDraftAndTakenDownQuizzes_WhenCalled_ThenExcludesThem()
+    {
+        var published = MakeQuiz("Published Quiz");
+        var draft = MakeQuiz("Draft Quiz", published: false);
+        var takenDown = MakeQuiz("Bad Quiz");
+        takenDown.TakeDown(Guid.NewGuid(), "reason", DateTime.UtcNow);
+        _readRepository.Query<Quiz>().Returns(new List<Quiz> { published, draft, takenDown }.AsQueryable());
+
+        var result = await _sut.AdminGetTopQuizzesAsync(10, CancellationToken.None);
+
+        Assert.That(result.Select(q => q.Title), Is.EquivalentTo(new[] { "Published Quiz" }));
+    }
+
+    [Test]
+    public async Task AdminGetTopQuizzesAsync_GivenMoreQuizzesThanLimit_WhenCalled_ThenReturnsOnlyLimitCount()
+    {
+        var quizzes = Enumerable.Range(1, 15).Select(i => MakeQuiz($"Quiz {i}")).ToList();
+        _readRepository.Query<Quiz>().Returns(quizzes.AsQueryable());
+
+        var result = await _sut.AdminGetTopQuizzesAsync(10, CancellationToken.None);
+
+        Assert.That(result, Has.Count.EqualTo(10));
+    }
 }

@@ -1,12 +1,5 @@
 <template>
   <div v-if="adminAuth.adminUser">
-    <h2 class="text-lg font-extrabold mb-1">
-      {{ t('adminDashboard.welcome', { name: adminAuth.adminUser.name }) }}
-    </h2>
-    <p class="text-base text-neutral-500 mb-6">
-      {{ adminAuth.adminUser.email }} · {{ adminAuth.adminUser.role }}
-    </p>
-
     <div
       v-if="adminDashboardStore.isLoading && !summary"
       class="flex justify-center py-16"
@@ -70,16 +63,66 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-2 mb-6">
-        <span class="text-xs px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-600">
-          {{ t('adminDashboard.recentActivity.newMembers', { count: summary.newMemberCountLast7Days }) }}
-        </span>
-        <span class="text-xs px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-600">
-          {{ t('adminDashboard.recentActivity.newQuizzes', { count: summary.newQuizCountLast7Days }) }}
-        </span>
-        <span class="text-xs px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-600">
-          {{ t('adminDashboard.recentActivity.takenDown', { count: summary.takenDownQuizCountLast7Days }) }}
-        </span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div class="rounded-2xl bg-white border border-neutral-200 p-6 h-72 flex flex-col">
+          <p class="text-lg font-extrabold mb-3">
+            {{ t('adminDashboard.charts.newMembers') }}
+          </p>
+          <AdminDashboardTrendChart
+            :label="t('adminDashboard.charts.newMembers')"
+            color="#f8931d"
+            :data-by-day="summary.newMembersByDay"
+          />
+        </div>
+        <div class="rounded-2xl bg-white border border-neutral-200 p-6 h-72 flex flex-col">
+          <p class="text-lg font-extrabold mb-3">
+            {{ t('adminDashboard.charts.newQuizzes') }}
+          </p>
+          <AdminDashboardTrendChart
+            :label="t('adminDashboard.charts.newQuizzes')"
+            color="#64789a"
+            :data-by-day="summary.newQuizzesByDay"
+          />
+        </div>
+      </div>
+
+      <div class="rounded-2xl bg-white border border-neutral-200 p-6 mb-6">
+        <p class="text-lg font-extrabold mb-3">
+          {{ t('adminDashboard.topQuizzes.title') }}
+        </p>
+        <p
+          v-if="summary.topQuizzes.length === 0"
+          class="text-base text-neutral-500"
+        >
+          {{ t('adminDashboard.topQuizzes.empty') }}
+        </p>
+        <ul
+          v-else
+          class="divide-y divide-neutral-100"
+        >
+          <li
+            v-for="(quiz, index) in summary.topQuizzes"
+            :key="quiz.id"
+            class="flex items-center gap-3 py-3"
+          >
+            <span class="w-6 text-base font-bold text-neutral-400 text-center shrink-0">
+              {{ index + 1 }}
+            </span>
+            <span
+              class="text-xl w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              :style="{ background: quiz.coverGradient }"
+            >
+              {{ quiz.coverEmoji }}
+            </span>
+            <span class="flex-1 min-w-0">
+              <span class="block text-base font-bold truncate">{{ quiz.title }}</span>
+              <span class="block text-xs text-neutral-500 truncate">{{ quiz.creatorName }}</span>
+            </span>
+            <span class="text-base font-bold text-primary-500 whitespace-nowrap">
+              {{ t('adminDashboard.topQuizzes.challengeCount', { count: quiz.challengeCount }) }}
+            </span>
+          </li>
+        </ul>
       </div>
     </template>
 

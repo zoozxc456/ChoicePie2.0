@@ -219,10 +219,14 @@
       "suspendedMembers": "已停權會員",
       "takenDownQuizzes": "已下架題庫"
     },
-    "recentActivity": {
-      "newMembers": "本週新增會員 +{count}",
-      "newQuizzes": "本週新增題庫 +{count}",
-      "takenDown": "本週下架 +{count}"
+    "charts": {
+      "newMembers": "新增會員趨勢",
+      "newQuizzes": "新增題庫趨勢"
+    },
+    "topQuizzes": {
+      "title": "熱門題庫 Top 10",
+      "empty": "尚無資料",
+      "challengeCount": "{count} 次挑戰"
     }
   },
   "adminQuizzes": {

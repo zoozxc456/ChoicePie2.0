@@ -18,8 +18,9 @@ public sealed class AdminGetDashboardSummaryQueryHandler(
         var memberStatsTask = memberQueryService.AdminGetDashboardStatsAsync(cancellationToken);
         var quizStatsTask = quizQueryService.AdminGetDashboardStatsAsync(cancellationToken);
         var pendingReportCountTask = quizReportQueryService.AdminGetPendingCountAsync(cancellationToken);
+        var topQuizzesTask = quizQueryService.AdminGetTopQuizzesAsync(10, cancellationToken);
 
-        await Task.WhenAll(memberStatsTask, quizStatsTask, pendingReportCountTask);
+        await Task.WhenAll(memberStatsTask, quizStatsTask, pendingReportCountTask, topQuizzesTask);
 
         var memberStats = memberStatsTask.Result;
         var quizStats = quizStatsTask.Result;
@@ -33,6 +34,10 @@ public sealed class AdminGetDashboardSummaryQueryHandler(
             quizStats.TakenDownCount,
             quizStats.NewCountLast7Days,
             quizStats.TakenDownCountLast7Days,
+            memberStats.NewMembersByDay,
+            quizStats.NewQuizzesByDay,
+            quizStats.TakenDownQuizzesByDay,
+            topQuizzesTask.Result,
             timeProvider.GetUtcNow().UtcDateTime);
     }
 }

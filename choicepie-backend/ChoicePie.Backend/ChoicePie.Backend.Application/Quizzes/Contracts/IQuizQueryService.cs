@@ -28,4 +28,6 @@ public interface IQuizQueryService
     Task<IReadOnlyList<QuizSummaryDto>> GetRelatedAsync(Guid quizId, int limit, CancellationToken cancellationToken);
 
     Task<AdminQuizDashboardStatsDto> AdminGetDashboardStatsAsync(CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<QuizSummaryDto>> AdminGetTopQuizzesAsync(int limit, CancellationToken cancellationToken);
 }

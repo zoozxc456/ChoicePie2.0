@@ -16,6 +16,10 @@ const makeSummary = (overrides: Partial<AdminDashboardSummaryDto> = {}): AdminDa
   takenDownQuizCount: 1,
   newQuizCountLast7Days: 4,
   takenDownQuizCountLast7Days: 1,
+  newMembersByDay: [{ date: '2026-01-01', count: 5 }],
+  newQuizzesByDay: [{ date: '2026-01-01', count: 4 }],
+  takenDownQuizzesByDay: [{ date: '2026-01-01', count: 1 }],
+  topQuizzes: [],
   generatedAt: '2026-01-01T00:00:00Z',
   ...overrides
 })

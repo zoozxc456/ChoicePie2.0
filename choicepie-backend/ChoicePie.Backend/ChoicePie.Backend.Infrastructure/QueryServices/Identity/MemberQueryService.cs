@@ -1,3 +1,4 @@
+using ChoicePie.Backend.Application.AdminDashboard.Dtos;
 using ChoicePie.Backend.Application.AdminMembers.Dtos;
 using ChoicePie.Backend.Application.Identity.Contracts;
 using ChoicePie.Backend.Application.Identity.Dtos;
@@ -104,6 +105,12 @@ public sealed class MemberQueryService(IReadRepository readRepository, TimeProvi
         var suspendedCount = query.Count(m => m.IsSuspended && (m.SuspendedUntil == null || m.SuspendedUntil > now));
         var newCountLast7Days = query.Count(m => m.CreatedAt >= sevenDaysAgo);
 
-        return Task.FromResult(new AdminMemberDashboardStatsDto(totalCount, suspendedCount, newCountLast7Days));
+        var recentCreatedAts = query.Where(m => m.CreatedAt >= sevenDaysAgo).Select(m => m.CreatedAt).ToList();
+        var newMembersByDay = Enumerable.Range(0, 7)
+            .Select(offset => now.Date.AddDays(-6 + offset))
+            .Select(day => new DailyCountDto(DateOnly.FromDateTime(day), recentCreatedAts.Count(d => d.Date == day)))
+            .ToList();
+
+        return Task.FromResult(new AdminMemberDashboardStatsDto(totalCount, suspendedCount, newCountLast7Days, newMembersByDay));
     }
 }

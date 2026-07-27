@@ -1,3 +1,4 @@
+using ChoicePie.Backend.Application.AdminDashboard.Dtos;
 using ChoicePie.Backend.Application.AdminQuizzes.Dtos;
 using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
@@ -265,7 +266,54 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
         var takenDownCountLast7Days = query.Count(q =>
             q.Status == QuizStatus.TakenDown && q.TakedownAt != null && q.TakedownAt >= sevenDaysAgo);
 
+        var recentCreatedAts = query.Where(q => q.CreatedAt >= sevenDaysAgo).Select(q => q.CreatedAt).ToList();
+        var newQuizzesByDay = Enumerable.Range(0, 7)
+            .Select(offset => now.Date.AddDays(-6 + offset))
+            .Select(day => new DailyCountDto(DateOnly.FromDateTime(day), recentCreatedAts.Count(d => d.Date == day)))
+            .ToList();
+
+        var recentTakedownAts = query
+            .Where(q => q.Status == QuizStatus.TakenDown && q.TakedownAt != null && q.TakedownAt >= sevenDaysAgo)
+            .Select(q => q.TakedownAt!.Value)
+            .ToList();
+        var takenDownQuizzesByDay = Enumerable.Range(0, 7)
+            .Select(offset => now.Date.AddDays(-6 + offset))
+            .Select(day => new DailyCountDto(DateOnly.FromDateTime(day), recentTakedownAts.Count(d => d.Date == day)))
+            .ToList();
+
         return Task.FromResult(new AdminQuizDashboardStatsDto(
-            totalCount, takenDownCount, newCountLast7Days, takenDownCountLast7Days));
+            totalCount, takenDownCount, newCountLast7Days, takenDownCountLast7Days,
+            newQuizzesByDay, takenDownQuizzesByDay));
+    }
+
+    public Task<IReadOnlyList<QuizSummaryDto>> AdminGetTopQuizzesAsync(int limit, CancellationToken cancellationToken)
+    {
+        var joined =
+            from q in readRepository.Query<Quiz>()
+            where q.Status == QuizStatus.Published
+            join m in readRepository.Query<Member>() on q.CreatorId!.Value equals m.Id into creatorGroup
+            from creator in creatorGroup.DefaultIfEmpty()
+            orderby q.Stats.Count descending, q.CreatedAt descending
+            select new QuizSummaryDto(
+                q.Id,
+                q.Title,
+                q.Description,
+                q.Cover.Emoji,
+                q.Cover.Gradient,
+                q.Difficulty.Name,
+                q.Status.Name.ToLower(),
+                q.Questions.Count,
+                q.Stats.Count,
+                q.Stats.PassRate,
+                q.CreatorId!.Value,
+                creator != null ? creator.Name : "Unknown",
+                creator != null ? creator.Avatar : null,
+                q.Tags,
+                q.CreatedAt,
+                q.LastModifiedAt);
+
+        var items = joined.Take(limit).ToList();
+
+        return Task.FromResult<IReadOnlyList<QuizSummaryDto>>(items);
     }
 }

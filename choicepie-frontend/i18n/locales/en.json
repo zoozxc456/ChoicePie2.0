@@ -219,10 +219,14 @@
       "suspendedMembers": "Suspended Members",
       "takenDownQuizzes": "Taken-down Quizzes"
     },
-    "recentActivity": {
-      "newMembers": "+{count} new members this week",
-      "newQuizzes": "+{count} new quizzes this week",
-      "takenDown": "+{count} taken down this week"
+    "charts": {
+      "newMembers": "New Member Trend",
+      "newQuizzes": "New Quiz Trend"
+    },
+    "topQuizzes": {
+      "title": "Top 10 Popular Quizzes",
+      "empty": "No data yet",
+      "challengeCount": "{count} challenges"
     }
   },
   "adminQuizzes": {

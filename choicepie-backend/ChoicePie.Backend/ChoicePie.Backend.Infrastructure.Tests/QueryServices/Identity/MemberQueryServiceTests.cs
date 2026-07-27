@@ -151,4 +151,32 @@ public class MemberQueryServiceTests
             Assert.That(result.NewCountLast7Days, Is.EqualTo(0));
         });
     }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_WhenCalled_ThenReturnsSevenDaysOfBucketsInAscendingOrderIncludingToday()
+    {
+        var member = Member.Create("New Member");
+        _readRepository.Query<Member>().Returns(new List<Member> { member }.AsQueryable());
+        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime.Date);
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.NewMembersByDay, Has.Count.EqualTo(7));
+            Assert.That(result.NewMembersByDay.Select(d => d.Date), Is.Ordered);
+            Assert.That(result.NewMembersByDay[^1].Date, Is.EqualTo(today));
+            Assert.That(result.NewMembersByDay[^1].Count, Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenNoMembers_WhenCalled_ThenReturnsAllZeroBuckets()
+    {
+        _readRepository.Query<Member>().Returns(new List<Member>().AsQueryable());
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.That(result.NewMembersByDay.Select(d => d.Count), Is.All.EqualTo(0));
+    }
 }

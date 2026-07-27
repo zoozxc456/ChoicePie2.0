@@ -428,6 +428,11 @@ export interface DismissQuizReportRequest {
   note?: string | null
 }
 
+export interface DailyCountDto {
+  date: string
+  count: number
+}
+
 export interface AdminDashboardSummaryDto {
   pendingQuizReportCount: number
   totalMemberCount: number
@@ -437,5 +442,9 @@ export interface AdminDashboardSummaryDto {
   takenDownQuizCount: number
   newQuizCountLast7Days: number
   takenDownQuizCountLast7Days: number
+  newMembersByDay: DailyCountDto[]
+  newQuizzesByDay: DailyCountDto[]
+  takenDownQuizzesByDay: DailyCountDto[]
+  topQuizzes: QuizSummaryDto[]
   generatedAt: string
 }
