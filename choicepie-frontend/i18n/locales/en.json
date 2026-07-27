@@ -210,6 +210,19 @@
       "quizzes": "Quiz Management",
       "members": "Member Management",
       "quizReports": "Report Review"
+    },
+    "pendingReportsAlert": "{count} pending report(s) need review",
+    "viewReports": "Review now",
+    "stats": {
+      "totalMembers": "Total Members",
+      "totalQuizzes": "Total Quizzes",
+      "suspendedMembers": "Suspended Members",
+      "takenDownQuizzes": "Taken-down Quizzes"
+    },
+    "recentActivity": {
+      "newMembers": "+{count} new members this week",
+      "newQuizzes": "+{count} new quizzes this week",
+      "takenDown": "+{count} taken down this week"
     }
   },
   "adminQuizzes": {

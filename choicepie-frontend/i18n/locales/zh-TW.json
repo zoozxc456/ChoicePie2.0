@@ -210,6 +210,19 @@
       "quizzes": "題庫管理",
       "members": "會員管理",
       "quizReports": "檢舉審核"
+    },
+    "pendingReportsAlert": "有 {count} 筆待審核檢舉",
+    "viewReports": "前往審核",
+    "stats": {
+      "totalMembers": "會員總數",
+      "totalQuizzes": "題庫總數",
+      "suspendedMembers": "已停權會員",
+      "takenDownQuizzes": "已下架題庫"
+    },
+    "recentActivity": {
+      "newMembers": "本週新增會員 +{count}",
+      "newQuizzes": "本週新增題庫 +{count}",
+      "takenDown": "本週下架 +{count}"
     }
   },
   "adminQuizzes": {

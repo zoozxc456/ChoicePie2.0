@@ -427,3 +427,15 @@ export interface ResolveQuizReportRequest {
 export interface DismissQuizReportRequest {
   note?: string | null
 }
+
+export interface AdminDashboardSummaryDto {
+  pendingQuizReportCount: number
+  totalMemberCount: number
+  suspendedMemberCount: number
+  newMemberCountLast7Days: number
+  totalQuizCount: number
+  takenDownQuizCount: number
+  newQuizCountLast7Days: number
+  takenDownQuizCountLast7Days: number
+  generatedAt: string
+}
