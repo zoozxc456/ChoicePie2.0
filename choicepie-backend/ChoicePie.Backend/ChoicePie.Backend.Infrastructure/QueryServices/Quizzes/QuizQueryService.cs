@@ -11,7 +11,7 @@ using ChoicePie.Backend.Shared.Kernel.Abstractions.Dependencies;
 
 namespace ChoicePie.Backend.Infrastructure.QueryServices.Quizzes;
 
-public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQueryService, IScopedDependency
+public sealed class QuizQueryService(IReadRepository readRepository, TimeProvider timeProvider) : IQuizQueryService, IScopedDependency
 {
     public Task<QuizDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
@@ -250,5 +250,22 @@ public sealed class QuizQueryService(IReadRepository readRepository) : IQuizQuer
         var items = joined.Take(limit).ToList();
 
         return Task.FromResult<IReadOnlyList<QuizSummaryDto>>(items);
+    }
+
+    public Task<AdminQuizDashboardStatsDto> AdminGetDashboardStatsAsync(CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var sevenDaysAgo = now.AddDays(-7);
+
+        var query = readRepository.Query<Quiz>();
+
+        var totalCount = query.Count();
+        var takenDownCount = query.Count(q => q.Status == QuizStatus.TakenDown);
+        var newCountLast7Days = query.Count(q => q.CreatedAt >= sevenDaysAgo);
+        var takenDownCountLast7Days = query.Count(q =>
+            q.Status == QuizStatus.TakenDown && q.TakedownAt != null && q.TakedownAt >= sevenDaysAgo);
+
+        return Task.FromResult(new AdminQuizDashboardStatsDto(
+            totalCount, takenDownCount, newCountLast7Days, takenDownCountLast7Days));
     }
 }

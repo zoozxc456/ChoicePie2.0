@@ -12,6 +12,7 @@ namespace ChoicePie.Backend.Infrastructure.Tests.QueryServices.Quizzes;
 public class QuizQueryServiceTests
 {
     private IReadRepository _readRepository = null!;
+    private TimeProvider _timeProvider = null!;
     private QuizQueryService _sut = null!;
     private Member _creator = null!;
 
@@ -19,7 +20,9 @@ public class QuizQueryServiceTests
     public void SetUp()
     {
         _readRepository = Substitute.For<IReadRepository>();
-        _sut = new QuizQueryService(_readRepository);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _sut = new QuizQueryService(_readRepository, _timeProvider);
         _creator = Member.Create("Host Name");
         _readRepository.Query<Member>().Returns(new List<Member> { _creator }.AsQueryable());
     }
@@ -193,5 +196,65 @@ public class QuizQueryServiceTests
         var result = await _sut.GetTagsAsync(CancellationToken.None);
 
         Assert.That(result, Is.EqualTo(new[] { "AWS", "Go", "Kubernetes" }));
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenMixOfStatuses_WhenCalled_ThenCountsTotalAndTakenDownCorrectly()
+    {
+        var published = MakeQuiz("Published Quiz");
+        var draft = MakeQuiz("Draft Quiz", published: false);
+        var takenDown = MakeQuiz("Bad Quiz");
+        takenDown.TakeDown(Guid.NewGuid(), "reason", _timeProvider.GetUtcNow().UtcDateTime);
+        _readRepository.Query<Quiz>().Returns(new List<Quiz> { published, draft, takenDown }.AsQueryable());
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.TotalCount, Is.EqualTo(3));
+            Assert.That(result.TakenDownCount, Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenNewlyCreatedQuiz_WhenCalled_ThenCountsAsNewLast7Days()
+    {
+        var quiz = MakeQuiz("New Quiz");
+        _readRepository.Query<Quiz>().Returns(new List<Quiz> { quiz }.AsQueryable());
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.That(result.NewCountLast7Days, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenQuizTakenDownWithinLast7Days_WhenCalled_ThenCountsIt()
+    {
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var recentlyTakenDown = MakeQuiz("Recently Bad Quiz");
+        recentlyTakenDown.TakeDown(Guid.NewGuid(), "reason", now.AddDays(-1));
+        var oldTakenDown = MakeQuiz("Old Bad Quiz");
+        oldTakenDown.TakeDown(Guid.NewGuid(), "reason", now.AddDays(-10));
+        _readRepository.Query<Quiz>().Returns(new List<Quiz> { recentlyTakenDown, oldTakenDown }.AsQueryable());
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.That(result.TakenDownCountLast7Days, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenNoQuizzes_WhenCalled_ThenReturnsAllZeroCounts()
+    {
+        _readRepository.Query<Quiz>().Returns(new List<Quiz>().AsQueryable());
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.TotalCount, Is.EqualTo(0));
+            Assert.That(result.TakenDownCount, Is.EqualTo(0));
+            Assert.That(result.NewCountLast7Days, Is.EqualTo(0));
+            Assert.That(result.TakenDownCountLast7Days, Is.EqualTo(0));
+        });
     }
 }

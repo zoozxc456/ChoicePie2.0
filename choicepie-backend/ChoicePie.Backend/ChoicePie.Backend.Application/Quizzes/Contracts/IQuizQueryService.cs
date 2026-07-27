@@ -26,4 +26,6 @@ public interface IQuizQueryService
     Task<IReadOnlyList<string>> GetTagsAsync(CancellationToken cancellationToken);
 
     Task<IReadOnlyList<QuizSummaryDto>> GetRelatedAsync(Guid quizId, int limit, CancellationToken cancellationToken);
+
+    Task<AdminQuizDashboardStatsDto> AdminGetDashboardStatsAsync(CancellationToken cancellationToken);
 }

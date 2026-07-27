@@ -13,13 +13,16 @@ namespace ChoicePie.Backend.Infrastructure.Tests.QueryServices.Identity;
 public class MemberQueryServiceTests
 {
     private IReadRepository _readRepository = null!;
+    private TimeProvider _timeProvider = null!;
     private MemberQueryService _sut = null!;
 
     [SetUp]
     public void SetUp()
     {
         _readRepository = Substitute.For<IReadRepository>();
-        _sut = new MemberQueryService(_readRepository);
+        _timeProvider = Substitute.For<TimeProvider>();
+        _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _sut = new MemberQueryService(_readRepository, _timeProvider);
     }
 
     [Test]
@@ -89,5 +92,63 @@ public class MemberQueryServiceTests
         var result = await _sut.AdminListAsync("no-match", 1, 20, CancellationToken.None);
 
         Assert.That(result.TotalCount, Is.EqualTo(0));
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenPermanentlySuspendedMember_WhenCalled_ThenCountsAsSuspended()
+    {
+        var active = Member.Create("Active Member");
+        var suspended = Member.Create("Suspended Member");
+        suspended.Suspend("spamming", null);
+        _readRepository.Query<Member>().Returns(new List<Member> { active, suspended }.AsQueryable());
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.TotalCount, Is.EqualTo(2));
+            Assert.That(result.SuspendedCount, Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenSuspensionThatHasAlreadyExpired_WhenCalled_ThenDoesNotCountAsSuspended()
+    {
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
+        var expiredlySuspended = Member.Create("Expired Member");
+        expiredlySuspended.Suspend("spamming", now.AddDays(-1));
+        var stillSuspended = Member.Create("Suspended Member");
+        stillSuspended.Suspend("spamming", now.AddDays(1));
+        _readRepository.Query<Member>().Returns(new List<Member> { expiredlySuspended, stillSuspended }.AsQueryable());
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.That(result.SuspendedCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenNewlyCreatedMembers_WhenCalled_ThenCountsThemAsNewLast7Days()
+    {
+        var member = Member.Create("New Member");
+        _readRepository.Query<Member>().Returns(new List<Member> { member }.AsQueryable());
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.That(result.NewCountLast7Days, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task AdminGetDashboardStatsAsync_GivenNoMembers_WhenCalled_ThenReturnsAllZeroCounts()
+    {
+        _readRepository.Query<Member>().Returns(new List<Member>().AsQueryable());
+
+        var result = await _sut.AdminGetDashboardStatsAsync(CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.TotalCount, Is.EqualTo(0));
+            Assert.That(result.SuspendedCount, Is.EqualTo(0));
+            Assert.That(result.NewCountLast7Days, Is.EqualTo(0));
+        });
     }
 }

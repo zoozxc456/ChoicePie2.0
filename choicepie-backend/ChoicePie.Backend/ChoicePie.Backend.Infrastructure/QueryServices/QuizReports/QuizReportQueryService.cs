@@ -56,4 +56,11 @@ public sealed class QuizReportQueryService(IReadRepository readRepository) : IQu
 
         return Task.FromResult(new PagedResult<QuizReportDto>(items, pageNumber, pageSize, totalCount));
     }
+
+    public Task<int> AdminGetPendingCountAsync(CancellationToken cancellationToken)
+    {
+        var pendingCount = readRepository.Query<QuizReport>().Count(r => r.Status == ReportStatus.Pending);
+
+        return Task.FromResult(pendingCount);
+    }
 }

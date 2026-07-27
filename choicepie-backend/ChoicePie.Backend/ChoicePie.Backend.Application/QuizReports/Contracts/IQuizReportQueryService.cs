@@ -7,4 +7,6 @@ public interface IQuizReportQueryService
 {
     Task<PagedResult<QuizReportDto>> AdminListAsync(
         string? status, int pageNumber, int pageSize, CancellationToken cancellationToken);
+
+    Task<int> AdminGetPendingCountAsync(CancellationToken cancellationToken);
 }

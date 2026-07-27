@@ -11,7 +11,7 @@ using ChoicePie.Backend.Shared.Kernel.Abstractions.Dependencies;
 
 namespace ChoicePie.Backend.Infrastructure.QueryServices.Identity;
 
-public sealed class MemberQueryService(IReadRepository readRepository) : IMemberQueryService, IScopedDependency
+public sealed class MemberQueryService(IReadRepository readRepository, TimeProvider timeProvider) : IMemberQueryService, IScopedDependency
 {
     public Task<MemberDto> GetByIdAsync(Guid memberId, CancellationToken cancellationToken)
     {
@@ -91,5 +91,19 @@ public sealed class MemberQueryService(IReadRepository readRepository) : IMember
             member.SuspendedUntil,
             member.LastAiGenerationAt,
             member.CreatedAt));
+    }
+
+    public Task<AdminMemberDashboardStatsDto> AdminGetDashboardStatsAsync(CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var sevenDaysAgo = now.AddDays(-7);
+
+        var query = readRepository.Query<Member>();
+
+        var totalCount = query.Count();
+        var suspendedCount = query.Count(m => m.IsSuspended && (m.SuspendedUntil == null || m.SuspendedUntil > now));
+        var newCountLast7Days = query.Count(m => m.CreatedAt >= sevenDaysAgo);
+
+        return Task.FromResult(new AdminMemberDashboardStatsDto(totalCount, suspendedCount, newCountLast7Days));
     }
 }
