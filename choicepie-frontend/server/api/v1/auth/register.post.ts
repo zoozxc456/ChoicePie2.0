@@ -1,4 +1,4 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const body = await readBody(event)
   const response = await backendFetch(event, '/api/v1/auth/register', { method: 'POST', body })
   return relayBackendResponse(event, response)

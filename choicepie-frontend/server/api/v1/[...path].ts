@@ -1,4 +1,4 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const path = getRouterParam(event, 'path') ?? ''
   const isAdminPath = path.startsWith('admin/')
   // retry 請求會透過 x-fresh-access-token 顯式帶上剛 refresh 出來的新 token（見 useApi.ts）——

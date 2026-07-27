@@ -4,7 +4,7 @@ interface BackendAdminLoginResult {
   refreshToken: string
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const body = await readBody(event)
   const response = await backendFetch<{ data: BackendAdminLoginResult | null }>(event, '/api/v1/admin/auth/login', {
     method: 'POST',

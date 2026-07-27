@@ -4,7 +4,7 @@ interface BackendLoginResult {
   refreshToken: string
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const body = await readBody(event)
   const response = await backendFetch<{ data: BackendLoginResult | null }>(event, '/api/v1/auth/google', {
     method: 'POST',

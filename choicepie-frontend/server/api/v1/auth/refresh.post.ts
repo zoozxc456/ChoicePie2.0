@@ -4,7 +4,7 @@ interface BackendLoginResult {
   refreshToken: string
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const refreshToken = getMemberRefreshToken(event)
   if (!refreshToken) {
     setResponseStatus(event, 401)

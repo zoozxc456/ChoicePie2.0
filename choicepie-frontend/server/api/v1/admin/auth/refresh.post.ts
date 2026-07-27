@@ -4,7 +4,7 @@ interface BackendAdminLoginResult {
   refreshToken: string
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const refreshToken = getAdminRefreshToken(event)
   if (!refreshToken) {
     setResponseStatus(event, 401)

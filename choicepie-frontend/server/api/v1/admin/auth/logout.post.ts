@@ -1,4 +1,4 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const refreshToken = getAdminRefreshToken(event)
 
   const response = await backendFetch(event, '/api/v1/admin/auth/logout', {
