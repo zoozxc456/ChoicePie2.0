@@ -381,6 +381,14 @@ export interface SuspendMemberRequest {
   until: string | null
 }
 
+export interface AdminMemberCommentDto {
+  id: string
+  quizId: string
+  quizTitle: string
+  text: string
+  createdAt: string
+}
+
 export interface AdminLoginRequest {
   email: string
   password: string

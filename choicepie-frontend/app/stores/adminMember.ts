@@ -1,13 +1,29 @@
 import { useAdminMemberClientApi } from '~/services/admin/member'
-import type { AdminListMembersQuery, AdminMemberDetailDto, AdminMemberSummaryDto, PagedResult } from '~/types/api'
+import type {
+  AdminListMembersQuery,
+  AdminMemberCommentDto,
+  AdminMemberDetailDto,
+  AdminMemberSummaryDto,
+  GameSessionSummaryDto,
+  PagedResult,
+  QuizSummaryDto
+} from '~/types/api'
 
 export const useAdminMemberStore = defineStore('adminMember', () => {
   const adminMemberApi = useAdminMemberClientApi()
 
   const members = ref<PagedResult<AdminMemberSummaryDto> | null>(null)
   const currentMember = ref<AdminMemberDetailDto | null>(null)
+  const memberQuizzes = ref<PagedResult<QuizSummaryDto> | null>(null)
+  const memberHostedSessions = ref<PagedResult<GameSessionSummaryDto> | null>(null)
+  const memberPlayedSessions = ref<PagedResult<GameSessionSummaryDto> | null>(null)
+  const memberComments = ref<PagedResult<AdminMemberCommentDto> | null>(null)
   const isLoading = ref(false)
   const isLoadingDetail = ref(false)
+  const isLoadingQuizzes = ref(false)
+  const isLoadingHostedSessions = ref(false)
+  const isLoadingPlayedSessions = ref(false)
+  const isLoadingComments = ref(false)
   const isSuspending = ref(false)
   const isUnsuspending = ref(false)
   const error = ref<string | null>(null)
@@ -39,6 +55,58 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
       throw e
     } finally {
       isLoadingDetail.value = false
+    }
+  }
+
+  const fetchMemberQuizzes = async (id: string) => {
+    isLoadingQuizzes.value = true
+    try {
+      memberQuizzes.value = await adminMemberApi.fetchMemberQuizzes(id)
+      return memberQuizzes.value
+    } catch (e) {
+      console.error(e)
+      throw e
+    } finally {
+      isLoadingQuizzes.value = false
+    }
+  }
+
+  const fetchMemberHostedSessions = async (id: string) => {
+    isLoadingHostedSessions.value = true
+    try {
+      memberHostedSessions.value = await adminMemberApi.fetchMemberHostedSessions(id)
+      return memberHostedSessions.value
+    } catch (e) {
+      console.error(e)
+      throw e
+    } finally {
+      isLoadingHostedSessions.value = false
+    }
+  }
+
+  const fetchMemberPlayedSessions = async (id: string) => {
+    isLoadingPlayedSessions.value = true
+    try {
+      memberPlayedSessions.value = await adminMemberApi.fetchMemberPlayedSessions(id)
+      return memberPlayedSessions.value
+    } catch (e) {
+      console.error(e)
+      throw e
+    } finally {
+      isLoadingPlayedSessions.value = false
+    }
+  }
+
+  const fetchMemberComments = async (id: string) => {
+    isLoadingComments.value = true
+    try {
+      memberComments.value = await adminMemberApi.fetchMemberComments(id)
+      return memberComments.value
+    } catch (e) {
+      console.error(e)
+      throw e
+    } finally {
+      isLoadingComments.value = false
     }
   }
 
@@ -93,13 +161,25 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
   return {
     members,
     currentMember,
+    memberQuizzes,
+    memberHostedSessions,
+    memberPlayedSessions,
+    memberComments,
     isLoading,
     isLoadingDetail,
+    isLoadingQuizzes,
+    isLoadingHostedSessions,
+    isLoadingPlayedSessions,
+    isLoadingComments,
     isSuspending,
     isUnsuspending,
     error,
     fetchMembers,
     fetchMemberById,
+    fetchMemberQuizzes,
+    fetchMemberHostedSessions,
+    fetchMemberPlayedSessions,
+    fetchMemberComments,
     suspendMember,
     unsuspendMember
   }

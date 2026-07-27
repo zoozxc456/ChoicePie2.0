@@ -6,7 +6,7 @@
 
     <select
       v-model="statusFilter"
-      class="w-full rounded-xl border border-neutral-200 px-4 py-2 text-sm mb-4"
+      class="w-full rounded-xl border border-neutral-200 px-4 py-2 text-base mb-4"
       @change="handleStatusChange"
     >
       <option value="Pending">
@@ -32,7 +32,7 @@
 
     <p
       v-else-if="!reports.length"
-      class="text-sm text-neutral-400 text-center py-16"
+      class="text-base text-neutral-400 text-center py-16"
     >
       {{ t('adminQuizReports.empty') }}
     </p>
@@ -48,7 +48,7 @@
       >
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-bold truncate">
+            <p class="text-lg font-bold truncate">
               {{ report.quizTitle }}
             </p>
             <p class="text-xs text-neutral-400 mt-0.5">

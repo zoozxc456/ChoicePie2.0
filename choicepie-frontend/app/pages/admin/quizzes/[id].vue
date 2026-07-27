@@ -2,7 +2,7 @@
   <div>
     <NuxtLink
       to="/admin/quizzes"
-      class="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800 mb-4"
+      class="inline-flex items-center gap-1 text-base text-neutral-500 hover:text-neutral-800 mb-4"
     >
       <UIcon name="i-lucide-arrow-left" />
       {{ t('adminQuizDetail.back') }}
@@ -20,7 +20,7 @@
 
     <p
       v-else-if="!quiz"
-      class="text-sm text-neutral-400 text-center py-16"
+      class="text-base text-neutral-400 text-center py-16"
     >
       {{ t('adminQuizDetail.notFound') }}
     </p>
@@ -87,7 +87,7 @@
 
         <dl
           v-if="quiz.status === 'takendown'"
-          class="mt-6 text-sm"
+          class="mt-6 text-base"
         >
           <div>
             <dt class="text-neutral-400">
@@ -116,7 +116,7 @@
             >
               {{ quiz.creatorName.charAt(0) }}
             </div>
-            <span class="text-sm text-neutral-500 group-hover:text-primary-500 group-hover:underline">
+            <span class="text-base text-neutral-500 group-hover:text-primary-500 group-hover:underline">
               {{ quiz.creatorName }}
             </span>
           </NuxtLink>
@@ -201,7 +201,7 @@
 
             <p
               v-else-if="!comments.length"
-              class="text-sm text-neutral-400 text-center py-8"
+              class="text-base text-neutral-400 text-center py-8"
             >
               {{ t('adminQuizDetail.commentsEmpty') }}
             </p>
@@ -229,14 +229,14 @@
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-baseline gap-2">
-                    <p class="text-sm font-semibold truncate">
+                    <p class="text-base font-semibold truncate">
                       {{ comment.userName }}
                     </p>
                     <p class="text-xs text-neutral-400 shrink-0">
                       {{ formatDate(comment.createdAt) }}
                     </p>
                   </div>
-                  <p class="text-sm text-neutral-600 mt-0.5 whitespace-pre-wrap">
+                  <p class="text-base text-neutral-600 mt-0.5 whitespace-pre-wrap">
                     {{ comment.text }}
                   </p>
                 </div>

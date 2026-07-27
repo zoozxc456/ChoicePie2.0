@@ -8,7 +8,7 @@
     </NuxtLink>
 
     <div class="w-full max-w-md rounded-2xl bg-white shadow-cp-lg p-7 flex flex-col gap-3.5">
-      <h1 class="text-xl font-extrabold text-center mb-1">
+      <h1 class="text-lg font-extrabold text-center mb-1">
         {{ t('adminLogin.title') }}
       </h1>
 
@@ -25,7 +25,7 @@
             :placeholder="t('adminLogin.emailPlaceholder')"
             size="lg"
             class="w-full"
-            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
+            :ui="{ base: 'bg-neutral-100 h-12 text-base px-4' }"
           />
         </UFormField>
         <UFormField name="password">
@@ -35,7 +35,7 @@
             :placeholder="t('adminLogin.passwordPlaceholder')"
             size="lg"
             class="w-full"
-            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
+            :ui="{ base: 'bg-neutral-100 h-12 text-base px-4' }"
           >
             <template #trailing>
               <UButton
@@ -51,7 +51,7 @@
         </UFormField>
         <p
           v-if="error"
-          class="text-sm text-error-500"
+          class="text-base text-error-500"
         >
           {{ error }}
         </p>

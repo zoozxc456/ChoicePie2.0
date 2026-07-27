@@ -21,7 +21,7 @@
 
     <p
       v-else-if="!members.length"
-      class="text-sm text-neutral-400 text-center py-16"
+      class="text-base text-neutral-400 text-center py-16"
     >
       {{ t('adminMembers.empty') }}
     </p>
@@ -43,7 +43,7 @@
 
         <div class="flex items-start justify-between gap-3 pointer-events-none">
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-bold truncate">
+            <p class="text-lg font-bold truncate">
               {{ member.name }}
             </p>
             <p class="text-xs text-neutral-400 mt-0.5 truncate">

@@ -268,7 +268,16 @@
     "createdAt": "Joined",
     "lastAiGenerationAt": "Last AI quiz generation",
     "never": "Never used",
-    "suspendedUntilLabel": "Suspended until"
+    "statusHealthy": "Account in good standing",
+    "quizzesTitle": "Authored Quizzes",
+    "quizzesEmpty": "No quizzes created yet",
+    "hostedSessionsTitle": "Host History",
+    "hostedSessionsEmpty": "No hosting history",
+    "playedSessionsTitle": "Play History",
+    "playedSessionsEmpty": "No play history",
+    "playedSessionsCount": "{count} sessions played",
+    "commentsTitle": "Comments",
+    "commentsEmpty": "No comments yet"
   },
   "adminQuizReports": {
     "title": "Report Review",

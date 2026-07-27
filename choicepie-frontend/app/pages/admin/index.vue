@@ -1,9 +1,9 @@
 <template>
   <div v-if="adminAuth.adminUser">
-    <h2 class="text-xl font-extrabold mb-1">
+    <h2 class="text-lg font-extrabold mb-1">
       {{ t('adminDashboard.welcome', { name: adminAuth.adminUser.name }) }}
     </h2>
-    <p class="text-sm text-neutral-500 mb-6">
+    <p class="text-base text-neutral-500 mb-6">
       {{ adminAuth.adminUser.email }} · {{ adminAuth.adminUser.role }}
     </p>
 
@@ -18,7 +18,7 @@
           :name="card.icon"
           class="text-2xl text-primary-500"
         />
-        <span class="font-bold text-sm">{{ card.label }}</span>
+        <span class="font-bold text-base">{{ card.label }}</span>
       </NuxtLink>
     </div>
   </div>

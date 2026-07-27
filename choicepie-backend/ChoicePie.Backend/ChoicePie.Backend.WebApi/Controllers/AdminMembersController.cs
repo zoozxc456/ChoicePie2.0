@@ -2,6 +2,8 @@ using Asp.Versioning;
 using ChoicePie.Backend.Application.AdminMembers.Commands;
 using ChoicePie.Backend.Application.AdminMembers.Dtos;
 using ChoicePie.Backend.Application.AdminMembers.Queries;
+using ChoicePie.Backend.Application.GameSessions.Dtos;
+using ChoicePie.Backend.Application.Quizzes.Dtos;
 using ChoicePie.Backend.Shared.Application.Contracts;
 using ChoicePie.Backend.Shared.Hosting.API.Response;
 using ChoicePie.Backend.WebApi.Requests.AdminMembers;
@@ -28,6 +30,42 @@ public class AdminMembersController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse<AdminMemberDetailDto>>> GetAsync(Guid id)
     {
         var result = await mediator.Send(new AdminGetMemberByIdQuery(id));
+        return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpGet("{id:guid}/quizzes")]
+    public async Task<ActionResult<ApiResponse<PagedResult<QuizSummaryDto>>>> ListQuizzesAsync(
+        Guid id, [FromQuery] AdminListMemberQuizzesQuery query)
+    {
+        query.MemberId = id;
+        var result = await mediator.Send(query);
+        return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpGet("{id:guid}/hosted-sessions")]
+    public async Task<ActionResult<ApiResponse<PagedResult<GameSessionSummaryDto>>>> ListHostedSessionsAsync(
+        Guid id, [FromQuery] AdminListMemberHostedSessionsQuery query)
+    {
+        query.MemberId = id;
+        var result = await mediator.Send(query);
+        return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpGet("{id:guid}/played-sessions")]
+    public async Task<ActionResult<ApiResponse<PagedResult<GameSessionSummaryDto>>>> ListPlayedSessionsAsync(
+        Guid id, [FromQuery] AdminListMemberPlayedSessionsQuery query)
+    {
+        query.MemberId = id;
+        var result = await mediator.Send(query);
+        return Ok(ResponseHelper.Success(result));
+    }
+
+    [HttpGet("{id:guid}/comments")]
+    public async Task<ActionResult<ApiResponse<PagedResult<AdminMemberCommentDto>>>> ListCommentsAsync(
+        Guid id, [FromQuery] AdminListMemberCommentsQuery query)
+    {
+        query.MemberId = id;
+        var result = await mediator.Send(query);
         return Ok(ResponseHelper.Success(result));
     }
 

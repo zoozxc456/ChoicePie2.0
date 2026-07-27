@@ -268,7 +268,16 @@
     "createdAt": "加入時間",
     "lastAiGenerationAt": "最後一次 AI 出題",
     "never": "從未使用",
-    "suspendedUntilLabel": "停權期限"
+    "statusHealthy": "帳號狀態良好",
+    "quizzesTitle": "出題題庫",
+    "quizzesEmpty": "尚未出過任何題庫",
+    "hostedSessionsTitle": "Host 歷史",
+    "hostedSessionsEmpty": "尚無主持紀錄",
+    "playedSessionsTitle": "遊玩歷史",
+    "playedSessionsEmpty": "尚無遊玩紀錄",
+    "playedSessionsCount": "共遊玩 {count} 場",
+    "commentsTitle": "留言",
+    "commentsEmpty": "尚無留言"
   },
   "adminQuizReports": {
     "title": "檢舉審核",

@@ -14,7 +14,7 @@
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-secondary-200 hover:bg-secondary-800 hover:text-white transition-colors"
+          class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base font-medium text-secondary-200 hover:bg-secondary-800 hover:text-white transition-colors"
           active-class="!bg-primary-500 !text-white"
         >
           <UIcon
@@ -30,11 +30,11 @@
           v-if="adminAuth.adminUser"
           class="flex items-center gap-2 rounded-xl px-2 py-2"
         >
-          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-sm font-bold shrink-0">
+          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-base font-bold shrink-0">
             {{ adminAuth.adminUser.name.charAt(0) }}
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold truncate">
+            <p class="text-base font-semibold truncate">
               {{ adminAuth.adminUser.name }}
             </p>
             <p class="text-xs text-secondary-300 truncate">
@@ -56,7 +56,7 @@
 
     <div class="flex-1 min-w-0 h-screen flex flex-col">
       <header class="h-14 shrink-0 bg-white border-b border-neutral-200 px-6 flex items-center">
-        <h1 class="text-sm font-bold text-neutral-800">
+        <h1 class="text-lg font-bold text-neutral-800">
           {{ pageTitle }}
         </h1>
       </header>
