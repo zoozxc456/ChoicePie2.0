@@ -29,128 +29,12 @@
       v-else
       class="flex flex-col gap-4"
     >
-      <div class="relative grid grid-cols-[1fr_152px] rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden">
-        <div class="p-6 min-w-0 flex flex-col">
-          <p class="text-lg font-bold">
-            {{ quiz.title }}
-          </p>
-          <p class="text-base text-neutral-500 mt-2">
-            {{ quiz.description || t('adminQuizzes.noDescription') }}
-          </p>
-
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-            <div class="rounded-xl bg-primary-50 p-4">
-              <p class="text-xs text-primary-600 font-medium">
-                {{ t('adminQuizDetail.questionCount') }}
-              </p>
-              <p class="text-xl font-bold text-primary-700 mt-1">
-                {{ quiz.questionCount }}
-              </p>
-            </div>
-            <div class="rounded-xl bg-warning-50 p-4">
-              <p class="text-xs text-warning-600 font-medium">
-                {{ t('adminQuizDetail.challengeCount') }}
-              </p>
-              <p class="text-xl font-bold text-warning-700 mt-1">
-                {{ quiz.challengeCount }}
-              </p>
-            </div>
-            <div class="rounded-xl bg-success-50 p-4">
-              <p class="text-xs text-success-600 font-medium">
-                {{ t('adminQuizDetail.passRate') }}
-              </p>
-              <p class="text-xl font-bold text-success-700 mt-1">
-                {{ quiz.passRate }}%
-              </p>
-            </div>
-            <div class="rounded-xl bg-error-50 p-4">
-              <p class="text-xs text-error-600 font-medium">
-                {{ t('adminQuizDetail.favoriteCount') }}
-              </p>
-              <p class="text-xl font-bold text-error-700 mt-1">
-                {{ quiz.favoriteCount }}
-              </p>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between mt-6">
-            <NuxtLink
-              :to="`/admin/members/${quiz.creatorId}`"
-              class="flex items-center gap-2 group"
-            >
-              <img
-                v-if="quiz.creatorAvatar"
-                :src="quiz.creatorAvatar"
-                class="w-8 h-8 rounded-full object-cover shrink-0"
-                alt=""
-              >
-              <div
-                v-else
-                class="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-400 shrink-0"
-              >
-                {{ quiz.creatorName.charAt(0) }}
-              </div>
-              <span class="text-base text-neutral-500 group-hover:text-primary-500 group-hover:underline">
-                {{ quiz.creatorName }}
-              </span>
-            </NuxtLink>
-
-            <UButton
-              v-if="quiz.status !== 'takendown'"
-              size="sm"
-              color="error"
-              variant="soft"
-              @click="isModalOpen = true"
-            >
-              {{ t('adminQuizzes.takeDownAction') }}
-            </UButton>
-            <UButton
-              v-else
-              size="sm"
-              color="primary"
-              variant="soft"
-              :loading="adminQuizStore.isRestoring"
-              @click="handleRestore"
-            >
-              {{ t('adminQuizzes.restoreAction') }}
-            </UButton>
-          </div>
-        </div>
-
-        <div
-          class="relative border-l border-dashed"
-          :class="statusBorderClass(quiz.status)"
-        >
-          <span class="absolute -top-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
-          <span class="absolute -bottom-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
-
-          <div
-            class="h-full flex flex-col items-center justify-center text-center gap-2 px-4 py-5"
-            :class="statusStubBgClass(quiz.status)"
-          >
-            <div class="flex items-center gap-1.5">
-              <UIcon
-                :name="statusIcon(quiz.status)"
-                class="text-base shrink-0"
-                :class="statusTextClass(quiz.status)"
-              />
-              <span
-                class="text-base font-bold"
-                :class="statusTextClass(quiz.status)"
-              >
-                {{ statusLabel(quiz.status) }}
-              </span>
-            </div>
-
-            <p
-              v-if="quiz.status === 'takendown'"
-              class="w-full mt-1 pt-2.5 border-t border-dashed border-error-200 text-sm leading-relaxed text-error-600"
-            >
-              {{ quiz.takedownReason }}
-            </p>
-          </div>
-        </div>
-      </div>
+      <AdminQuizDetailCard
+        :quiz="quiz"
+        :is-restoring="adminQuizStore.isRestoring"
+        @take-down="isModalOpen = true"
+        @restore="handleRestore"
+      />
 
       <UTabs
         v-model="activeTab"
@@ -158,100 +42,14 @@
         :ui="{ list: 'bg-neutral-200/60' }"
       >
         <template #question>
-          <div class="flex flex-col gap-4 mt-4">
-            <div
-              v-for="(question, index) in quiz.questions"
-              :key="question.id"
-              class="rounded-2xl bg-white border border-neutral-200 p-4"
-            >
-              <div class="flex items-start gap-3">
-                <span class="w-6 h-6 rounded-full bg-primary-500 text-white text-xs font-bold flex items-center justify-center shrink-0">
-                  {{ index + 1 }}
-                </span>
-                <div class="min-w-0 flex-1">
-                  <p class="text-lg font-bold">
-                    {{ question.text }}
-                  </p>
-                  <p
-                    v-if="question.explanation"
-                    class="text-base text-neutral-400 mt-1"
-                  >
-                    {{ question.explanation }}
-                  </p>
-                </div>
-              </div>
-              <ul class="grid grid-cols-2 gap-1.5 mt-3">
-                <li
-                  v-for="(option, optionIndex) in question.options"
-                  :key="optionIndex"
-                  class="text-base px-3 py-1.5 rounded-lg"
-                  :class="optionIndex === question.answerIndex
-                    ? 'bg-success-100 text-success-800 font-semibold'
-                    : 'bg-neutral-100 text-neutral-600'"
-                >
-                  {{ option }}
-                </li>
-              </ul>
-            </div>
-          </div>
+          <AdminQuizQuestionList :questions="quiz.questions" />
         </template>
 
         <template #comment>
-          <div class="rounded-2xl bg-white border border-neutral-200 p-4 mt-4">
-            <div
-              v-if="adminQuizStore.isLoadingComments"
-              class="flex justify-center py-8"
-            >
-              <UIcon
-                name="i-lucide-loader-2"
-                class="animate-spin text-2xl text-primary-500"
-              />
-            </div>
-
-            <p
-              v-else-if="!comments.length"
-              class="text-base text-neutral-400 text-center py-8"
-            >
-              {{ t('adminQuizDetail.commentsEmpty') }}
-            </p>
-
-            <ul
-              v-else
-              class="flex flex-col divide-y divide-neutral-100"
-            >
-              <li
-                v-for="comment in comments"
-                :key="comment.id"
-                class="py-3 flex items-start gap-3"
-              >
-                <img
-                  v-if="comment.userAvatar"
-                  :src="comment.userAvatar"
-                  class="w-8 h-8 rounded-full object-cover shrink-0"
-                  alt=""
-                >
-                <div
-                  v-else
-                  class="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-400 shrink-0"
-                >
-                  {{ comment.userName.charAt(0) }}
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-baseline gap-2">
-                    <p class="text-base font-semibold truncate">
-                      {{ comment.userName }}
-                    </p>
-                    <p class="text-xs text-neutral-400 shrink-0">
-                      {{ formatDate(comment.createdAt) }}
-                    </p>
-                  </div>
-                  <p class="text-base text-neutral-600 mt-0.5 whitespace-pre-wrap">
-                    {{ comment.text }}
-                  </p>
-                </div>
-              </li>
-            </ul>
-          </div>
+          <AdminQuizCommentList
+            :comments="comments"
+            :is-loading="adminQuizStore.isLoadingComments"
+          />
         </template>
       </UTabs>
     </div>
@@ -268,7 +66,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const route = useRoute()
 const adminQuizStore = useAdminQuizStore()
 
@@ -288,48 +86,6 @@ await Promise.all([
   adminQuizStore.fetchQuizById(quizId),
   adminQuizStore.fetchQuizComments(quizId)
 ])
-
-const formatDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value)
-
-const statusLabel = (status: string) => ({
-  draft: t('adminQuizzes.status.draft'),
-  published: t('adminQuizzes.status.published'),
-  archived: t('adminQuizzes.status.archived'),
-  deleted: t('adminQuizzes.status.deleted'),
-  takendown: t('adminQuizzes.status.takendown')
-}[status] ?? status)
-
-const statusIcon = (status: string) => ({
-  draft: 'i-lucide-file-edit',
-  published: 'i-lucide-check-circle-2',
-  archived: 'i-lucide-archive',
-  deleted: 'i-lucide-trash-2',
-  takendown: 'i-lucide-shield-off'
-}[status] ?? 'i-lucide-circle')
-
-const statusBorderClass = (status: string) => ({
-  draft: 'border-neutral-200',
-  published: 'border-success-200',
-  archived: 'border-warning-200',
-  deleted: 'border-neutral-200',
-  takendown: 'border-error-200'
-}[status] ?? 'border-neutral-200')
-
-const statusStubBgClass = (status: string) => ({
-  draft: 'bg-neutral-100',
-  published: 'bg-success-50',
-  archived: 'bg-warning-50',
-  deleted: 'bg-neutral-100',
-  takendown: 'bg-error-50'
-}[status] ?? 'bg-neutral-100')
-
-const statusTextClass = (status: string) => ({
-  draft: 'text-neutral-600',
-  published: 'text-success-700',
-  archived: 'text-warning-700',
-  deleted: 'text-neutral-600',
-  takendown: 'text-error-700'
-}[status] ?? 'text-neutral-600')
 
 const handleTakeDown = async (reason: string) => {
   try {

@@ -76,41 +76,24 @@
           </div>
         </div>
 
-        <div
-          class="relative border-l border-dashed"
-          :class="member.isSuspended ? 'border-error-200' : 'border-neutral-200'"
+        <AdminStatusStub
+          :icon="member.isSuspended ? 'i-lucide-shield-off' : 'i-lucide-shield-check'"
+          :label="member.isSuspended ? t('adminMembers.statusSuspended') : t('adminMembers.statusActive')"
+          :border-class="member.isSuspended ? 'border-error-200' : 'border-neutral-200'"
+          :bg-class="member.isSuspended ? 'bg-error-50' : 'bg-success-50'"
+          :text-class="member.isSuspended ? 'text-error-700' : 'text-success-700'"
         >
-          <span class="absolute -top-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
-          <span class="absolute -bottom-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
-
-          <div
-            class="h-full flex flex-col items-center justify-center text-center gap-1 px-3 py-3"
-            :class="member.isSuspended ? 'bg-error-50' : 'bg-success-50'"
+          <template
+            v-if="member.isSuspended"
+            #subtext
           >
-            <div class="flex items-center gap-1.5">
-              <UIcon
-                :name="member.isSuspended ? 'i-lucide-shield-off' : 'i-lucide-shield-check'"
-                class="text-sm shrink-0"
-                :class="member.isSuspended ? 'text-error-600' : 'text-success-600'"
-              />
-              <span
-                class="text-sm font-bold"
-                :class="member.isSuspended ? 'text-error-700' : 'text-success-700'"
-              >
-                {{ member.isSuspended ? t('adminMembers.statusSuspended') : t('adminMembers.statusActive') }}
-              </span>
-            </div>
-
-            <p
-              v-if="member.isSuspended"
-              class="text-xs text-error-600 leading-snug"
-            >
+            <p class="text-xs text-error-600 leading-snug">
               {{ member.suspendedUntil
                 ? t('adminMembers.suspendedUntil', { date: formatDate(member.suspendedUntil) })
                 : t('adminMembers.suspendedPermanently') }}
             </p>
-          </div>
-        </div>
+          </template>
+        </AdminStatusStub>
       </div>
     </div>
 

@@ -76,32 +76,13 @@
           </div>
         </div>
 
-        <div
-          class="relative border-l border-dashed"
-          :class="statusBorderClass(quiz.status)"
-        >
-          <span class="absolute -top-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
-          <span class="absolute -bottom-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
-
-          <div
-            class="h-full flex flex-col items-center justify-center text-center gap-1 px-3 py-3"
-            :class="statusStubBgClass(quiz.status)"
-          >
-            <div class="flex items-center gap-1.5">
-              <UIcon
-                :name="statusIcon(quiz.status)"
-                class="text-sm shrink-0"
-                :class="statusTextClass(quiz.status)"
-              />
-              <span
-                class="text-sm font-bold"
-                :class="statusTextClass(quiz.status)"
-              >
-                {{ statusLabel(quiz.status) }}
-              </span>
-            </div>
-          </div>
-        </div>
+        <AdminStatusStub
+          :icon="statusIcon(quiz.status)"
+          :label="statusLabel(quiz.status)"
+          :border-class="statusBorderClass(quiz.status)"
+          :bg-class="statusStubBgClass(quiz.status)"
+          :text-class="statusTextClass(quiz.status)"
+        />
       </div>
     </div>
 
