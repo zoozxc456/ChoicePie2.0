@@ -6,7 +6,7 @@
     size="lg"
     class="w-full mb-4"
     :placeholder="placeholder"
-    :ui="{ base: 'rounded-xl bg-white' }"
+    :ui="{ base: 'rounded-xl bg-white text-base' }"
     @update:model-value="handleInput"
   >
     <template

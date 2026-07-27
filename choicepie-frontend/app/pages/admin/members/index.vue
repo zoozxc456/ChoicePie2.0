@@ -33,59 +33,83 @@
       <div
         v-for="member in members"
         :key="member.id"
-        class="relative rounded-2xl bg-white border border-neutral-200 p-4 transition-colors hover:border-primary-300 hover:bg-primary-50/40"
+        class="relative grid grid-cols-[1fr_112px] rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden transition-colors hover:border-primary-300"
       >
         <NuxtLink
           :to="`/admin/members/${member.id}`"
-          class="absolute inset-0"
+          class="absolute inset-0 z-10"
           :aria-label="member.name"
         />
 
-        <div class="flex items-start justify-between gap-3 pointer-events-none">
+        <div class="p-4 min-w-0 flex items-center justify-between gap-3 pointer-events-none">
           <div class="min-w-0 flex-1">
             <p class="text-lg font-bold truncate">
               {{ member.name }}
             </p>
-            <p class="text-xs text-neutral-400 mt-0.5 truncate">
+            <p class="text-base text-neutral-400 mt-0.5 truncate">
               {{ member.email }}
             </p>
+          </div>
+
+          <div class="relative shrink-0">
+            <UButton
+              v-if="!member.isSuspended"
+              size="sm"
+              color="error"
+              variant="soft"
+              class="pointer-events-auto"
+              @click="openSuspendModal(member.id)"
+            >
+              {{ t('adminMembers.suspendAction') }}
+            </UButton>
+            <UButton
+              v-else
+              size="sm"
+              color="primary"
+              variant="soft"
+              class="pointer-events-auto"
+              :loading="adminMemberStore.isUnsuspending"
+              @click="handleUnsuspend(member.id)"
+            >
+              {{ t('adminMembers.unsuspendAction') }}
+            </UButton>
+          </div>
+        </div>
+
+        <div
+          class="relative border-l border-dashed"
+          :class="member.isSuspended ? 'border-error-200' : 'border-neutral-200'"
+        >
+          <span class="absolute -top-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
+          <span class="absolute -bottom-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
+
+          <div
+            class="h-full flex flex-col items-center justify-center text-center gap-1 px-3 py-3"
+            :class="member.isSuspended ? 'bg-error-50' : 'bg-success-50'"
+          >
+            <div class="flex items-center gap-1.5">
+              <UIcon
+                :name="member.isSuspended ? 'i-lucide-shield-off' : 'i-lucide-shield-check'"
+                class="text-sm shrink-0"
+                :class="member.isSuspended ? 'text-error-600' : 'text-success-600'"
+              />
+              <span
+                class="text-sm font-bold"
+                :class="member.isSuspended ? 'text-error-700' : 'text-success-700'"
+              >
+                {{ member.isSuspended ? t('adminMembers.statusSuspended') : t('adminMembers.statusActive') }}
+              </span>
+            </div>
+
             <p
               v-if="member.isSuspended"
-              class="text-xs text-error-500 mt-1"
+              class="text-xs text-error-600 leading-snug"
             >
               {{ member.suspendedUntil
                 ? t('adminMembers.suspendedUntil', { date: formatDate(member.suspendedUntil) })
                 : t('adminMembers.suspendedPermanently') }}
             </p>
           </div>
-          <span
-            class="text-[11px] px-2 py-1 rounded-full font-semibold whitespace-nowrap shrink-0"
-            :class="member.isSuspended ? 'bg-error-100 text-error-800' : 'bg-success-100 text-success-800'"
-          >
-            {{ member.isSuspended ? t('adminMembers.statusSuspended') : t('adminMembers.statusActive') }}
-          </span>
-        </div>
-
-        <div class="relative flex justify-end mt-3">
-          <UButton
-            v-if="!member.isSuspended"
-            size="sm"
-            color="error"
-            variant="soft"
-            @click="openSuspendModal(member.id)"
-          >
-            {{ t('adminMembers.suspendAction') }}
-          </UButton>
-          <UButton
-            v-else
-            size="sm"
-            color="primary"
-            variant="soft"
-            :loading="adminMemberStore.isUnsuspending"
-            @click="handleUnsuspend(member.id)"
-          >
-            {{ t('adminMembers.unsuspendAction') }}
-          </UButton>
         </div>
       </div>
     </div>

@@ -33,51 +33,74 @@
       <div
         v-for="quiz in quizzes"
         :key="quiz.id"
-        class="relative rounded-2xl bg-white border border-neutral-200 p-4 transition-colors hover:border-primary-300 hover:bg-primary-50/40"
+        class="relative grid grid-cols-[1fr_112px] rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden transition-colors hover:border-primary-300"
       >
         <NuxtLink
           :to="`/admin/quizzes/${quiz.id}`"
-          class="absolute inset-0"
+          class="absolute inset-0 z-10"
           :aria-label="quiz.title"
         />
 
-        <div class="flex items-start justify-between gap-3 pointer-events-none">
+        <div class="p-4 min-w-0 flex items-center justify-between gap-3 pointer-events-none">
           <div class="min-w-0 flex-1">
             <p class="text-lg font-bold truncate">
               {{ quiz.title }}
             </p>
-            <p class="text-xs text-neutral-400 mt-0.5">
-              {{ t('adminQuizzes.creatorLine', { name: quiz.creatorName }) }}
+            <p class="text-base text-neutral-400 mt-0.5 truncate">
+              {{ quiz.description || t('adminQuizzes.noDescription') }}
             </p>
           </div>
-          <span
-            class="text-[11px] px-2 py-1 rounded-full font-semibold whitespace-nowrap shrink-0"
-            :class="statusBadgeClass(quiz.status)"
-          >
-            {{ statusLabel(quiz.status) }}
-          </span>
+
+          <div class="relative shrink-0">
+            <UButton
+              v-if="quiz.status !== 'takendown'"
+              size="sm"
+              color="error"
+              variant="soft"
+              class="pointer-events-auto"
+              @click="openTakeDownModal(quiz.id)"
+            >
+              {{ t('adminQuizzes.takeDownAction') }}
+            </UButton>
+            <UButton
+              v-else
+              size="sm"
+              color="primary"
+              variant="soft"
+              class="pointer-events-auto"
+              :loading="adminQuizStore.isRestoring"
+              @click="handleRestore(quiz.id)"
+            >
+              {{ t('adminQuizzes.restoreAction') }}
+            </UButton>
+          </div>
         </div>
 
-        <div class="relative flex justify-end mt-3">
-          <UButton
-            v-if="quiz.status !== 'takendown'"
-            size="sm"
-            color="error"
-            variant="soft"
-            @click="openTakeDownModal(quiz.id)"
+        <div
+          class="relative border-l border-dashed"
+          :class="statusBorderClass(quiz.status)"
+        >
+          <span class="absolute -top-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
+          <span class="absolute -bottom-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
+
+          <div
+            class="h-full flex flex-col items-center justify-center text-center gap-1 px-3 py-3"
+            :class="statusStubBgClass(quiz.status)"
           >
-            {{ t('adminQuizzes.takeDownAction') }}
-          </UButton>
-          <UButton
-            v-else
-            size="sm"
-            color="primary"
-            variant="soft"
-            :loading="adminQuizStore.isRestoring"
-            @click="handleRestore(quiz.id)"
-          >
-            {{ t('adminQuizzes.restoreAction') }}
-          </UButton>
+            <div class="flex items-center gap-1.5">
+              <UIcon
+                :name="statusIcon(quiz.status)"
+                class="text-sm shrink-0"
+                :class="statusTextClass(quiz.status)"
+              />
+              <span
+                class="text-sm font-bold"
+                :class="statusTextClass(quiz.status)"
+              >
+                {{ statusLabel(quiz.status) }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -134,13 +157,37 @@ const statusLabel = (status: string) => ({
   takendown: t('adminQuizzes.status.takendown')
 }[status] ?? status)
 
-const statusBadgeClass = (status: string) => ({
-  draft: 'bg-neutral-100 text-neutral-600',
-  published: 'bg-success-100 text-success-800',
-  archived: 'bg-warning-100 text-warning-800',
-  deleted: 'bg-neutral-100 text-neutral-600',
-  takendown: 'bg-error-100 text-error-800'
-}[status] ?? 'bg-neutral-100 text-neutral-600')
+const statusIcon = (status: string) => ({
+  draft: 'i-lucide-file-edit',
+  published: 'i-lucide-check-circle-2',
+  archived: 'i-lucide-archive',
+  deleted: 'i-lucide-trash-2',
+  takendown: 'i-lucide-shield-off'
+}[status] ?? 'i-lucide-circle')
+
+const statusBorderClass = (status: string) => ({
+  draft: 'border-neutral-200',
+  published: 'border-success-200',
+  archived: 'border-warning-200',
+  deleted: 'border-neutral-200',
+  takendown: 'border-error-200'
+}[status] ?? 'border-neutral-200')
+
+const statusStubBgClass = (status: string) => ({
+  draft: 'bg-neutral-100',
+  published: 'bg-success-50',
+  archived: 'bg-warning-50',
+  deleted: 'bg-neutral-100',
+  takendown: 'bg-error-50'
+}[status] ?? 'bg-neutral-100')
+
+const statusTextClass = (status: string) => ({
+  draft: 'text-neutral-600',
+  published: 'text-success-700',
+  archived: 'text-warning-700',
+  deleted: 'text-neutral-600',
+  takendown: 'text-error-700'
+}[status] ?? 'text-neutral-600')
 
 const openTakeDownModal = (quizId: string) => {
   targetQuizId.value = quizId

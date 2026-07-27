@@ -223,7 +223,7 @@
       "deleted": "已刪除",
       "takendown": "已下架"
     },
-    "creatorLine": "作者：{name}",
+    "noDescription": "尚未填寫題庫描述",
     "takeDownAction": "下架",
     "restoreAction": "還原",
     "takedownReasonLabel": "下架原因",

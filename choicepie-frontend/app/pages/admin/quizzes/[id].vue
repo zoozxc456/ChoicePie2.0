@@ -29,117 +29,126 @@
       v-else
       class="flex flex-col gap-4"
     >
-      <div class="rounded-2xl bg-white border border-neutral-200 p-6 flex flex-col">
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0 flex-1">
-            <p class="text-lg font-bold">
-              {{ quiz.title }}
-            </p>
-            <p
-              v-if="quiz.description"
-              class="text-base text-neutral-500 mt-2"
-            >
-              {{ quiz.description }}
-            </p>
-          </div>
-          <span
-            class="text-[11px] px-2 py-1 rounded-full font-semibold whitespace-nowrap shrink-0"
-            :class="statusBadgeClass(quiz.status)"
-          >
-            {{ statusLabel(quiz.status) }}
-          </span>
-        </div>
+      <div class="relative grid grid-cols-[1fr_152px] rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden">
+        <div class="p-6 min-w-0 flex flex-col">
+          <p class="text-lg font-bold">
+            {{ quiz.title }}
+          </p>
+          <p class="text-base text-neutral-500 mt-2">
+            {{ quiz.description || t('adminQuizzes.noDescription') }}
+          </p>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-          <div class="rounded-xl bg-primary-50 p-4">
-            <p class="text-xs text-primary-600 font-medium">
-              {{ t('adminQuizDetail.questionCount') }}
-            </p>
-            <p class="text-xl font-bold text-primary-700 mt-1">
-              {{ quiz.questionCount }}
-            </p>
-          </div>
-          <div class="rounded-xl bg-warning-50 p-4">
-            <p class="text-xs text-warning-600 font-medium">
-              {{ t('adminQuizDetail.challengeCount') }}
-            </p>
-            <p class="text-xl font-bold text-warning-700 mt-1">
-              {{ quiz.challengeCount }}
-            </p>
-          </div>
-          <div class="rounded-xl bg-success-50 p-4">
-            <p class="text-xs text-success-600 font-medium">
-              {{ t('adminQuizDetail.passRate') }}
-            </p>
-            <p class="text-xl font-bold text-success-700 mt-1">
-              {{ quiz.passRate }}%
-            </p>
-          </div>
-          <div class="rounded-xl bg-error-50 p-4">
-            <p class="text-xs text-error-600 font-medium">
-              {{ t('adminQuizDetail.favoriteCount') }}
-            </p>
-            <p class="text-xl font-bold text-error-700 mt-1">
-              {{ quiz.favoriteCount }}
-            </p>
-          </div>
-        </div>
-
-        <dl
-          v-if="quiz.status === 'takendown'"
-          class="mt-6 text-base"
-        >
-          <div>
-            <dt class="text-neutral-400">
-              {{ t('adminQuizzes.takedownReasonLabel') }}
-            </dt>
-            <dd class="mt-0.5 font-medium text-error-500">
-              {{ quiz.takedownReason }}
-            </dd>
-          </div>
-        </dl>
-
-        <div class="flex items-center justify-between mt-6">
-          <NuxtLink
-            :to="`/admin/members/${quiz.creatorId}`"
-            class="flex items-center gap-2 group"
-          >
-            <img
-              v-if="quiz.creatorAvatar"
-              :src="quiz.creatorAvatar"
-              class="w-8 h-8 rounded-full object-cover shrink-0"
-              alt=""
-            >
-            <div
-              v-else
-              class="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-400 shrink-0"
-            >
-              {{ quiz.creatorName.charAt(0) }}
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+            <div class="rounded-xl bg-primary-50 p-4">
+              <p class="text-xs text-primary-600 font-medium">
+                {{ t('adminQuizDetail.questionCount') }}
+              </p>
+              <p class="text-xl font-bold text-primary-700 mt-1">
+                {{ quiz.questionCount }}
+              </p>
             </div>
-            <span class="text-base text-neutral-500 group-hover:text-primary-500 group-hover:underline">
-              {{ quiz.creatorName }}
-            </span>
-          </NuxtLink>
+            <div class="rounded-xl bg-warning-50 p-4">
+              <p class="text-xs text-warning-600 font-medium">
+                {{ t('adminQuizDetail.challengeCount') }}
+              </p>
+              <p class="text-xl font-bold text-warning-700 mt-1">
+                {{ quiz.challengeCount }}
+              </p>
+            </div>
+            <div class="rounded-xl bg-success-50 p-4">
+              <p class="text-xs text-success-600 font-medium">
+                {{ t('adminQuizDetail.passRate') }}
+              </p>
+              <p class="text-xl font-bold text-success-700 mt-1">
+                {{ quiz.passRate }}%
+              </p>
+            </div>
+            <div class="rounded-xl bg-error-50 p-4">
+              <p class="text-xs text-error-600 font-medium">
+                {{ t('adminQuizDetail.favoriteCount') }}
+              </p>
+              <p class="text-xl font-bold text-error-700 mt-1">
+                {{ quiz.favoriteCount }}
+              </p>
+            </div>
+          </div>
 
-          <UButton
-            v-if="quiz.status !== 'takendown'"
-            size="sm"
-            color="error"
-            variant="soft"
-            @click="isModalOpen = true"
+          <div class="flex items-center justify-between mt-6">
+            <NuxtLink
+              :to="`/admin/members/${quiz.creatorId}`"
+              class="flex items-center gap-2 group"
+            >
+              <img
+                v-if="quiz.creatorAvatar"
+                :src="quiz.creatorAvatar"
+                class="w-8 h-8 rounded-full object-cover shrink-0"
+                alt=""
+              >
+              <div
+                v-else
+                class="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-400 shrink-0"
+              >
+                {{ quiz.creatorName.charAt(0) }}
+              </div>
+              <span class="text-base text-neutral-500 group-hover:text-primary-500 group-hover:underline">
+                {{ quiz.creatorName }}
+              </span>
+            </NuxtLink>
+
+            <UButton
+              v-if="quiz.status !== 'takendown'"
+              size="sm"
+              color="error"
+              variant="soft"
+              @click="isModalOpen = true"
+            >
+              {{ t('adminQuizzes.takeDownAction') }}
+            </UButton>
+            <UButton
+              v-else
+              size="sm"
+              color="primary"
+              variant="soft"
+              :loading="adminQuizStore.isRestoring"
+              @click="handleRestore"
+            >
+              {{ t('adminQuizzes.restoreAction') }}
+            </UButton>
+          </div>
+        </div>
+
+        <div
+          class="relative border-l border-dashed"
+          :class="statusBorderClass(quiz.status)"
+        >
+          <span class="absolute -top-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
+          <span class="absolute -bottom-2.75 -left-2.75 w-5.5 h-5.5 rounded-full bg-neutral-100" />
+
+          <div
+            class="h-full flex flex-col items-center justify-center text-center gap-2 px-4 py-5"
+            :class="statusStubBgClass(quiz.status)"
           >
-            {{ t('adminQuizzes.takeDownAction') }}
-          </UButton>
-          <UButton
-            v-else
-            size="sm"
-            color="primary"
-            variant="soft"
-            :loading="adminQuizStore.isRestoring"
-            @click="handleRestore"
-          >
-            {{ t('adminQuizzes.restoreAction') }}
-          </UButton>
+            <div class="flex items-center gap-1.5">
+              <UIcon
+                :name="statusIcon(quiz.status)"
+                class="text-base shrink-0"
+                :class="statusTextClass(quiz.status)"
+              />
+              <span
+                class="text-base font-bold"
+                :class="statusTextClass(quiz.status)"
+              >
+                {{ statusLabel(quiz.status) }}
+              </span>
+            </div>
+
+            <p
+              v-if="quiz.status === 'takendown'"
+              class="w-full mt-1 pt-2.5 border-t border-dashed border-error-200 text-sm leading-relaxed text-error-600"
+            >
+              {{ quiz.takedownReason }}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -290,13 +299,37 @@ const statusLabel = (status: string) => ({
   takendown: t('adminQuizzes.status.takendown')
 }[status] ?? status)
 
-const statusBadgeClass = (status: string) => ({
-  draft: 'bg-neutral-100 text-neutral-600',
-  published: 'bg-success-100 text-success-800',
-  archived: 'bg-warning-100 text-warning-800',
-  deleted: 'bg-neutral-100 text-neutral-600',
-  takendown: 'bg-error-100 text-error-800'
-}[status] ?? 'bg-neutral-100 text-neutral-600')
+const statusIcon = (status: string) => ({
+  draft: 'i-lucide-file-edit',
+  published: 'i-lucide-check-circle-2',
+  archived: 'i-lucide-archive',
+  deleted: 'i-lucide-trash-2',
+  takendown: 'i-lucide-shield-off'
+}[status] ?? 'i-lucide-circle')
+
+const statusBorderClass = (status: string) => ({
+  draft: 'border-neutral-200',
+  published: 'border-success-200',
+  archived: 'border-warning-200',
+  deleted: 'border-neutral-200',
+  takendown: 'border-error-200'
+}[status] ?? 'border-neutral-200')
+
+const statusStubBgClass = (status: string) => ({
+  draft: 'bg-neutral-100',
+  published: 'bg-success-50',
+  archived: 'bg-warning-50',
+  deleted: 'bg-neutral-100',
+  takendown: 'bg-error-50'
+}[status] ?? 'bg-neutral-100')
+
+const statusTextClass = (status: string) => ({
+  draft: 'text-neutral-600',
+  published: 'text-success-700',
+  archived: 'text-warning-700',
+  deleted: 'text-neutral-600',
+  takendown: 'text-error-700'
+}[status] ?? 'text-neutral-600')
 
 const handleTakeDown = async (reason: string) => {
   try {

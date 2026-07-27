@@ -223,7 +223,7 @@
       "deleted": "Deleted",
       "takendown": "Taken Down"
     },
-    "creatorLine": "By: {name}",
+    "noDescription": "No description provided",
     "takeDownAction": "Take Down",
     "restoreAction": "Restore",
     "takedownReasonLabel": "Takedown Reason",
