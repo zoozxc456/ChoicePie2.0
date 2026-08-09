@@ -1,165 +1,154 @@
 <template>
-  <div class="min-h-[calc(100vh-56px)] bg-neutral-50 flex flex-col items-center px-6 py-16">
-    <!-- Logo -->
-    <NuxtLink
-      to="/"
-      class="text-6xl mb-6"
+  <AuthCardLayout>
+    <h1 class="text-xl font-extrabold text-center mb-1">
+      {{ t('signIn.title') }}
+    </h1>
+
+    <!-- Google Register -->
+    <UButton
+      block
+      size="lg"
+      color="neutral"
+      variant="outline"
+      class="font-bold h-12 rounded-2xl"
+      :loading="auth.isLoading"
+      @click="handleGoogleLogin"
     >
-      🥧
-    </NuxtLink>
+      <template #leading>
+        <span class="font-extrabold text-[#4285F4]">G</span>
+      </template>
+      {{ t('signIn.googleRegister') }}
+    </UButton>
 
-    <!-- Card -->
-    <div class="w-full max-w-md rounded-2xl bg-white shadow-cp-lg p-7 flex flex-col gap-3.5">
-      <h1 class="text-xl font-extrabold text-center mb-1">
-        {{ t('signIn.title') }}
-      </h1>
+    <div class="flex items-center gap-3 text-xs text-neutral-400">
+      <hr class="flex-1 border-neutral-200">
+      {{ t('signIn.orDivider') }}
+      <hr class="flex-1 border-neutral-200">
+    </div>
 
-      <!-- Google Register -->
+    <!-- Form -->
+    <UForm
+      :schema="registerSchema"
+      :state="registerState"
+      class="flex flex-col gap-3.5"
+      @submit="handleRegister"
+    >
+      <UFormField name="name">
+        <UInput
+          v-model="registerState.name"
+          :placeholder="t('signIn.namePlaceholder')"
+          size="lg"
+          maxlength="20"
+          class="w-full"
+          :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
+        />
+      </UFormField>
+
+      <UFormField name="email">
+        <UInput
+          v-model="registerState.email"
+          type="email"
+          :placeholder="t('signIn.emailPlaceholder')"
+          size="lg"
+          class="w-full"
+          :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
+        />
+      </UFormField>
+
+      <UFormField name="password">
+        <UInput
+          v-model="registerState.password"
+          :type="showPassword ? 'text' : 'password'"
+          :placeholder="t('signIn.passwordPlaceholder')"
+          size="lg"
+          class="w-full"
+          :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
+        >
+          <template #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              size="sm"
+              :padded="false"
+              :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+              @click="onToggleShowPassword"
+            />
+          </template>
+        </UInput>
+        <div
+          v-if="passwordStrength"
+          class="flex items-center gap-2 mt-1.5"
+        >
+          <div class="flex gap-1 flex-1">
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="h-1 flex-1 rounded-full transition-all"
+              :class="i <= (['weak', 'medium', 'strong'].indexOf(passwordStrength.level) + 1)
+                ? passwordStrength.barClass
+                : 'bg-neutral-200'"
+            />
+          </div>
+          <span
+            class="text-xs font-medium"
+            :class="passwordStrength.textClass"
+          >
+            {{ passwordStrength.label }}
+          </span>
+        </div>
+      </UFormField>
+
+      <UFormField name="confirmPassword">
+        <UInput
+          v-model="registerState.confirmPassword"
+          :type="showConfirmPassword ? 'text' : 'password'"
+          :placeholder="t('signIn.confirmPasswordPlaceholder')"
+          size="lg"
+          class="w-full"
+          :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
+        >
+          <template #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              size="sm"
+              :padded="false"
+              :icon="showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+              @click="onToggleShowConfirmPassword"
+            />
+          </template>
+        </UInput>
+      </UFormField>
+
+      <p
+        v-if="error"
+        class="text-sm text-error-500"
+      >
+        {{ error }}
+      </p>
+
       <UButton
+        type="submit"
         block
         size="lg"
-        color="neutral"
-        variant="outline"
+        :color="isFormValid ? 'primary' : 'neutral'"
         class="font-bold h-12 rounded-2xl"
-        :loading="auth.isLoading"
-        @click="handleGoogleLogin"
+        :class="{ 'bg-cp-disabled! text-neutral-400!': !isFormValid }"
+        :disabled="!isFormValid"
+        :loading="isLoading"
       >
-        <template #leading>
-          <span class="font-extrabold text-[#4285F4]">G</span>
-        </template>
-        {{ t('signIn.googleRegister') }}
+        {{ t('signIn.submitBtn') }}
       </UButton>
+    </UForm>
 
-      <div class="flex items-center gap-3 text-xs text-neutral-400">
-        <hr class="flex-1 border-neutral-200">
-        {{ t('signIn.orDivider') }}
-        <hr class="flex-1 border-neutral-200">
-      </div>
-
-      <!-- Form -->
-      <UForm
-        :schema="registerSchema"
-        :state="registerState"
-        class="flex flex-col gap-3.5"
-        @submit="handleRegister"
-      >
-        <UFormField name="name">
-          <UInput
-            v-model="registerState.name"
-            :placeholder="t('signIn.namePlaceholder')"
-            size="lg"
-            maxlength="20"
-            class="w-full"
-            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-          />
-        </UFormField>
-
-        <UFormField name="email">
-          <UInput
-            v-model="registerState.email"
-            type="email"
-            :placeholder="t('signIn.emailPlaceholder')"
-            size="lg"
-            class="w-full"
-            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-          />
-        </UFormField>
-
-        <UFormField name="password">
-          <UInput
-            v-model="registerState.password"
-            :type="showPassword ? 'text' : 'password'"
-            :placeholder="t('signIn.passwordPlaceholder')"
-            size="lg"
-            class="w-full"
-            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-          >
-            <template #trailing>
-              <UButton
-                color="neutral"
-                variant="link"
-                size="sm"
-                :padded="false"
-                :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-                @click="onToggleShowPassword"
-              />
-            </template>
-          </UInput>
-          <div
-            v-if="passwordStrength"
-            class="flex items-center gap-2 mt-1.5"
-          >
-            <div class="flex gap-1 flex-1">
-              <div
-                v-for="i in 3"
-                :key="i"
-                class="h-1 flex-1 rounded-full transition-all"
-                :class="i <= (['weak', 'medium', 'strong'].indexOf(passwordStrength.level) + 1)
-                  ? passwordStrength.barClass
-                  : 'bg-neutral-200'"
-              />
-            </div>
-            <span
-              class="text-xs font-medium"
-              :class="passwordStrength.textClass"
-            >
-              {{ passwordStrength.label }}
-            </span>
-          </div>
-        </UFormField>
-
-        <UFormField name="confirmPassword">
-          <UInput
-            v-model="registerState.confirmPassword"
-            :type="showConfirmPassword ? 'text' : 'password'"
-            :placeholder="t('signIn.confirmPasswordPlaceholder')"
-            size="lg"
-            class="w-full"
-            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-          >
-            <template #trailing>
-              <UButton
-                color="neutral"
-                variant="link"
-                size="sm"
-                :padded="false"
-                :icon="showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-                @click="onToggleShowConfirmPassword"
-              />
-            </template>
-          </UInput>
-        </UFormField>
-
-        <p
-          v-if="error"
-          class="text-sm text-error-500"
-        >
-          {{ error }}
-        </p>
-
-        <UButton
-          type="submit"
-          block
-          size="lg"
-          :color="isFormValid ? 'primary' : 'neutral'"
-          class="font-bold h-12 rounded-2xl"
-          :class="{ 'bg-cp-disabled! text-neutral-400!': !isFormValid }"
-          :disabled="!isFormValid"
-          :loading="isLoading"
-        >
-          {{ t('signIn.submitBtn') }}
-        </UButton>
-      </UForm>
-
-      <!-- Login link -->
-      <NuxtLink
-        :to="`/login${redirect !== '/library' ? `?redirect=${redirect}` : ''}`"
-        class="text-center text-sm text-neutral-600"
-      >
-        {{ t('signIn.haveAccount') }} <span class="text-primary-500 font-semibold">{{ t('signIn.loginLink') }}</span>
-      </NuxtLink>
-    </div>
-  </div>
+    <!-- Login link -->
+    <NuxtLink
+      :to="`/login${redirect !== '/library' ? `?redirect=${redirect}` : ''}`"
+      class="text-center text-sm text-neutral-600"
+    >
+      {{ t('signIn.haveAccount') }} <span class="text-primary-500 font-semibold">{{ t('signIn.loginLink') }}</span>
+    </NuxtLink>
+  </AuthCardLayout>
 </template>
 
 <script setup lang="ts">

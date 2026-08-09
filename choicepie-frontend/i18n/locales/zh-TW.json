@@ -31,6 +31,13 @@
       "step2Desc": "2～12 個字，不需要帳號",
       "step3Title": "等待開始",
       "step3Desc": "Host 按下開始後自動進入"
+    },
+    "preview": {
+      "label": "進入房間後，畫面長這樣",
+      "question": "哪一種方式，最能讓學習記得更久？",
+      "optionA": "只看一次筆記",
+      "optionB": "用遊戲反覆回想",
+      "optionC": "等考前再開始"
     }
   },
   "room": {
@@ -155,6 +162,8 @@
   },
   "forgotPassword": {
     "title": "忘記密碼",
+    "step1": "發送連結",
+    "step2": "設定新密碼",
     "description": "輸入您註冊時使用的 Email，我們將寄送重設密碼連結給您。",
     "emailPlaceholder": "Email",
     "submitBtn": "發送重設連結",
