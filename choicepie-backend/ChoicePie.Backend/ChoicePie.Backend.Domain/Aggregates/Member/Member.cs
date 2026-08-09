@@ -13,6 +13,7 @@ public sealed class Member : AggregateRoot<Guid>
     public bool IsSuspended { get; private set; }
     public string? SuspendedReason { get; private set; }
     public DateTime? SuspendedUntil { get; private set; }
+    public Guid? TierId { get; private set; }
 
     private Member()
     {
@@ -34,14 +35,14 @@ public sealed class Member : AggregateRoot<Guid>
         return member;
     }
 
-    public bool CanGenerateQuizToday(DateTime nowUtc)
-    {
-        return LastAiGenerationAt is null || LastAiGenerationAt.Value.Date < nowUtc.Date;
-    }
-
     public void RecordAiGeneration(DateTime nowUtc)
     {
         LastAiGenerationAt = nowUtc;
+    }
+
+    public void AssignTier(Guid tierId)
+    {
+        TierId = tierId;
     }
 
     // SuspendedUntil = null means a permanent suspension; a concrete date expires automatically

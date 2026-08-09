@@ -9,6 +9,7 @@ using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
 using ChoicePie.Backend.Shared.Application.Contracts;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Dependencies;
+using MembershipTierAggregate = ChoicePie.Backend.Domain.Aggregates.MembershipTier.MembershipTier;
 
 namespace ChoicePie.Backend.Infrastructure.QueryServices.Identity;
 
@@ -47,6 +48,8 @@ public sealed class MemberQueryService(IReadRepository readRepository, TimeProvi
             from m in query
             join a in readRepository.Query<AuthAccount>() on m.Id equals a.MemberId into authGroup
             from auth in authGroup.DefaultIfEmpty()
+            join t in readRepository.Query<MembershipTierAggregate>() on m.TierId equals t.Id into tierGroup
+            from tier in tierGroup.DefaultIfEmpty()
             orderby m.CreatedAt descending
             select new AdminMemberSummaryDto(
                 m.Id,
@@ -55,6 +58,7 @@ public sealed class MemberQueryService(IReadRepository readRepository, TimeProvi
                 m.IsSuspended,
                 m.SuspendedReason,
                 m.SuspendedUntil,
+                tier != null ? tier.Name : null,
                 m.CreatedAt);
 
         var items = joined
@@ -72,7 +76,7 @@ public sealed class MemberQueryService(IReadRepository readRepository, TimeProvi
             .Select(m => new
             {
                 m.Id, m.Name, m.Avatar, m.IsSuspended, m.SuspendedReason, m.SuspendedUntil,
-                m.LastAiGenerationAt, m.CreatedAt
+                m.LastAiGenerationAt, m.TierId, m.CreatedAt
             })
             .FirstOrDefault()
             ?? throw new MemberNotFoundException(memberId);
@@ -81,6 +85,10 @@ public sealed class MemberQueryService(IReadRepository readRepository, TimeProvi
             .Where(a => a.MemberId == memberId)
             .Select(a => a.Email.Value)
             .FirstOrDefault();
+
+        var tierName = member.TierId is { } tierId
+            ? readRepository.Query<MembershipTierAggregate>().Where(t => t.Id == tierId).Select(t => t.Name).FirstOrDefault()
+            : null;
 
         return Task.FromResult(new AdminMemberDetailDto(
             member.Id,
@@ -91,6 +99,8 @@ public sealed class MemberQueryService(IReadRepository readRepository, TimeProvi
             member.SuspendedReason,
             member.SuspendedUntil,
             member.LastAiGenerationAt,
+            member.TierId,
+            tierName,
             member.CreatedAt));
     }
 

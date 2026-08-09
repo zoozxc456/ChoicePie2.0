@@ -9,4 +9,6 @@ public sealed record AdminMemberDetailDto(
     string? SuspendedReason,
     DateTime? SuspendedUntil,
     DateTime? LastAiGenerationAt,
+    Guid? TierId,
+    string? TierName,
     DateTime CreatedAt);

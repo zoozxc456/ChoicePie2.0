@@ -42,31 +42,25 @@ public class MemberTests
     }
 
     [Test]
-    public void CanGenerateQuizToday_GivenNeverGenerated_WhenChecked_ThenReturnsTrue()
-    {
-        var member = MemberAggregate.Create("Host Name");
-
-        Assert.That(member.CanGenerateQuizToday(DateTime.UtcNow), Is.True);
-    }
-
-    [Test]
-    public void CanGenerateQuizToday_GivenGeneratedEarlierSameDay_WhenChecked_ThenReturnsFalse()
+    public void RecordAiGeneration_GivenTimestamp_WhenCalled_ThenSetsLastAiGenerationAt()
     {
         var member = MemberAggregate.Create("Host Name");
         var now = new DateTime(2026, 7, 10, 9, 0, 0, DateTimeKind.Utc);
+
         member.RecordAiGeneration(now);
 
-        Assert.That(member.CanGenerateQuizToday(now.AddHours(5)), Is.False);
+        Assert.That(member.LastAiGenerationAt, Is.EqualTo(now));
     }
 
     [Test]
-    public void CanGenerateQuizToday_GivenGeneratedOnAPreviousDay_WhenChecked_ThenReturnsTrue()
+    public void AssignTier_GivenTierId_WhenCalled_ThenSetsTierId()
     {
         var member = MemberAggregate.Create("Host Name");
-        var yesterday = new DateTime(2026, 7, 9, 9, 0, 0, DateTimeKind.Utc);
-        member.RecordAiGeneration(yesterday);
+        var tierId = Guid.NewGuid();
 
-        Assert.That(member.CanGenerateQuizToday(yesterday.AddDays(1)), Is.True);
+        member.AssignTier(tierId);
+
+        Assert.That(member.TierId, Is.EqualTo(tierId));
     }
 
     [Test]

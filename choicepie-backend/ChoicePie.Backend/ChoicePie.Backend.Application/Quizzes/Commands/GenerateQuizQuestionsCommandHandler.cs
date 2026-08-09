@@ -1,20 +1,30 @@
+using ChoicePie.Backend.Application.AiUsage.Contracts;
 using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
+using ChoicePie.Backend.Domain.Aggregates.AiUsageLog;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
 using MediatR;
+using Microsoft.Extensions.Options;
 
 namespace ChoicePie.Backend.Application.Quizzes.Commands;
 
 public sealed class GenerateQuizQuestionsCommandHandler(
     IMemberRepository memberRepository,
+    IMembershipTierRepository membershipTierRepository,
+    IAiUsageLogRepository aiUsageLogRepository,
+    IAiUsageLogQueryService aiUsageLogQueryService,
     ICurrentUserService currentUserService,
     IQuizGenerationService generationService,
+    IOptions<AiQuizGenerationSettings> aiSettings,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
     : IRequestHandler<GenerateQuizQuestionsCommand, GenerateQuestionsResultDto>
@@ -36,10 +46,26 @@ public sealed class GenerateQuizQuestionsCommandHandler(
         var member = await memberRepository.GetByIdAsync(memberId, cancellationToken)
                      ?? throw new MemberNotFoundException(memberId);
 
+        var tier = member.TierId is { } tierId
+            ? await membershipTierRepository.GetByIdAsync(tierId, cancellationToken)
+              ?? throw new MembershipTierNotFoundException(tierId)
+            : null;
+
         var now = timeProvider.GetUtcNow().UtcDateTime;
-        if (!member.CanGenerateQuizToday(now))
+
+        if (tier is not null)
         {
-            throw new AiGenerationQuotaExceededException(memberId);
+            var todayUsage = await aiUsageLogQueryService.GetTodayUsageAsync(memberId, now, cancellationToken);
+
+            if (todayUsage.GenerationCount >= tier.DailyGenerationLimit)
+            {
+                throw new AiGenerationQuotaExceededException(memberId);
+            }
+
+            if (todayUsage.TokensUsed >= tier.DailyTokenBudget)
+            {
+                throw new AiTokenBudgetExceededException(memberId);
+            }
         }
 
         var result = await generationService.GenerateAsync(
@@ -47,6 +73,10 @@ public sealed class GenerateQuizQuestionsCommandHandler(
 
         member.RecordAiGeneration(now);
         await memberRepository.UpdateAsync(member, cancellationToken);
+
+        var usageLog = AiUsageLog.Create(memberId, aiSettings.Value.Provider, aiSettings.Value.Model, result.TokensUsed);
+        await aiUsageLogRepository.AddAsync(usageLog, cancellationToken);
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var questions = result.Questions

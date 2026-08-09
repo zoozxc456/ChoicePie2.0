@@ -7,4 +7,5 @@ public sealed record AdminMemberSummaryDto(
     bool IsSuspended,
     string? SuspendedReason,
     DateTime? SuspendedUntil,
+    string? TierName,
     DateTime CreatedAt);
