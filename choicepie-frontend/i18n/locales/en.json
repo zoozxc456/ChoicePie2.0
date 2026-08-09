@@ -539,7 +539,8 @@
     "story": {
       "label": "Where it started",
       "p1": "In a world overflowing with information yet stuck in passive learning, knowledge often stays on the slide, stays in the book, and is never truly absorbed.",
-      "p2": "ChoicePie isn't just a quiz app. It's a stage that brings knowledge to life. Here, everyone can be a teacher, and everyone can be a student."
+      "p2": "ChoicePie isn't just a quiz app. It's a stage that brings knowledge to life. Here, everyone can be a teacher, and everyone can be a student.",
+      "p3": "So we built it as a free tool with no approval queue: paste in some content, and in minutes it's a quiz game everyone can play together."
     },
     "scenarios": {
       "title": "Knowledge deserves to be shared",
@@ -554,26 +555,12 @@
         "desc": "Use game history and question-by-question review to study more actively. Every question you answer becomes part of your progress."
       }
     },
-    "belief": {
-      "text": "Break the boundaries of learning. Free knowledge from the page and let it flow between people.",
-      "subtext": "Make learning an adventure, a challenge, a party full of surprises."
-    },
-    "vmv": {
-      "vision": {
-        "label": "VISION",
-        "text": "To become the world's most fun and creative platform for sharing and learning knowledge, where everyone can be both creator and explorer."
-      },
-      "mission": {
-        "label": "MISSION",
-        "text": "To give everyone a simple, powerful tool that turns any topic into an engaging quiz game."
-      }
-    },
-    "values": {
-      "title": "What we believe",
-      "userCentric": { "title": "User-Centric", "desc": "We listen. Every design decision starts from the experience." },
-      "funLearning": { "title": "Fun & Learning", "desc": "Gamification is the most effective way to spark learning." },
-      "createShare": { "title": "Create & Share", "desc": "We give people the freedom to create and the reason to share." },
-      "growth": { "title": "Continuous Growth", "desc": "We care about your progress, not just our features." }
+    "facts": {
+      "title": "What you can actually do",
+      "freeToCreate": { "title": "Creating quizzes is free", "desc": "No subscription, no paywall. There's no cap on how many you can build by hand." },
+      "livePlayers": { "title": "Up to 30 players per room", "desc": "Open a room, share the 6-digit code, and friends, a class, or a team can all answer live." },
+      "hostPaced": { "title": "The host sets the pace", "desc": "Nothing auto-advances. You decide when to reveal the answer and when to move to the next question." },
+      "soloReview": { "title": "Solo practice keeps a record", "desc": "You can also attempt a quiz alone, no room needed, with every answer saved for later question-by-question review." }
     },
     "cta": {
       "title": "Ready to try it?",
