@@ -133,10 +133,13 @@
               :style="{ animationDelay: `${podium.order * 140}ms` }"
             >
               <div
-                class="w-16 h-16 rounded-full flex items-center justify-center text-xl font-black text-white"
+                class="w-16 h-16 rounded-full flex items-center justify-center text-white"
                 :class="[podium.meta.colorClass, podium.rank === 0 ? podium.meta.glowClass : '']"
               >
-                {{ podium.meta.medal }}
+                <UIcon
+                  name="i-lucide-medal"
+                  class="text-2xl"
+                />
               </div>
               <p
                 class="font-bold text-sm truncate max-w-24"
@@ -190,7 +193,12 @@
               class="relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
               :class="rankBarClass(entry.rank)"
             >
-              {{ entry.rank <= 3 ? rankMedal(entry.rank) : entry.rank }}
+              <UIcon
+                v-if="entry.rank <= 3"
+                name="i-lucide-medal"
+                class="text-sm"
+              />
+              <template v-else>{{ entry.rank }}</template>
             </span>
             <span
               class="relative flex-1 font-medium text-sm"
@@ -340,9 +348,9 @@ const formatDate = (iso: string) =>
 // 頒獎台名次視覺（依原始名次 0=金 1=銀 2=銅），與 host/room/[code].vue 共用同一套視覺語言
 // order 為畫面呈現順序（銀/金/銅），用來讓進場動畫從中間的冠軍開始擴散
 const PODIUM_META = [
-  { medal: '🥇', place: 2, colorClass: 'bg-cp-primary', glowClass: 'rank-1', height: '70px' },
-  { medal: '🥈', place: 1, colorClass: 'bg-cp-info', glowClass: 'rank-2', height: '52px' },
-  { medal: '🥉', place: 3, colorClass: 'bg-cp-warning', glowClass: 'rank-3', height: '36px' }
+  { place: 2, colorClass: 'bg-cp-primary', glowClass: 'rank-1', height: '70px' },
+  { place: 1, colorClass: 'bg-cp-info', glowClass: 'rank-2', height: '52px' },
+  { place: 3, colorClass: 'bg-cp-warning', glowClass: 'rank-3', height: '36px' }
 ]
 const PODIUM_ORDER = [1, 0, 2]
 const podiumEntries = computed(() =>
@@ -353,8 +361,6 @@ const podiumEntries = computed(() =>
 
 const topScore = computed(() => game.value?.rankings[0]?.score ?? 1)
 const scorePercent = (score: number) => Math.max((score / topScore.value) * 100, 6)
-
-const rankMedal = (rank: number) => ({ 1: '🥇', 2: '🥈', 3: '🥉' }[rank] ?? `${rank}`)
 
 const rankBarClass = (rank: number) => ({
   1: 'bg-cp-primary',

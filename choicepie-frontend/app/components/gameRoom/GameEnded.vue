@@ -1,8 +1,9 @@
 <template>
   <div class="text-center mb-6">
-    <div class="text-5xl mb-3">
-      🏆
-    </div>
+    <UIcon
+      name="i-lucide-trophy"
+      class="text-5xl mb-3 text-cp-primary"
+    />
     <h1 class="text-2xl font-bold mb-1">
       {{ t('room.ended.title') }}
     </h1>

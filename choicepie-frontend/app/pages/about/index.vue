@@ -14,7 +14,7 @@
     </div>
 
     <!-- Story: 沉浸式深色區塊，與首頁 Hero/ProductHighlights 的深色語彙呼應 -->
-    <div class="bg-[linear-gradient(135deg,#1a1a2e_0%,#2d3748_100%)] text-white">
+    <div class="bg-cp-secondary text-white">
       <div class="max-w-3xl mx-auto px-6 py-16">
         <p class="text-xs font-bold tracking-wider mb-5 text-white/40">
           {{ t('about.story.label') }}
@@ -42,9 +42,10 @@
           :key="scenario.key"
           class="rounded-2xl p-6 bg-white border border-cp-border"
         >
-          <div class="text-3xl mb-4">
-            {{ t(`about.scenarios.${scenario.key}.icon`) }}
-          </div>
+          <UIcon
+            :name="scenario.icon"
+            class="text-3xl text-cp-primary mb-4"
+          />
           <h3 class="font-bold text-base mb-2 leading-snug">
             {{ t(`about.scenarios.${scenario.key}.title`) }}
           </h3>
@@ -119,8 +120,8 @@ definePageMeta({ layout: 'content' })
 const { t } = useI18n()
 
 const scenarios = [
-  { key: 'history' },
-  { key: 'exam' }
+  { key: 'history', icon: 'i-lucide-book-open' },
+  { key: 'exam', icon: 'i-lucide-target' }
 ]
 
 const facts = [

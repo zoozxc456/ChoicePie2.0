@@ -138,7 +138,12 @@
             class="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
             :class="[rankBadgeClass(game.myRank), rankGlowClass(game.myRank)]"
           >
-            {{ game.myRank <= 3 ? rankMedal(game.myRank) : `#${game.myRank}` }}
+            <UIcon
+              v-if="game.myRank <= 3"
+              name="i-lucide-medal"
+              class="text-base"
+            />
+            <template v-else>#{{ game.myRank }}</template>
           </span>
           <div
             class="shrink-0 w-16 h-16 rounded-xl flex items-center justify-center text-3xl"
@@ -218,8 +223,6 @@ const formatDate = (iso: string) =>
     month: 'short',
     day: 'numeric'
   })
-
-const rankMedal = (rank: number) => ({ 1: '🥇', 2: '🥈', 3: '🥉' }[rank] ?? `#${rank}`)
 
 const rankBadgeClass = (rank: number) => ({
   1: 'bg-cp-primary',

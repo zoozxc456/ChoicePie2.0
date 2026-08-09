@@ -94,10 +94,11 @@
             {{ optionLetters[i] }}
           </span>
           <span class="text-xl font-semibold text-white">{{ opt }}</span>
-          <span
+          <UIcon
             v-if="gameStore.correctAnswerIndex === i"
+            name="i-lucide-check"
             class="ml-auto text-2xl"
-          >✓</span>
+          />
         </div>
       </div>
 
@@ -129,9 +130,11 @@
             :key="podium.entry?.nickname"
             class="flex flex-col items-center gap-3"
           >
-            <p class="text-2xl">
-              {{ podium.meta.medal }}
-            </p>
+            <UIcon
+              name="i-lucide-medal"
+              class="text-4xl"
+              :class="podium.meta.textColorClass"
+            />
             <p class="text-xl font-bold text-white">
               {{ podium.entry?.nickname }}
             </p>
@@ -203,9 +206,9 @@ const optionBackgroundClass = (index: number): string => {
 
 // 頒獎台名次視覺（依原始名次 0=金 1=銀 2=銅），版面呈現順序為 銀/金/銅
 const PODIUM_META = [
-  { medal: '🥇', place: 2, colorClass: 'bg-cp-primary', height: '140px' },
-  { medal: '🥈', place: 1, colorClass: 'bg-cp-info', height: '100px' },
-  { medal: '🥉', place: 3, colorClass: 'bg-cp-warning', height: '70px' }
+  { place: 2, colorClass: 'bg-cp-primary', textColorClass: 'text-cp-primary', height: '140px' },
+  { place: 1, colorClass: 'bg-cp-info', textColorClass: 'text-cp-info', height: '100px' },
+  { place: 3, colorClass: 'bg-cp-warning', textColorClass: 'text-cp-warning', height: '70px' }
 ]
 const podiumEntries = computed(() =>
   [1, 0, 2]

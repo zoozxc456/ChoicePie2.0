@@ -87,10 +87,11 @@
                   : 'border-neutral-200'"
                 @click="$emit('setAnswer', oi)"
               >
-                <span
+                <UIcon
                   v-if="oi === question.answerIndex"
-                  class="text-white text-xs font-bold"
-                >✓</span>
+                  name="i-lucide-check"
+                  class="text-white text-xs"
+                />
               </button>
               <span class="w-6 text-xs font-bold shrink-0 text-neutral-400">
                 {{ ['A', 'B', 'C', 'D'][oi] }}

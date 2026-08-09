@@ -104,7 +104,7 @@
     </div>
 
     <!-- Scoring -->
-    <div class="mb-16 rounded-3xl p-8 bg-[linear-gradient(135deg,#1a1a2e_0%,#2d3748_100%)] text-white">
+    <div class="mb-16 rounded-3xl p-8 bg-cp-secondary text-white">
       <h2 class="text-2xl font-bold text-center mb-2">
         {{ t('howToUse.scoring.title') }}
       </h2>
@@ -187,22 +187,17 @@ const roleBadgeClass = computed(() => (activeRole.value === 'host'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const castArray = (val: unknown): any[] => (Array.isArray(val) ? val : [])
 
-const hostStepIcons = ['\u{1F4DD}', '✨', '\u{1F6AA}', '\u{1F3C1}']
-const playerStepIcons = ['\u{1F4F7}', '✏️', '⚡', '\u{1F3C6}']
-
 const hostSteps = computed(() =>
-  castArray(tm('howToUse.hostSteps')).map((s, i) => ({
+  castArray(tm('howToUse.hostSteps')).map(s => ({
     title: rt(s.title),
-    desc: rt(s.desc),
-    icon: hostStepIcons[i]
+    desc: rt(s.desc)
   }))
 )
 
 const playerSteps = computed(() =>
-  castArray(tm('howToUse.playerSteps')).map((s, i) => ({
+  castArray(tm('howToUse.playerSteps')).map(s => ({
     title: rt(s.title),
-    desc: rt(s.desc),
-    icon: playerStepIcons[i]
+    desc: rt(s.desc)
   }))
 )
 

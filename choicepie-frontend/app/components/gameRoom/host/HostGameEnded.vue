@@ -16,10 +16,13 @@
       class="flex flex-col items-center gap-2"
     >
       <div
-        class="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-black text-white"
+        class="w-20 h-20 rounded-full flex items-center justify-center text-white"
         :class="[podium.meta.colorClass, podium.rank === 0 ? podium.meta.glowClass : '']"
       >
-        {{ podium.meta.medal }}
+        <UIcon
+          name="i-lucide-medal"
+          class="text-3xl"
+        />
       </div>
       <p class="font-bold text-sm">
         {{ podium.entry?.nickname }}
@@ -69,9 +72,9 @@ const gameStore = useGameStore()
 
 // 頒獎台名次視覺（依原始名次 0=金 1=銀 2=銅）
 const PODIUM_META = [
-  { medal: '🥇', place: 1, colorClass: 'bg-cp-primary', glowClass: 'rank-1', height: '80px' },
-  { medal: '🥈', place: 2, colorClass: 'bg-cp-info', glowClass: 'rank-2', height: '60px' },
-  { medal: '🥉', place: 3, colorClass: 'bg-cp-warning', glowClass: 'rank-3', height: '40px' }
+  { place: 1, colorClass: 'bg-cp-primary', glowClass: 'rank-1', height: '80px' },
+  { place: 2, colorClass: 'bg-cp-info', glowClass: 'rank-2', height: '60px' },
+  { place: 3, colorClass: 'bg-cp-warning', glowClass: 'rank-3', height: '40px' }
 ]
 // 版面呈現順序為 銀/金/銅（名次 2/1/3）
 const podiumEntries = computed(() =>
