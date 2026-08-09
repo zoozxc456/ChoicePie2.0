@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-2xl border border-neutral-200 overflow-hidden p-4 flex flex-col gap-3">
+  <div class="bg-cp-surface rounded-2xl overflow-hidden border border-cp-border hover:shadow-cp-md hover:border-transparent transition-all p-4 flex flex-col gap-3">
     <div class="flex items-center gap-3">
       <div
         class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
@@ -8,7 +8,7 @@
         {{ props.quiz.coverEmoji }}
       </div>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-bold truncate block hover:underline">
+        <p class="text-sm font-bold truncate block hover:underline text-cp-text-primary">
           {{ quiz.title }}
         </p>
       </div>

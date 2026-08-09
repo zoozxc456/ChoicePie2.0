@@ -1,7 +1,7 @@
 <template>
   <NuxtLink
     :to="`/library/${quiz.id}`"
-    class="bg-white rounded-2xl border border-neutral-200 overflow-hidden transition-transform hover:scale-[1.02]"
+    class="bg-cp-surface rounded-2xl overflow-hidden border border-cp-border transition-all hover:shadow-cp-md hover:border-transparent hover:scale-[1.02]"
   >
     <div
       class="relative aspect-square flex items-center justify-center text-5xl"
@@ -10,20 +10,20 @@
       {{ quiz.coverEmoji }}
       <div
         v-if="featured"
-        class="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-primary-500 text-white flex items-center justify-center text-base shadow-lg"
+        class="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-cp-primary text-white flex items-center justify-center text-base"
       >
-        ▶
+        <UIcon name="i-lucide-play" />
       </div>
     </div>
     <div class="p-3">
-      <p class="text-sm font-semibold truncate">
+      <p class="text-sm font-semibold truncate text-cp-text-primary">
         {{ quiz.title }}
       </p>
-      <p class="text-xs text-neutral-400 mt-1">
+      <p class="text-xs text-cp-text-muted mt-1">
         {{ quiz.tags[0] }}
       </p>
       <span
-        class="inline-block mt-2 text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded"
+        class="inline-block mt-2 text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-full"
         :class="difficultyClass"
       >
         {{ DIFFICULTY_LABEL[quiz.difficulty] }}

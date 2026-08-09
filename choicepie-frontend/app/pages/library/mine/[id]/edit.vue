@@ -5,19 +5,19 @@
   >
     <NuxtLink
       to="/library?tab=mine"
-      class="text-[13px] text-neutral-600 mb-4 inline-block"
+      class="text-[13px] text-cp-text-secondary mb-4 inline-block"
     >
       ← {{ t('myQuizzesEdit.backToList') }}
     </NuxtLink>
 
-    <h1 class="text-2xl font-extrabold mb-6">
+    <h1 class="text-2xl font-extrabold mb-6 text-cp-text-primary">
       {{ t('myQuizzesEdit.title') }}
     </h1>
 
     <!-- Metadata -->
-    <div class="bg-white border border-neutral-200 rounded-2xl p-5 flex flex-col gap-4 mb-6">
+    <div class="bg-cp-surface rounded-2xl border border-cp-border p-5 flex flex-col gap-4 mb-6">
       <div class="flex flex-col gap-2">
-        <label class="text-[13px] font-bold">
+        <label class="text-[13px] font-bold text-cp-text-primary">
           {{ t('myQuizzesEdit.titleLabel') }}
         </label>
         <UInput
@@ -28,18 +28,18 @@
         />
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-[13px] font-bold">
+        <label class="text-[13px] font-bold text-cp-text-primary">
           {{ t('myQuizzesEdit.descriptionLabel') }}
         </label>
         <textarea
           v-model="metaDescription"
           rows="3"
-          class="w-full rounded-lg p-3 text-sm resize-none outline-none bg-neutral-100 border-[1.5px] border-neutral-200 focus:border-primary-500"
+          class="w-full rounded-lg p-3 text-sm resize-none outline-none bg-cp-surface-muted border-[1.5px] border-transparent focus:border-cp-primary"
           :placeholder="t('myQuizzesEdit.descriptionPlaceholder')"
         />
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-[13px] font-bold">
+        <label class="text-[13px] font-bold text-cp-text-primary">
           {{ t('myQuizzesEdit.tagsLabel') }}
         </label>
         <UInput
@@ -61,7 +61,7 @@
     </div>
 
     <!-- Questions -->
-    <h2 class="text-lg font-bold mb-3">
+    <h2 class="text-lg font-bold mb-3 text-cp-text-primary">
       {{ t('myQuizzesEdit.questionsTitle') }}
     </h2>
 
@@ -100,7 +100,7 @@
     </div>
 
     <button
-      class="w-full h-12 rounded-2xl border-[1.5px] border-dashed border-neutral-200 hover:bg-neutral-100 text-neutral-600 font-semibold text-sm"
+      class="w-full h-12 rounded-2xl border-[1.5px] border-dashed border-cp-border hover:bg-cp-surface-muted text-cp-text-secondary font-semibold text-sm"
       :disabled="isAddingQuestion"
       @click="handleAddQuestion"
     >
@@ -115,7 +115,7 @@
   >
     <UIcon
       name="i-lucide-loader-2"
-      class="animate-spin text-4xl text-primary-500"
+      class="animate-spin text-4xl text-cp-primary"
     />
   </div>
 </template>

@@ -1,11 +1,11 @@
 <template>
   <div class="flex gap-3">
-    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white bg-secondary-800 shrink-0">
+    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white bg-cp-secondary shrink-0">
       {{ comment.userName[0] }}
     </div>
     <div class="flex-1 min-w-0">
       <div class="flex items-center justify-between gap-2">
-        <p class="text-[13px] font-semibold">
+        <p class="text-[13px] font-semibold text-cp-text-primary">
           {{ comment.userName }}
         </p>
         <div
@@ -13,13 +13,13 @@
           class="flex items-center gap-2 shrink-0"
         >
           <button
-            class="text-xs text-neutral-400 hover:text-neutral-700"
+            class="text-xs text-cp-text-muted hover:text-cp-text-primary"
             @click="startEditing"
           >
             {{ t('libraryDetail.comments.edit') }}
           </button>
           <button
-            class="text-xs text-neutral-400 hover:text-error-600"
+            class="text-xs text-cp-text-muted hover:text-error-600"
             :disabled="isDeleting"
             @click="$emit('delete', comment.id)"
           >
@@ -60,7 +60,7 @@
       </div>
       <p
         v-else
-        class="text-sm text-neutral-800 whitespace-pre-wrap wrap-break-word"
+        class="text-sm text-cp-text-primary whitespace-pre-wrap wrap-break-word"
       >
         {{ comment.text }}
       </p>

@@ -1,25 +1,25 @@
 <template>
   <div class="max-w-7xl mx-auto px-6 py-8">
-    <h1 class="text-2xl font-black mb-5">
+    <h1 class="text-2xl font-black mb-5 text-cp-text-primary">
       {{ t('library.title') }}
     </h1>
 
-    <div class="flex gap-2 mb-7 border-b border-neutral-200">
+    <div class="inline-flex gap-1 p-1 mb-7 rounded-full bg-cp-surface-muted">
       <button
-        class="px-4 py-3 text-sm font-bold border-b-2 -mb-px transition-colors"
+        class="px-5 py-2.5 text-sm font-bold rounded-full transition-colors"
         :class="activeTab === 'all'
-          ? 'border-primary-500 text-primary-500'
-          : 'border-transparent text-neutral-500'"
+          ? 'bg-cp-surface text-cp-primary shadow-cp-sm'
+          : 'text-cp-text-secondary'"
         @click="activeTab = 'all'"
       >
         {{ t('library.tabs.all') }}
       </button>
       <button
         v-if="auth.isLoggedIn"
-        class="px-4 py-3 text-sm font-bold border-b-2 -mb-px transition-colors"
+        class="px-5 py-2.5 text-sm font-bold rounded-full transition-colors"
         :class="activeTab === 'mine'
-          ? 'border-primary-500 text-primary-500'
-          : 'border-transparent text-neutral-500'"
+          ? 'bg-cp-surface text-cp-primary shadow-cp-sm'
+          : 'text-cp-text-secondary'"
         @click="activeTab = 'mine'"
       >
         {{ t('library.tabs.mine') }}

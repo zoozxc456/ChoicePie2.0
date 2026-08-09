@@ -5,18 +5,18 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       @click.self="handleCancel"
     >
-      <div class="rounded-2xl bg-white w-full max-w-md mx-4 overflow-hidden shadow-cp-xl">
+      <div class="rounded-2xl bg-cp-surface w-full max-w-md mx-4 overflow-hidden shadow-cp-xl">
         <div class="px-6 pt-6 pb-4">
-          <h2 class="text-xl font-bold mb-3">
+          <h2 class="text-xl font-bold mb-3 text-cp-text-primary">
             {{ t('libraryDetail.report.title') }}
           </h2>
 
-          <label class="text-xs font-semibold text-neutral-500 mb-1 block">
+          <label class="text-xs font-semibold text-cp-text-secondary mb-1 block">
             {{ t('libraryDetail.report.reasonLabel') }}
           </label>
           <select
             v-model="reason"
-            class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm mb-3"
+            class="w-full rounded-xl bg-cp-surface-muted px-3 py-2 text-sm mb-3"
           >
             <option
               v-for="option in reasonOptions"
@@ -27,13 +27,13 @@
             </option>
           </select>
 
-          <label class="text-xs font-semibold text-neutral-500 mb-1 block">
+          <label class="text-xs font-semibold text-cp-text-secondary mb-1 block">
             {{ t('libraryDetail.report.descriptionLabel') }}
           </label>
           <textarea
             v-model="description"
             rows="3"
-            class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm resize-none"
+            class="w-full rounded-xl bg-cp-surface-muted px-3 py-2 text-sm resize-none"
             :placeholder="t('libraryDetail.report.descriptionPlaceholder')"
           />
         </div>

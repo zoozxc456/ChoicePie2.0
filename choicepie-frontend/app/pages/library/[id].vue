@@ -5,15 +5,15 @@
   >
     <NuxtLink
       to="/library"
-      class="text-[13px] text-neutral-600 mb-4 inline-block"
+      class="text-[13px] text-cp-text-secondary mb-4 inline-block"
     >
       ← {{ t('libraryDetail.backToLibrary') }}
     </NuxtLink>
 
     <!-- ── Hero ── -->
-    <div class="rounded-t-2xl px-10 pt-10 pb-8 flex gap-8 items-end flex-wrap bg-[linear-gradient(180deg,#1a1a2e_0%,#16213e_60%,#2d3748_100%)]">
+    <div class="rounded-t-2xl px-10 pt-10 pb-8 flex gap-8 items-end flex-wrap bg-cp-secondary">
       <div
-        class="w-48 h-48 rounded-xl flex items-center justify-center text-7xl shrink-0 shadow-[0_16px_48px_rgba(0,0,0,0.4)]"
+        class="w-48 h-48 rounded-xl flex items-center justify-center text-7xl shrink-0"
         :style="quiz.coverGradient"
       >
         {{ quiz.coverEmoji }}
@@ -33,17 +33,17 @@
     </div>
 
     <!-- ── Action bar ── -->
-    <div class="flex items-center gap-3 px-8 py-5 bg-white rounded-b-2xl mb-6 flex-wrap shadow-cp-md">
+    <div class="flex items-center gap-3 px-8 py-5 bg-cp-surface rounded-b-2xl mb-6 flex-wrap border border-t-0 border-cp-border">
       <button
-        class="w-11 h-11 rounded-full flex items-center justify-center text-lg text-white shrink-0 bg-primary-500 cursor-pointer transition-transform hover:scale-110 hover:rotate-6"
+        class="w-11 h-11 rounded-full flex items-center justify-center text-lg text-white shrink-0 bg-cp-primary cursor-pointer transition-transform hover:scale-110"
         @click="isStartModalOpen = true"
       >
-        ▶
+        <UIcon name="i-lucide-play" />
       </button>
 
       <button
         v-if="isOwner"
-        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold bg-cp-surface-muted whitespace-nowrap cursor-pointer"
         :disabled="isStartingAttempt"
         @click="handleSoloPractice"
       >
@@ -51,19 +51,23 @@
       </button>
 
       <button
-        class="h-10 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap cursor-pointer disabled:opacity-60"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold whitespace-nowrap cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
         :class="quizStore.isFavorited
-          ? 'border-error-200 bg-error-100 text-error-800'
-          : 'border-neutral-200 bg-white'"
+          ? 'bg-error-100 text-error-800'
+          : 'bg-cp-surface-muted'"
         :disabled="quizStore.isTogglingFavorite"
         @click="handleToggleFavorite"
       >
-        {{ quizStore.isFavorited ? `♥ ${t('libraryDetail.favorite.remove')}` : `♡ ${t('libraryDetail.favorite.add')}` }}
+        <UIcon
+          name="i-lucide-heart"
+          :class="{ 'fill-current': quizStore.isFavorited }"
+        />
+        {{ quizStore.isFavorited ? t('libraryDetail.favorite.remove') : t('libraryDetail.favorite.add') }}
       </button>
 
       <button
         v-if="isOwner && quiz.status !== 'published'"
-        class="h-10 px-4 rounded-full text-[13px] font-semibold text-white bg-primary-500 whitespace-nowrap cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold text-white bg-cp-primary whitespace-nowrap cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
         :disabled="isTogglingStatus"
         @click="handlePublish"
       >
@@ -72,7 +76,7 @@
       </button>
       <button
         v-if="isOwner && quiz.status === 'published'"
-        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold bg-cp-surface-muted whitespace-nowrap cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
         :disabled="isTogglingStatus"
         @click="handleUnpublish"
       >
@@ -87,7 +91,7 @@
 
       <button
         v-if="!isOwner && auth.isLoggedIn"
-        class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer disabled:opacity-60"
+        class="h-10 px-4 rounded-full text-[13px] font-semibold bg-cp-surface-muted whitespace-nowrap cursor-pointer disabled:opacity-60"
         :disabled="quizStore.hasReported"
         @click="isReportModalOpen = true"
       >
@@ -120,21 +124,21 @@
       <div class="flex flex-col gap-6">
         <div
           v-if="isOwner"
-          class="bg-white border border-neutral-200 rounded-2xl p-5"
+          class="bg-cp-surface rounded-2xl border border-cp-border p-5"
         >
-          <h2 class="text-base font-bold mb-3">
+          <h2 class="text-base font-bold mb-3 text-cp-text-primary">
             {{ t('libraryDetail.questionList') }}
           </h2>
           <div class="flex flex-col">
             <div
               v-for="(q, i) in quiz.questions"
               :key="q.id"
-              class="flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-neutral-100 transition-colors"
+              class="flex items-center gap-4 px-3 py-2.5 rounded-xl hover:bg-cp-surface-muted transition-colors"
             >
-              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-primary-100 text-primary-500">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-cp-primary-light text-cp-primary">
                 {{ i + 1 }}
               </div>
-              <div class="flex-1 text-sm font-medium">
+              <div class="flex-1 text-sm font-medium text-cp-text-primary">
                 {{ q.text }}
               </div>
             </div>
@@ -150,9 +154,9 @@
         <!-- Related quizzes -->
         <div
           v-if="quizStore.relatedQuizzes.length > 0"
-          class="bg-white border border-neutral-200 rounded-2xl p-5"
+          class="bg-cp-surface rounded-2xl border border-cp-border p-5"
         >
-          <h2 class="text-base font-bold mb-3">
+          <h2 class="text-base font-bold mb-3 text-cp-text-primary">
             {{ t('libraryDetail.related.title') }}
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -160,7 +164,7 @@
               v-for="related in quizStore.relatedQuizzes"
               :key="related.id"
               :to="`/library/${related.id}`"
-              class="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 hover:bg-neutral-100 transition-colors"
+              class="flex items-center gap-3 p-3 rounded-xl hover:bg-cp-surface-muted transition-colors"
             >
               <div
                 class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
@@ -169,10 +173,10 @@
                 {{ related.coverEmoji }}
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold truncate">
+                <p class="text-sm font-semibold truncate text-cp-text-primary">
                   {{ related.title }}
                 </p>
-                <p class="text-xs text-neutral-400">
+                <p class="text-xs text-cp-text-muted">
                   {{ t('libraryDetail.questions', { count: related.questionCount }) }} · {{ t('libraryDetail.challenges', { count: related.challengeCount.toLocaleString() }) }}
                 </p>
               </div>
@@ -183,26 +187,26 @@
 
       <!-- Right: Creator -->
       <div class="flex flex-col gap-6">
-        <div class="bg-white border border-neutral-200 rounded-2xl p-5 flex flex-col items-center gap-2.5 text-center">
-          <div class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white bg-secondary-800 shrink-0">
+        <div class="bg-cp-surface rounded-2xl border border-cp-border p-5 flex flex-col items-center gap-2.5 text-center">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white bg-cp-secondary shrink-0">
             {{ quiz.creatorName[0] }}
           </div>
-          <p class="text-sm font-bold flex items-center gap-1">
+          <p class="text-sm font-bold flex items-center gap-1 text-cp-text-primary">
             {{ quiz.creatorName }}
           </p>
           <p
             v-if="creatorStore.profile"
-            class="text-xs text-neutral-400"
+            class="text-xs text-cp-text-muted"
           >
             {{ t('libraryDetail.creator.quizCount', { count: creatorStore.profile.quizCount }) }} ·
             {{ t('libraryDetail.creator.challengeCount', { count: creatorStore.profile.challengeCount }) }}
           </p>
           <button
             v-if="!isOwner && creatorStore.profile"
-            class="h-8 px-4 rounded-full text-[13px] font-semibold border whitespace-nowrap cursor-pointer disabled:opacity-60"
+            class="h-8 px-4 rounded-full text-[13px] font-semibold whitespace-nowrap cursor-pointer disabled:opacity-60"
             :class="creatorStore.profile.isFollowing
-              ? 'border-neutral-200 bg-white'
-              : 'border-transparent bg-primary-500 text-white'"
+              ? 'bg-cp-surface-muted'
+              : 'bg-cp-primary text-white'"
             :disabled="creatorStore.isTogglingFollow"
             @click="handleToggleFollow"
           >
@@ -219,17 +223,17 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         @click.self="isStartModalOpen = false"
       >
-        <div class="rounded-2xl bg-white w-full max-w-md mx-4 overflow-hidden shadow-cp-xl">
+        <div class="rounded-2xl bg-cp-surface w-full max-w-md mx-4 overflow-hidden shadow-cp-xl">
           <div class="px-6 pt-6 pb-4">
-            <h2 class="text-xl font-bold mb-1">
+            <h2 class="text-xl font-bold mb-1 text-cp-text-primary">
               {{ t('libraryDetail.modal.title') }}
             </h2>
-            <p class="text-sm text-neutral-600">
+            <p class="text-sm text-cp-text-secondary">
               {{ t('libraryDetail.modal.subtitle') }}
             </p>
           </div>
           <div class="px-6 pb-6">
-            <div class="flex gap-4 items-center p-4 rounded-xl mb-5 bg-neutral-100">
+            <div class="flex gap-4 items-center p-4 rounded-xl mb-5 bg-cp-surface-muted">
               <div
                 class="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
                 :style="quiz.coverGradient"
@@ -237,37 +241,40 @@
                 {{ quiz.coverEmoji }}
               </div>
               <div>
-                <p class="font-semibold text-sm mb-1">
+                <p class="font-semibold text-sm mb-1 text-cp-text-primary">
                   {{ quiz.title }}
                 </p>
-                <p class="text-xs text-neutral-600">
+                <p class="text-xs text-cp-text-secondary">
                   {{ t('libraryDetail.questions', { count: quiz.questionCount }) }} · {{ DIFFICULTY_LABEL[quiz.difficulty] }} · {{ t('libraryDetail.passRateBadge', { rate: quiz.passRate }) }}
                 </p>
               </div>
             </div>
 
-            <p class="text-xs font-semibold mb-3 text-neutral-400 tracking-wide">
+            <p class="text-xs font-semibold mb-3 text-cp-text-muted tracking-wide">
               {{ t('libraryDetail.modal.settings') }}
             </p>
             <div class="flex flex-col gap-2 mb-6">
               <div
                 v-for="setting in gameSettings"
                 :key="setting.label"
-                class="flex justify-between items-center p-3 rounded-xl border border-neutral-200"
+                class="flex justify-between items-center p-3 rounded-xl bg-cp-surface-muted"
               >
                 <div>
-                  <p class="text-sm font-medium">
+                  <p class="text-sm font-medium text-cp-text-primary">
                     {{ setting.label }}
                   </p>
-                  <p class="text-xs text-neutral-400">
+                  <p class="text-xs text-cp-text-muted">
                     {{ setting.value }}
                   </p>
                 </div>
-                <span class="text-success-500 font-bold">✓</span>
+                <UIcon
+                  name="i-lucide-check"
+                  class="text-cp-success text-lg"
+                />
               </div>
 
-              <div class="flex justify-between items-center p-3 rounded-xl border border-neutral-200">
-                <p class="text-sm font-medium">
+              <div class="flex justify-between items-center p-3 rounded-xl bg-cp-surface-muted">
+                <p class="text-sm font-medium text-cp-text-primary">
                   {{ t('libraryDetail.modal.timeLimit') }}
                 </p>
                 <div class="flex gap-1.5">
@@ -277,8 +284,8 @@
                     type="button"
                     class="h-8 px-3 rounded-full text-xs font-semibold cursor-pointer transition-colors"
                     :class="option === timeLimit
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-neutral-100 text-neutral-600'"
+                      ? 'bg-cp-primary text-white'
+                      : 'bg-cp-surface text-cp-text-secondary'"
                     @click="timeLimit = option"
                   >
                     {{ t('libraryDetail.modal.timeLimitSeconds', { seconds: option }) }}
@@ -326,7 +333,7 @@
   >
     <UIcon
       name="i-lucide-loader-2"
-      class="animate-spin text-4xl text-primary-500"
+      class="animate-spin text-4xl text-cp-primary"
     />
   </div>
 </template>
