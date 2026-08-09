@@ -1,5 +1,6 @@
 import type {
   AdminListMembersQuery,
+  AdminMemberAiUsageDto,
   AdminMemberCommentDto,
   AdminMemberDetailDto,
   AdminMemberSummaryDto,
@@ -24,9 +25,13 @@ export const useAdminMemberClientApi = () => {
       api.get<PagedResult<GameSessionSummaryDto>>(`/api/v1/admin/members/${id}/played-sessions`, { pageNumber, pageSize }),
     fetchMemberComments: (id: string, pageNumber = 1, pageSize = 20) =>
       api.get<PagedResult<AdminMemberCommentDto>>(`/api/v1/admin/members/${id}/comments`, { pageNumber, pageSize }),
+    fetchMemberAiUsage: (id: string) =>
+      api.get<AdminMemberAiUsageDto>(`/api/v1/admin/members/${id}/ai-usage`),
     suspendMember: (id: string, reason: string, until: string | null) =>
       api.post(`/api/v1/admin/members/${id}/suspend`, { reason, until }),
     unsuspendMember: (id: string) =>
-      api.post(`/api/v1/admin/members/${id}/unsuspend`)
+      api.post(`/api/v1/admin/members/${id}/unsuspend`),
+    assignMemberTier: (id: string, tierId: string) =>
+      api.post(`/api/v1/admin/members/${id}/tier`, { tierId })
   }
 }

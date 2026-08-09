@@ -209,7 +209,8 @@
     "nav": {
       "quizzes": "Quiz Management",
       "members": "Member Management",
-      "quizReports": "Report Review"
+      "quizReports": "Report Review",
+      "membershipTiers": "Membership Tiers"
     },
     "pendingReportsAlert": "{count} pending report(s) need review",
     "viewReports": "Review now",
@@ -294,7 +295,29 @@
     "playedSessionsEmpty": "No play history",
     "playedSessionsCount": "{count} sessions played",
     "commentsTitle": "Comments",
-    "commentsEmpty": "No comments yet"
+    "commentsEmpty": "No comments yet",
+    "tierUsageTitle": "Membership Tier & AI Usage",
+    "tierUnassigned": "No tier assigned",
+    "todayGenerationCount": "Generations today",
+    "todayTokensUsed": "Tokens used today",
+    "totalGenerationCount": "Total generations",
+    "totalTokensUsed": "Total tokens used",
+    "usageOverLimit": "{used} / {limit}"
+  },
+  "adminMembershipTiers": {
+    "title": "Membership Tier Management",
+    "empty": "No membership tiers configured yet",
+    "createAction": "New Tier",
+    "editAction": "Edit",
+    "createTitle": "New Membership Tier",
+    "editTitle": "Edit Membership Tier",
+    "defaultBadge": "Default",
+    "nameLabel": "Tier Name",
+    "namePlaceholder": "e.g. Free, Pro",
+    "dailyGenerationLimitLabel": "Daily Generation Limit",
+    "dailyTokenBudgetLabel": "Daily Token Budget",
+    "limitsLine": "{count} generations/day, token budget {tokens}",
+    "validationError": "Please enter a valid name and non-negative limits"
   },
   "adminQuizReports": {
     "title": "Report Review",

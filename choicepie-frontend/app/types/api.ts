@@ -355,6 +355,7 @@ export interface AdminMemberSummaryDto {
   isSuspended: boolean
   suspendedReason: string | null
   suspendedUntil: string | null
+  tierName: string | null
   createdAt: string
 }
 
@@ -373,12 +374,56 @@ export interface AdminMemberDetailDto {
   suspendedReason: string | null
   suspendedUntil: string | null
   lastAiGenerationAt: string | null
+  tierId: string | null
+  tierName: string | null
   createdAt: string
 }
 
 export interface SuspendMemberRequest {
   reason: string
   until: string | null
+}
+
+export interface AssignMemberTierRequest {
+  tierId: string
+}
+
+export interface MembershipTierDto {
+  id: string
+  name: string
+  dailyGenerationLimit: number
+  dailyTokenBudget: number
+  isDefault: boolean
+  createdAt: string
+}
+
+export interface CreateMembershipTierRequest {
+  name: string
+  dailyGenerationLimit: number
+  dailyTokenBudget: number
+}
+
+export interface UpdateMembershipTierRequest {
+  name: string
+  dailyGenerationLimit: number
+  dailyTokenBudget: number
+}
+
+export interface AdminMemberAiUsageDto {
+  memberId: string
+  totalTokensUsed: number
+  totalGenerationCount: number
+  todayGenerationCount: number
+  todayTokensUsed: number
+  recentLogs: AdminAiUsageLogEntryDto[]
+}
+
+export interface AdminAiUsageLogEntryDto {
+  id: string
+  provider: string
+  model: string
+  tokensUsed: number
+  createdAt: string
 }
 
 export interface AdminMemberCommentDto {

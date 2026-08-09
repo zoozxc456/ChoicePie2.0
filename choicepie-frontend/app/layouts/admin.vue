@@ -76,7 +76,8 @@ const navItems = computed(() => [
   { to: '/admin', icon: 'i-lucide-layout-dashboard', label: t('adminDashboard.title') },
   { to: '/admin/quizzes', icon: 'i-lucide-book-open', label: t('adminDashboard.nav.quizzes') },
   { to: '/admin/members', icon: 'i-lucide-users', label: t('adminDashboard.nav.members') },
-  { to: '/admin/quiz-reports', icon: 'i-lucide-flag', label: t('adminDashboard.nav.quizReports') }
+  { to: '/admin/quiz-reports', icon: 'i-lucide-flag', label: t('adminDashboard.nav.quizReports') },
+  { to: '/admin/membership-tiers', icon: 'i-lucide-crown', label: t('adminDashboard.nav.membershipTiers') }
 ])
 
 const pageTitle = computed(() => navItems.value.find(item => item.to === route.path)?.label ?? t('adminDashboard.title'))

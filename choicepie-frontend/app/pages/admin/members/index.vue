@@ -43,9 +43,17 @@
 
         <div class="p-4 min-w-0 flex items-center justify-between gap-3 pointer-events-none">
           <div class="min-w-0 flex-1">
-            <p class="text-lg font-bold truncate">
-              {{ member.name }}
-            </p>
+            <div class="flex items-center gap-2 min-w-0">
+              <p class="text-lg font-bold truncate">
+                {{ member.name }}
+              </p>
+              <span
+                v-if="member.tierName"
+                class="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 border border-primary-200"
+              >
+                {{ member.tierName }}
+              </span>
+            </div>
             <p class="text-base text-neutral-400 mt-0.5 truncate">
               {{ member.email }}
             </p>

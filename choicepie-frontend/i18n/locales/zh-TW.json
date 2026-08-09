@@ -209,7 +209,8 @@
     "nav": {
       "quizzes": "題庫管理",
       "members": "會員管理",
-      "quizReports": "檢舉審核"
+      "quizReports": "檢舉審核",
+      "membershipTiers": "會員等級"
     },
     "pendingReportsAlert": "有 {count} 筆待審核檢舉",
     "viewReports": "前往審核",
@@ -294,7 +295,29 @@
     "playedSessionsEmpty": "尚無遊玩紀錄",
     "playedSessionsCount": "共遊玩 {count} 場",
     "commentsTitle": "留言",
-    "commentsEmpty": "尚無留言"
+    "commentsEmpty": "尚無留言",
+    "tierUsageTitle": "會員等級與 AI 用量",
+    "tierUnassigned": "尚未設定等級",
+    "todayGenerationCount": "今日出題次數",
+    "todayTokensUsed": "今日 token 用量",
+    "totalGenerationCount": "累計出題次數",
+    "totalTokensUsed": "累計 token 用量",
+    "usageOverLimit": "{used} / {limit}"
+  },
+  "adminMembershipTiers": {
+    "title": "會員等級管理",
+    "empty": "尚未設定任何會員等級",
+    "createAction": "新增等級",
+    "editAction": "編輯",
+    "createTitle": "新增會員等級",
+    "editTitle": "編輯會員等級",
+    "defaultBadge": "預設",
+    "nameLabel": "等級名稱",
+    "namePlaceholder": "例如：Free、Pro",
+    "dailyGenerationLimitLabel": "每日出題次數上限",
+    "dailyTokenBudgetLabel": "每日 token 用量上限",
+    "limitsLine": "每日 {count} 次出題，token 上限 {tokens}",
+    "validationError": "請輸入有效的等級名稱與非負數的上限"
   },
   "adminQuizReports": {
     "title": "檢舉審核",
