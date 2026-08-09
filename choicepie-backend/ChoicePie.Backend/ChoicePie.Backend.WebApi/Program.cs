@@ -1,3 +1,4 @@
+using ChoicePie.Backend.Infrastructure.ExternalServices.Quizzes.Providers;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Hosting.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Extensions;
@@ -19,6 +20,8 @@ builder.Services.Configure<SmtpSettings>(
     builder.Configuration.GetSection(SmtpSettings.SectionName));
 builder.Services.Configure<GoogleSettings>(
     builder.Configuration.GetSection(GoogleSettings.SectionName));
+builder.Services.Configure<AiQuizGenerationSettings>(
+    builder.Configuration.GetSection(AiQuizGenerationSettings.SectionName));
 
 builder.Services
     .AddEndpointsApiExplorer()
@@ -32,6 +35,8 @@ builder.Services
     .AddChoicePieCaching(builder.Configuration)
     .AddSharedDbContextPool<ChoicePieDbContext>(builder.Configuration)
     .AddSharedPersistence<ChoicePieDbContext>()
+    .AddHttpClient<AnthropicQuizGenerationProvider>()
+    .Services
     .AddDomain(typeof(ChoicePie.Backend.Domain.AssemblyReference).Assembly)
     .AddApplication(typeof(ChoicePie.Backend.Application.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Infrastructure.AssemblyReference).Assembly)
