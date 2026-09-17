@@ -134,6 +134,9 @@ export const useApi = () => {
     put: <T>(path: string, body?: object) =>
       request<T>(path, { method: 'PUT', body }),
     del: <T>(path: string) =>
-      request<T>(path, { method: 'DELETE' })
+      request<T>(path, { method: 'DELETE' }),
+    // FormData body：ofetch 會自動偵測並跳過 JSON 序列化、正確設定 multipart boundary。
+    postForm: <T>(path: string, formData: FormData) =>
+      request<T>(path, { method: 'POST', body: formData })
   }
 }

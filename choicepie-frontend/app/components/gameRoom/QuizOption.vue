@@ -70,7 +70,7 @@ const textClass = computed(() => {
 }
 
 .option-text--correct {
-  color: #2e7d32;
+  color: var(--cp-success);
   font-weight: 700;
 }
 .option-text--wrong {

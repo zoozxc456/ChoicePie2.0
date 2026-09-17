@@ -1,5 +1,5 @@
 import type { Difficulty } from '~/types/quiz'
-import type { QuizDto, QuizSummaryDto, PagedResult, CreateQuestionRequestItem, GenerateQuestionsResultDto, QuizForAttemptDto, CommentDto, CreateQuizReportRequest } from '~/types/api'
+import type { QuizDto, QuizSummaryDto, PagedResult, CreateQuestionRequestItem, GenerateQuestionsResultDto, QuizForAttemptDto, CommentDto, CreateQuizReportRequest, UpdateQuizCoverRequest, UploadQuizCoverResultDto } from '~/types/api'
 
 export const useQuizClientApi = () => {
   const api = useApi()
@@ -15,6 +15,13 @@ export const useQuizClientApi = () => {
       api.get<string[]>('/api/v1/quizzes/tags'),
     updateQuiz: (id: string, payload: { title: string, description: string | null, tags: string[] }) =>
       api.put<QuizDto>(`/api/v1/quizzes/${id}`, payload),
+    updateQuizCover: (id: string, payload: UpdateQuizCoverRequest) =>
+      api.put<QuizDto>(`/api/v1/quizzes/${id}/cover`, payload),
+    uploadCoverImage: (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      return api.postForm<UploadQuizCoverResultDto>('/api/v1/uploads/quiz-covers', formData)
+    },
     deleteQuiz: (id: string) =>
       api.del(`/api/v1/quizzes/${id}`),
     addQuestion: (quizId: string, question: CreateQuestionRequestItem) =>
@@ -33,7 +40,7 @@ export const useQuizClientApi = () => {
       api.post<QuizDto>(`/api/v1/quizzes/${id}/unarchive`),
     generateQuestions: (content: string, questionCount: 3 | 5 | 10, difficulty: Difficulty) =>
       api.post<GenerateQuestionsResultDto>('/api/v1/quizzes/generate-questions', { content, questionCount, difficulty }),
-    saveQuiz: (payload: { title: string, description: string | null, coverEmoji: string, coverGradient: string, difficulty: Difficulty, tags: string[], questions: CreateQuestionRequestItem[] }) =>
+    saveQuiz: (payload: { title: string, description: string | null, coverImageUrl: string | null, coverEmoji: string, coverGradient: string, difficulty: Difficulty, tags: string[], questions: CreateQuestionRequestItem[] }) =>
       api.post<QuizDto>('/api/v1/quizzes', payload),
     fetchFavoriteStatus: (id: string) =>
       api.get<boolean>(`/api/v1/quizzes/${id}/favorite`),

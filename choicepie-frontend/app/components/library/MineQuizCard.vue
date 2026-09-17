@@ -1,12 +1,12 @@
 <template>
   <div class="bg-cp-surface rounded-2xl overflow-hidden border border-cp-border hover:shadow-cp-md hover:border-transparent transition-all p-4 flex flex-col gap-3">
     <div class="flex items-center gap-3">
-      <div
-        class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
-        :style="quiz.coverGradient"
-      >
-        {{ props.quiz.coverEmoji }}
-      </div>
+      <QuizCoverThumbnail
+        :cover-image-url="quiz.coverImageUrl"
+        :cover-emoji="quiz.coverEmoji"
+        :cover-gradient="quiz.coverGradient"
+        size="sm"
+      />
       <div class="min-w-0 flex-1">
         <p class="text-sm font-bold truncate block hover:underline text-cp-text-primary">
           {{ quiz.title }}
@@ -40,6 +40,7 @@
 
 <script lang="ts" setup>
 import type { DropdownMenuItem } from '@nuxt/ui'
+import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
 import type { Quiz } from '~/types/quiz'
 
 interface Props {

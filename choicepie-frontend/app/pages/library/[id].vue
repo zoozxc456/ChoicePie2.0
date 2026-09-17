@@ -12,12 +12,12 @@
 
     <!-- ── Hero ── -->
     <div class="rounded-t-2xl px-10 pt-10 pb-8 flex gap-8 items-end flex-wrap bg-cp-secondary">
-      <div
-        class="w-48 h-48 rounded-xl flex items-center justify-center text-7xl shrink-0"
-        :style="quiz.coverGradient"
-      >
-        {{ quiz.coverEmoji }}
-      </div>
+      <QuizCoverThumbnail
+        :cover-image-url="quiz.coverImageUrl"
+        :cover-emoji="quiz.coverEmoji"
+        :cover-gradient="quiz.coverGradient"
+        size="xl"
+      />
 
       <div class="flex-1 min-w-60 flex flex-col gap-2.5 pb-1">
         <p class="text-xs font-semibold text-white">
@@ -166,12 +166,13 @@
               :to="`/library/${related.id}`"
               class="flex items-center gap-3 p-3 rounded-xl hover:bg-cp-surface-muted transition-colors"
             >
-              <div
-                class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
-                :style="related.coverGradient"
-              >
-                {{ related.coverEmoji }}
-              </div>
+              <QuizCoverThumbnail
+                :cover-image-url="related.coverImageUrl"
+                :cover-emoji="related.coverEmoji"
+                :cover-gradient="related.coverGradient"
+                size="sm"
+                rounded="lg"
+              />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold truncate text-cp-text-primary">
                   {{ related.title }}
@@ -234,12 +235,12 @@
           </div>
           <div class="px-6 pb-6">
             <div class="flex gap-4 items-center p-4 rounded-xl mb-5 bg-cp-surface-muted">
-              <div
-                class="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
-                :style="quiz.coverGradient"
-              >
-                {{ quiz.coverEmoji }}
-              </div>
+              <QuizCoverThumbnail
+                :cover-image-url="quiz.coverImageUrl"
+                :cover-emoji="quiz.coverEmoji"
+                :cover-gradient="quiz.coverGradient"
+                size="sm"
+              />
               <div>
                 <p class="font-semibold text-sm mb-1 text-cp-text-primary">
                   {{ quiz.title }}
@@ -339,6 +340,7 @@
 </template>
 
 <script setup lang="ts">
+import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
 import { DIFFICULTY_LABEL } from '~/types/quiz'
 
 definePageMeta({ layout: 'content' })

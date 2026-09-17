@@ -18,8 +18,9 @@ export interface Quiz {
   id: string
   title: string
   description?: string
+  coverImageUrl: string | null
   coverEmoji: string
-  coverGradient: string // e.g. 'linear-gradient(135deg,#0f3460,#533483)'
+  coverGradient: string // 品牌色鍵：primary | secondary | success | danger | warning | info
   difficulty: Difficulty
   questionCount: number
   challengeCount: number

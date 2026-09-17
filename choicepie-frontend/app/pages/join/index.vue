@@ -68,7 +68,7 @@
                 maxlength="6"
                 class="w-full"
                 :ui="{
-                  base: 'bg-[#F5F3EF] h-14 text-center text-lg md:text-xl font-bold tracking-widest uppercase'
+                  base: 'bg-cp-surface-muted h-14 text-center text-lg md:text-xl font-bold tracking-widest uppercase'
                 }"
                 @input="joinState.roomCode = joinState.roomCode.toUpperCase()"
               />
@@ -83,7 +83,7 @@
                 maxlength="12"
                 class="w-full"
                 :ui="{
-                  base: 'bg-[#F5F3EF] h-14 text-center md:text-lg'
+                  base: 'bg-cp-surface-muted h-14 text-center md:text-lg'
                 }"
               />
             </UFormField>
@@ -139,7 +139,8 @@
           to="/"
           class="block mt-6 text-center text-sm font-medium text-neutral-400"
         >
-          {{ "<- 返回首頁" }} </NuxtLink>
+          ← {{ t('join.backHome') }}
+        </NuxtLink>
       </div>
     </div>
   </div>

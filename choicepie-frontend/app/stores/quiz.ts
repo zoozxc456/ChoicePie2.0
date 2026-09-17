@@ -5,6 +5,12 @@ import type { QuizDto, QuizSummaryDto, QuestionDto, CreateQuestionRequestItem, C
 
 const AI_DAILY_LIMIT = 1
 
+export interface QuizCoverInput {
+  coverImageUrl: string | null
+  coverEmoji: string
+  coverGradient: string
+}
+
 const toQuestion = (dto: QuestionDto): Question => ({
   id: dto.id,
   text: dto.text,
@@ -17,6 +23,7 @@ const toQuiz = (dto: QuizDto): Quiz => ({
   id: dto.id,
   title: dto.title,
   description: dto.description ?? undefined,
+  coverImageUrl: dto.coverImageUrl,
   coverEmoji: dto.coverEmoji,
   coverGradient: dto.coverGradient,
   difficulty: dto.difficulty as Difficulty,
@@ -40,6 +47,7 @@ const toQuizFromSummary = (dto: QuizSummaryDto): Quiz => ({
   id: dto.id,
   title: dto.title,
   description: dto.description ?? undefined,
+  coverImageUrl: dto.coverImageUrl,
   coverEmoji: dto.coverEmoji,
   coverGradient: dto.coverGradient,
   difficulty: dto.difficulty as Difficulty,
@@ -376,7 +384,7 @@ export const useQuizStore = defineStore('quiz', () => {
     }
   }
 
-  const saveQuiz = async (questions: Question[], title: string, difficulty: Difficulty) => {
+  const saveQuiz = async (questions: Question[], title: string, difficulty: Difficulty, cover: QuizCoverInput) => {
     const items: CreateQuestionRequestItem[] = questions.map(q => ({
       text: q.text,
       options: q.options,
@@ -386,8 +394,9 @@ export const useQuizStore = defineStore('quiz', () => {
     const data = await quizApi.saveQuiz({
       title,
       description: null,
-      coverEmoji: '📝',
-      coverGradient: 'linear-gradient(135deg,#0f3460,#533483)',
+      coverImageUrl: cover.coverImageUrl,
+      coverEmoji: cover.coverEmoji,
+      coverGradient: cover.coverGradient,
       difficulty,
       tags: [],
       questions: items
@@ -395,6 +404,20 @@ export const useQuizStore = defineStore('quiz', () => {
     const quiz = toQuiz(data)
     quizzes.value.unshift(quiz)
     return quiz
+  }
+
+  const updateQuizCover = async (id: string, cover: QuizCoverInput) => {
+    const data = await quizApi.updateQuizCover(id, cover)
+    const quiz = toQuiz(data)
+    if (currentQuiz.value?.id === id) currentQuiz.value = quiz
+    const index = quizzes.value.findIndex(q => q.id === id)
+    if (index !== -1) quizzes.value[index] = quiz
+    return quiz
+  }
+
+  const uploadCoverImage = async (file: File) => {
+    const result = await quizApi.uploadCoverImage(file)
+    return result.imageUrl
   }
 
   // ── Helpers ──
@@ -422,7 +445,7 @@ export const useQuizStore = defineStore('quiz', () => {
     relatedQuizzes, isLoadingRelated,
     fetchQuizzes, fetchQuizById, fetchQuizPreview, fetchTags,
     generateQuestions, saveQuiz,
-    updateQuiz, deleteQuiz,
+    updateQuiz, updateQuizCover, uploadCoverImage, deleteQuiz,
     addQuestion, updateQuestion, removeQuestion,
     publishQuiz, unpublishQuiz, archiveQuiz, unarchiveQuiz,
     fetchFavoriteStatus, toggleFavorite,

@@ -43,12 +43,14 @@
       <!-- ─── Left: Game info ─── -->
       <div class="flex flex-col gap-5">
         <div class="rounded-2xl bg-white border border-cp-border p-6 text-center">
-          <div
-            class="mx-auto w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-4"
-            :style="game.coverGradient"
-          >
-            {{ game.coverEmoji }}
-          </div>
+          <QuizCoverThumbnail
+            :cover-image-url="game.coverImageUrl"
+            :cover-emoji="game.coverEmoji"
+            :cover-gradient="game.coverGradient"
+            size="lg"
+            rounded="2xl"
+            class="mx-auto mb-4"
+          />
           <span
             class="inline-block text-xs font-bold px-3 py-1 rounded-full mb-3"
             :class="isHost ? 'bg-cp-primary-light text-cp-primary' : 'bg-cp-info-bg text-cp-info'"
@@ -265,7 +267,7 @@
                     :style="{ width: `${optionPercent(opt, q)}%` }"
                   />
                   <div class="relative flex items-center justify-between gap-3 text-xs">
-                    <span :class="opt.isCorrect ? 'font-semibold text-[#2e7d32]' : 'text-cp-text-secondary'">
+                    <span :class="opt.isCorrect ? 'font-semibold text-cp-success' : 'text-cp-text-secondary'">
                       {{ opt.text }}
                     </span>
                     <span class="shrink-0 tabular-nums text-cp-text-muted">
@@ -283,6 +285,7 @@
 </template>
 
 <script setup lang="ts">
+import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
 import { useGameSessionStore } from '~/stores/gameSession'
 import type { GameSessionOptionStatDto, GameSessionQuestionBreakdownDto } from '~/types/api'
 
@@ -300,8 +303,9 @@ const isHost = computed(() => session.value?.isHost ?? false)
 const game = computed(() => {
   if (!session.value) return undefined
   return {
+    coverImageUrl: session.value.coverImageUrl,
     coverEmoji: session.value.coverEmoji,
-    coverGradient: `background: ${session.value.coverGradient};`,
+    coverGradient: session.value.coverGradient,
     quizTitle: session.value.quizTitle,
     playerCount: session.value.playerCount,
     questionCount: session.value.questionCount,
@@ -369,7 +373,7 @@ const rankBarClass = (rank: number) => ({
 }[rank] ?? 'bg-neutral-300')
 
 const reviewOptionClass = (qa: { myAnswerIndex: number, correctAnswerIndex: number }, optionIndex: number) => {
-  if (optionIndex === qa.correctAnswerIndex) return 'border-cp-success bg-cp-success-bg text-[#2e7d32]'
+  if (optionIndex === qa.correctAnswerIndex) return 'border-cp-success bg-cp-success-bg text-cp-success'
   if (optionIndex === qa.myAnswerIndex) return 'border-cp-danger bg-cp-danger-bg text-cp-danger'
   return 'border-cp-border text-cp-text-secondary'
 }

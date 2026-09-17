@@ -60,6 +60,19 @@
       </UButton>
     </div>
 
+    <!-- Cover -->
+    <div class="mb-6 flex flex-col gap-3">
+      <CoverImagePicker v-model="cover" />
+      <UButton
+        class="self-start rounded-full font-bold"
+        color="primary"
+        :loading="isSavingCover"
+        @click="handleSaveCover"
+      >
+        {{ t('coverPicker.saveCover') }}
+      </UButton>
+    </div>
+
     <!-- Questions -->
     <h2 class="text-lg font-bold mb-3 text-cp-text-primary">
       {{ t('myQuizzesEdit.questionsTitle') }}
@@ -122,7 +135,9 @@
 
 <script setup lang="ts">
 import HostQuestionEditor from '~/components/host/QuestionEditor.vue'
+import CoverImagePicker from '~/components/library/CoverImagePicker.vue'
 import { useQuizStore } from '~/stores/quiz'
+import type { QuizCoverInput } from '~/stores/quiz'
 import type { Question } from '~/types/quiz'
 
 definePageMeta({ layout: 'default', middleware: ['auth'] })
@@ -138,6 +153,8 @@ const metaTitle = ref('')
 const metaDescription = ref('')
 const metaTagsInput = ref('')
 const isSavingMeta = ref(false)
+const cover = ref<QuizCoverInput>({ coverImageUrl: null, coverEmoji: '📝', coverGradient: 'primary' })
+const isSavingCover = ref(false)
 const isAddingQuestion = ref(false)
 const savingQuestionId = ref<string | null>(null)
 const editingIndex = ref<number | null>(null)
@@ -157,6 +174,7 @@ watch(quiz, (value) => {
   metaTitle.value = value.title
   metaDescription.value = value.description ?? ''
   metaTagsInput.value = value.tags.join(', ')
+  cover.value = { coverImageUrl: value.coverImageUrl, coverEmoji: value.coverEmoji, coverGradient: value.coverGradient }
   drafts.value = value.questions.map(q => ({ ...q, options: [...q.options] }))
 }, { immediate: true })
 
@@ -171,6 +189,15 @@ const handleSaveMeta = async () => {
     })
   } finally {
     isSavingMeta.value = false
+  }
+}
+
+const handleSaveCover = async () => {
+  isSavingCover.value = true
+  try {
+    await quizStore.updateQuizCover(quizId, cover.value)
+  } finally {
+    isSavingCover.value = false
   }
 }
 

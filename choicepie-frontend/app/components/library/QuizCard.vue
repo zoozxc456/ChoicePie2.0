@@ -3,11 +3,14 @@
     :to="`/library/${quiz.id}`"
     class="bg-cp-surface rounded-2xl overflow-hidden border border-cp-border transition-all hover:shadow-cp-md hover:border-transparent hover:scale-[1.02]"
   >
-    <div
-      class="relative aspect-square flex items-center justify-center text-5xl"
-      :style="quiz.coverGradient"
-    >
-      {{ quiz.coverEmoji }}
+    <div class="relative aspect-square">
+      <QuizCoverThumbnail
+        :cover-image-url="quiz.coverImageUrl"
+        :cover-emoji="quiz.coverEmoji"
+        :cover-gradient="quiz.coverGradient"
+        size="full"
+        rounded="none"
+      />
       <div
         v-if="featured"
         class="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-cp-primary text-white flex items-center justify-center text-base"
@@ -33,6 +36,7 @@
 </template>
 
 <script lang="ts" setup>
+import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
 import { DIFFICULTY_LABEL } from '~/types/quiz'
 import type { Quiz } from '~/types/quiz'
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="relative grid grid-cols-[1fr_152px] rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden">
+  <div class="relative grid grid-cols-[1fr_152px] rounded-2xl bg-white border border-neutral-200 overflow-hidden">
     <div class="p-6 min-w-0 flex flex-col">
       <p class="text-lg font-bold">
         {{ quiz.title }}

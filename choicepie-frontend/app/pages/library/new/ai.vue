@@ -16,9 +16,10 @@
       v-if="step === 'input' && !quizStore.canUseAiToday"
       class="bg-white border border-neutral-200 rounded-2xl px-7 py-10 flex flex-col items-center text-center gap-3"
     >
-      <div class="text-4xl">
-        ⏳
-      </div>
+      <UIcon
+        name="i-lucide-hourglass"
+        class="text-4xl text-neutral-400"
+      />
       <p class="text-lg font-bold">
         {{ t('hostNew.ai.locked.title') }}
       </p>
@@ -128,6 +129,11 @@
         />
       </div>
 
+      <CoverImagePicker
+        v-model="cover"
+        class="mb-4"
+      />
+
       <div class="bg-white border border-neutral-200 rounded-2xl p-6 flex items-center justify-between gap-5 flex-wrap mb-4">
         <div>
           <p class="font-semibold text-sm mb-0.5">
@@ -165,7 +171,9 @@
 <script setup lang="ts">
 import HostQuestionEditor from '~/components/host/QuestionEditor.vue'
 import HostPreviewQuizModal from '~/components/host/PreviewQuizModal.vue'
+import CoverImagePicker from '~/components/library/CoverImagePicker.vue'
 import { useQuizStore } from '~/stores/quiz'
+import type { QuizCoverInput } from '~/stores/quiz'
 import type { Difficulty, Question } from '~/types/quiz'
 
 definePageMeta({
@@ -185,6 +193,7 @@ const difficultyOptions: Difficulty[] = ['beginner', 'intermediate', 'expert']
 
 const step = ref<'input' | 'preview'>('input')
 const questions = ref<Question[]>([])
+const cover = ref<QuizCoverInput>({ coverImageUrl: null, coverEmoji: '📝', coverGradient: 'primary' })
 const editingIndex = ref<number | null>(null)
 const isCreatingRoom = ref(false)
 const isPreviewOpen = ref(false)
@@ -224,7 +233,7 @@ const handleSaveQuiz = async () => {
   isCreatingRoom.value = true
   try {
     const title = content.value.trim().slice(0, 30)
-    const quiz = await quizStore.saveQuiz(questions.value, title, difficulty.value)
+    const quiz = await quizStore.saveQuiz(questions.value, title, difficulty.value, cover.value)
     await navigateTo(`/library/${quiz.id}`)
   } catch {
     isCreatingRoom.value = false

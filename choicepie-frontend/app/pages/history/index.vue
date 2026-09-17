@@ -73,12 +73,12 @@
           :to="`/history/${game.id}`"
           class="history-card bg-white rounded-2xl border border-cp-border overflow-hidden flex gap-4 p-4"
         >
-          <div
-            class="shrink-0 w-16 h-16 rounded-xl flex items-center justify-center text-3xl"
-            :style="game.coverGradient"
-          >
-            {{ game.coverEmoji }}
-          </div>
+          <QuizCoverThumbnail
+            :cover-image-url="game.coverImageUrl"
+            :cover-emoji="game.coverEmoji"
+            :cover-gradient="game.coverGradient"
+            size="md"
+          />
           <div class="min-w-0 flex-1">
             <p class="text-sm font-bold truncate">
               {{ game.quizTitle }}
@@ -145,12 +145,12 @@
             />
             <template v-else>#{{ game.myRank }}</template>
           </span>
-          <div
-            class="shrink-0 w-16 h-16 rounded-xl flex items-center justify-center text-3xl"
-            :style="game.coverGradient"
-          >
-            {{ game.coverEmoji }}
-          </div>
+          <QuizCoverThumbnail
+            :cover-image-url="game.coverImageUrl"
+            :cover-emoji="game.coverEmoji"
+            :cover-gradient="game.coverGradient"
+            size="md"
+          />
           <div class="min-w-0 flex-1 pr-8">
             <p class="text-sm font-bold truncate">
               {{ game.quizTitle }}
@@ -173,6 +173,7 @@
 </template>
 
 <script setup lang="ts">
+import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
 import { useGameSessionStore } from '~/stores/gameSession'
 
 definePageMeta({ layout: 'content', middleware: ['auth'] })
@@ -191,8 +192,9 @@ const roles = computed(() => [
 const hostedGames = computed(() => gameSessionStore.hostedSessions.map(s => ({
   id: s.id,
   quizTitle: s.quizTitle,
+  coverImageUrl: s.coverImageUrl,
   coverEmoji: s.coverEmoji,
-  coverGradient: `background: ${s.coverGradient};`,
+  coverGradient: s.coverGradient,
   playerCount: s.playerCount,
   questionCount: s.questionCount,
   topPlayerName: s.topPlayerName,
@@ -203,8 +205,9 @@ const hostedGames = computed(() => gameSessionStore.hostedSessions.map(s => ({
 const playedGames = computed(() => gameSessionStore.playedSessions.map(s => ({
   id: s.id,
   quizTitle: s.quizTitle,
+  coverImageUrl: s.coverImageUrl,
   coverEmoji: s.coverEmoji,
-  coverGradient: `background: ${s.coverGradient};`,
+  coverGradient: s.coverGradient,
   playerCount: s.playerCount,
   questionCount: s.questionCount,
   myRank: s.myRank ?? 0,

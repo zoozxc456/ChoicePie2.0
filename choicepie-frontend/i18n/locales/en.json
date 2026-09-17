@@ -18,6 +18,7 @@
     "nicknamePlaceholder": "Enter nickname (2–12 chars)",
     "submit": "Join Game",
     "roomNotFound": "Room not found. Please check the room code.",
+    "backHome": "Back to home",
     "validation": {
       "roomCodeLength": "Room code must be exactly 6 characters",
       "nicknameMin": "Nickname must be at least 2 characters",
@@ -685,6 +686,19 @@
         }
       ]
     }
+  },
+  "coverPicker": {
+    "label": "Quiz Cover",
+    "colorMode": "Color + Icon",
+    "uploadMode": "Upload Image",
+    "uploadHint": "Click to choose an image (JPEG / PNG / WebP, up to 5MB)",
+    "uploading": "Uploading…",
+    "uploadFailed": "Failed to upload image, please try again later",
+    "fileTooLarge": "Image is too large, please upload one under 5MB",
+    "invalidFileType": "Unsupported image format, only JPEG, PNG, WebP are accepted",
+    "changeImage": "Change Image",
+    "saveCover": "Save Cover",
+    "saveCoverSuccess": "Cover updated"
   },
   "hostNew": {
     "backToChoice": "Back to quiz method",

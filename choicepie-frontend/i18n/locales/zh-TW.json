@@ -18,6 +18,7 @@
     "nicknamePlaceholder": "輸入暱稱（2～12 字）",
     "submit": "加入遊戲",
     "roomNotFound": "找不到此房間，請確認房間碼是否正確",
+    "backHome": "返回首頁",
     "validation": {
       "roomCodeLength": "房間碼必須為 6 位",
       "nicknameMin": "暱稱至少需要 2 個字元",
@@ -685,6 +686,19 @@
         }
       ]
     }
+  },
+  "coverPicker": {
+    "label": "題庫封面",
+    "colorMode": "顏色 + 圖示",
+    "uploadMode": "上傳圖片",
+    "uploadHint": "點擊選擇圖片（JPEG / PNG / WebP，5MB 以內）",
+    "uploading": "上傳中…",
+    "uploadFailed": "圖片上傳失敗，請稍後再試",
+    "fileTooLarge": "圖片檔案過大，請上傳 5MB 以內的圖片",
+    "invalidFileType": "不支援的圖片格式，僅接受 JPEG、PNG、WebP",
+    "changeImage": "更換圖片",
+    "saveCover": "儲存封面",
+    "saveCoverSuccess": "封面已更新"
   },
   "hostNew": {
     "backToChoice": "返回出題方式",

@@ -57,6 +57,7 @@ export interface QuizDto {
   id: string
   title: string
   description: string | null
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   difficulty: string
@@ -80,6 +81,7 @@ export interface QuizSummaryDto {
   id: string
   title: string
   description: string | null
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   difficulty: string
@@ -98,6 +100,7 @@ export interface QuizSummaryDto {
 export interface CreateQuizRequest {
   title: string
   description: string | null
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   difficulty: string
@@ -109,6 +112,16 @@ export interface UpdateQuizRequest {
   title: string
   description: string | null
   tags: string[]
+}
+
+export interface UpdateQuizCoverRequest {
+  coverImageUrl: string | null
+  coverEmoji: string
+  coverGradient: string
+}
+
+export interface UploadQuizCoverResultDto {
+  imageUrl: string
 }
 
 export interface PagedResult<T> {
@@ -163,6 +176,7 @@ export interface QuizForAttemptDto {
   id: string
   title: string
   description: string | null
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   difficulty: string
@@ -222,6 +236,7 @@ export interface GameSessionSummaryDto {
   roomCode: string
   quizId: string
   quizTitle: string
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   playedAtUtc: string
@@ -266,6 +281,7 @@ export interface GameSessionDetailDto {
   roomCode: string
   quizId: string
   quizTitle: string
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   playedAtUtc: string
@@ -327,6 +343,7 @@ export interface AdminQuizDetailDto {
   id: string
   title: string
   description: string | null
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   difficulty: string

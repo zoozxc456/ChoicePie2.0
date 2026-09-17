@@ -38,7 +38,7 @@
       <div
         v-for="tier in tiers"
         :key="tier.id"
-        class="rounded-2xl bg-white border border-neutral-200 shadow-sm p-4 flex items-center justify-between gap-3"
+        class="rounded-2xl bg-white border border-neutral-200 p-4 flex items-center justify-between gap-3"
       >
         <div class="min-w-0">
           <div class="flex items-center gap-2">

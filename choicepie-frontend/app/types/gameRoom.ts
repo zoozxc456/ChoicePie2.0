@@ -30,6 +30,7 @@ export interface HostedGameSummary {
   id: string
   quizId: string
   quizTitle: string
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   playerCount: number
@@ -53,6 +54,7 @@ export interface WrongAnswerReview {
 export interface PlayedGameSummary {
   id: string
   quizTitle: string
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   playerCount: number
