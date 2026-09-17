@@ -38,6 +38,14 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
         return Ok(ResponseHelper.Success(result));
     }
 
+    [HttpPut("{id:guid}/cover")]
+    [Authorize(Policy = "MemberOnly")]
+    public async Task<ActionResult<ApiResponse<QuizDto>>> UpdateCoverAsync(Guid id, [FromBody] UpdateQuizCoverRequest request)
+    {
+        var result = await mediator.Send(request.ToCommand(id));
+        return Ok(ResponseHelper.Success(result));
+    }
+
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse>> DeleteAsync(Guid id)

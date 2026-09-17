@@ -22,6 +22,7 @@ public sealed class GameRoom : AggregateRoot<Guid>
     public string RoomCode { get; private set; } = null!;
     public Guid QuizId { get; private set; }
     public string QuizTitle { get; private set; } = null!;
+    public string? CoverImageUrl { get; private set; }
     public string CoverEmoji { get; private set; } = null!;
     public string CoverGradient { get; private set; } = null!;
     public int TimeLimitSeconds { get; private set; }
@@ -44,6 +45,7 @@ public sealed class GameRoom : AggregateRoot<Guid>
         string roomCode,
         Guid quizId,
         string quizTitle,
+        string? coverImageUrl,
         string coverEmoji,
         string coverGradient,
         IReadOnlyList<GameQuestionSnapshot> questions,
@@ -67,6 +69,7 @@ public sealed class GameRoom : AggregateRoot<Guid>
             RoomCode = roomCode,
             QuizId = quizId,
             QuizTitle = quizTitle,
+            CoverImageUrl = coverImageUrl,
             CoverEmoji = coverEmoji,
             CoverGradient = coverGradient,
             TimeLimitSeconds = timeLimitSeconds,
@@ -216,6 +219,7 @@ public sealed class GameRoom : AggregateRoot<Guid>
             RoomCode,
             QuizId,
             QuizTitle,
+            CoverImageUrl,
             CoverEmoji,
             CoverGradient,
             TimeLimitSeconds,
@@ -237,6 +241,7 @@ public sealed class GameRoom : AggregateRoot<Guid>
             RoomCode = memento.RoomCode,
             QuizId = memento.QuizId,
             QuizTitle = memento.QuizTitle,
+            CoverImageUrl = memento.CoverImageUrl,
             CoverEmoji = memento.CoverEmoji,
             CoverGradient = memento.CoverGradient,
             TimeLimitSeconds = memento.TimeLimitSeconds,
@@ -264,6 +269,7 @@ public sealed record GameRoomMemento(
     string RoomCode,
     Guid QuizId,
     string QuizTitle,
+    string? CoverImageUrl,
     string CoverEmoji,
     string CoverGradient,
     int TimeLimitSeconds,

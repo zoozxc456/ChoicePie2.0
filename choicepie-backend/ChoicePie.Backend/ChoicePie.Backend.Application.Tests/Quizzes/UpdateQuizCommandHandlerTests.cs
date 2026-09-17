@@ -29,7 +29,7 @@ public class UpdateQuizCommandHandlerTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _sut = new UpdateQuizCommandHandler(_quizRepository, _memberRepository, _currentUserService, _unitOfWork);
 
-        _quiz = Quiz.Create(_ownerId, "Old Title", null, "⚓", "g", Difficulty.Beginner, ["Old"]);
+        _quiz = Quiz.Create(_ownerId, "Old Title", null, null, "⚓", "primary", Difficulty.Beginner, ["Old"]);
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
     }
 

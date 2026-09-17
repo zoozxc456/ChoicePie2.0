@@ -25,8 +25,8 @@ public sealed class CreateQuizCommandHandler(
                           ?? throw new InvalidQuizException($"未知的難度：{request.Difficulty}");
 
         var quiz = Quiz.Create(
-            userId, request.Title, request.Description, request.CoverEmoji, request.CoverGradient,
-            difficulty, request.Tags);
+            userId, request.Title, request.Description, request.CoverImageUrl, request.CoverEmoji,
+            request.CoverGradient, difficulty, request.Tags);
 
         foreach (var question in request.Questions)
         {

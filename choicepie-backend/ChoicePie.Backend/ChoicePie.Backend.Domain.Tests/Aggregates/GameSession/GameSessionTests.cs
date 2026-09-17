@@ -17,7 +17,7 @@ public class GameSessionTests
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "基本加法")
         };
         var room = Domain.Aggregates.GameRoom.GameRoom.Create(
-            HostUserId, "ABC123", QuizId, "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
+            HostUserId, "ABC123", QuizId, "測試題庫", null, "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
         var startedAt = CreatedAtUtc.AddMinutes(1);
         var winner = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30), winnerMemberId);
         var loser = room.Join("小華", "connection-2", CreatedAtUtc.AddSeconds(35));

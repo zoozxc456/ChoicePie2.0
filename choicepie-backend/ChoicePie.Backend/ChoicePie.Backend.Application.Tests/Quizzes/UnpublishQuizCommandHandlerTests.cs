@@ -30,7 +30,7 @@ public class UnpublishQuizCommandHandlerTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _sut = new UnpublishQuizCommandHandler(_quizRepository, _memberRepository, _currentUserService, _unitOfWork);
 
-        _quiz = Quiz.Create(_ownerId, "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(_ownerId, "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _quiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
         _quiz.Publish();
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);

@@ -5,6 +5,7 @@ public sealed record GameSessionDetailDto(
     string RoomCode,
     Guid QuizId,
     string QuizTitle,
+    string? CoverImageUrl,
     string CoverEmoji,
     string CoverGradient,
     DateTime PlayedAtUtc,

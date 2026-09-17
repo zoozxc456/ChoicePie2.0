@@ -29,7 +29,7 @@ public class GetQuizByIdQueryHandlerTests
     private static readonly QuestionDto Question = new(Guid.NewGuid(), "What is a Pod?", ["A", "B", "C", "D"], 0, "Explanation");
 
     private QuizDto MakeDto(Guid quizId) => new(
-        quizId, "Kubernetes 101", null, "⚓", "g", "beginner", "draft", 0, 0, _ownerId, "Host Name", null,
+        quizId, "Kubernetes 101", null, null, "⚓", "primary", "beginner", "draft", 0, 0, _ownerId, "Host Name", null,
         [Question], [new QuestionStubDto(Question.Id)], 1, [], 0,
         DateTime.UtcNow, DateTime.UtcNow);
 

@@ -39,7 +39,7 @@ public class AdminResolveQuizReportCommandHandlerTests
         _sut = new AdminResolveQuizReportCommandHandler(
             _quizReportRepository, _quizRepository, _currentAdminUserService, _unitOfWork, _timeProvider);
 
-        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _quiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
         _quiz.Publish();
         _report = QuizReportAggregate.Create(_quiz.Id, Guid.NewGuid(), ReportReason.Spam, null);

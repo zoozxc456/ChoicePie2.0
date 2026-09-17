@@ -38,7 +38,7 @@ public class CompleteQuizAttemptCommandHandlerTests
         _sut = new CompleteQuizAttemptCommandHandler(
             _quizAttemptRepository, _quizRepository, _currentUserService, _unitOfWork, _timeProvider);
 
-        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _question = Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math");
         _quiz.AddQuestion(_question);
         _quiz.Publish();

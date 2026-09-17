@@ -22,7 +22,7 @@ public class RecordQuizShareCommandHandlerTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _sut = new RecordQuizShareCommandHandler(_quizRepository, _unitOfWork);
 
-        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
     }
 

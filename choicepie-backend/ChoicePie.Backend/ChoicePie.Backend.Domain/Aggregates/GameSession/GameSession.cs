@@ -12,6 +12,7 @@ public sealed class GameSession : AggregateRoot<Guid>
     public Guid HostUserId { get; private set; }
     public Guid QuizId { get; private set; }
     public string QuizTitle { get; private set; } = null!;
+    public string? CoverImageUrl { get; private set; }
     public string CoverEmoji { get; private set; } = null!;
     public string CoverGradient { get; private set; } = null!;
     public DateTime PlayedAtUtc { get; private set; }
@@ -32,6 +33,7 @@ public sealed class GameSession : AggregateRoot<Guid>
             HostUserId = room.HostUserId,
             QuizId = room.QuizId,
             QuizTitle = room.QuizTitle,
+            CoverImageUrl = room.CoverImageUrl,
             CoverEmoji = room.CoverEmoji,
             CoverGradient = room.CoverGradient,
             PlayedAtUtc = utcNow

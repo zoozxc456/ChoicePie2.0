@@ -31,7 +31,7 @@ public class RemoveQuestionCommandHandlerTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _sut = new RemoveQuestionCommandHandler(_quizRepository, _memberRepository, _currentUserService, _unitOfWork);
 
-        _quiz = Quiz.Create(_ownerId, "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(_ownerId, "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _question = Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math");
         _quiz.AddQuestion(_question);
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);

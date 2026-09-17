@@ -30,7 +30,7 @@ public class CreateRoomCommandHandlerTests
 
     private Quiz CreateQuizWithQuestions(int count)
     {
-        var quiz = Quiz.Create(_hostUserId, "Kubernetes 101", null, "⚓", "gradient", Difficulty.Beginner, []);
+        var quiz = Quiz.Create(_hostUserId, "Kubernetes 101", null, null, "⚓", "primary", Difficulty.Beginner, []);
         for (var i = 0; i < count; i++)
         {
             quiz.AddQuestion(Question.Create($"Q{i}", ["1", "2", "3", "4"], 1, "explanation"));

@@ -25,6 +25,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                     q.Id,
                     q.Title,
                     q.Description,
+                    q.Cover.ImageUrl,
+
                     q.Cover.Emoji,
                     q.Cover.Gradient,
                     q.Difficulty.Name,
@@ -58,6 +60,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                     q.Id,
                     q.Title,
                     q.Description,
+                    q.Cover.ImageUrl,
+
                     q.Cover.Emoji,
                     q.Cover.Gradient,
                     q.Difficulty.Name,
@@ -94,6 +98,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                     q.Id,
                     q.Title,
                     q.Description,
+                    q.Cover.ImageUrl,
+
                     q.Cover.Emoji,
                     q.Cover.Gradient,
                     q.Difficulty.Name,
@@ -136,6 +142,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                 q.Id,
                 q.Title,
                 q.Description,
+                q.Cover.ImageUrl,
+
                 q.Cover.Emoji,
                 q.Cover.Gradient,
                 q.Difficulty.Name,
@@ -179,6 +187,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                 q.Id,
                 q.Title,
                 q.Description,
+                q.Cover.ImageUrl,
+
                 q.Cover.Emoji,
                 q.Cover.Gradient,
                 q.Difficulty.Name,
@@ -234,6 +244,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                 q.Id,
                 q.Title,
                 q.Description,
+                q.Cover.ImageUrl,
+
                 q.Cover.Emoji,
                 q.Cover.Gradient,
                 q.Difficulty.Name,
@@ -298,6 +310,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                 q.Id,
                 q.Title,
                 q.Description,
+                q.Cover.ImageUrl,
+
                 q.Cover.Emoji,
                 q.Cover.Gradient,
                 q.Difficulty.Name,

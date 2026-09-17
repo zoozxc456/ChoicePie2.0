@@ -6,6 +6,7 @@ public sealed record AdminQuizDetailDto(
     Guid Id,
     string Title,
     string? Description,
+    string? CoverImageUrl,
     string CoverEmoji,
     string CoverGradient,
     string Difficulty,

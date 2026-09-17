@@ -22,6 +22,8 @@ builder.Services.Configure<GoogleSettings>(
     builder.Configuration.GetSection(GoogleSettings.SectionName));
 builder.Services.Configure<AiQuizGenerationSettings>(
     builder.Configuration.GetSection(AiQuizGenerationSettings.SectionName));
+builder.Services.Configure<CloudflareR2Settings>(
+    builder.Configuration.GetSection(CloudflareR2Settings.SectionName));
 
 builder.Services
     .AddEndpointsApiExplorer()

@@ -41,7 +41,7 @@ public class StartQuizAttemptCommandHandlerTests
             _quizRepository, _quizAttemptRepository, _memberRepository, _currentUserService, _unitOfWork,
             _timeProvider);
 
-        _quiz = Quiz.Create(_memberId, "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(_memberId, "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _quiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
         _quiz.Publish();
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
@@ -88,7 +88,7 @@ public class StartQuizAttemptCommandHandlerTests
     [Test]
     public void Handle_GivenDraftQuiz_WhenCalled_ThenThrowsQuizNotPublishedException()
     {
-        var draftQuiz = Quiz.Create(_memberId, "Draft", null, "⚓", "g", Difficulty.Beginner, []);
+        var draftQuiz = Quiz.Create(_memberId, "Draft", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _quizRepository.GetByIdAsync(draftQuiz.Id, Arg.Any<CancellationToken>()).Returns(draftQuiz);
 
         Assert.ThrowsAsync<QuizNotPublishedException>(() =>
@@ -100,7 +100,7 @@ public class StartQuizAttemptCommandHandlerTests
     {
         // 單人練習的目的就是挑戰別人發布的題庫，非擁有者不該被拒絕——擁有者身分檢查只適用於
         // 題庫管理操作（編輯/下架等），不適用於開始挑戰。
-        var othersQuiz = Quiz.Create(Guid.NewGuid(), "Someone Else's Quiz", null, "⚓", "g", Difficulty.Beginner, []);
+        var othersQuiz = Quiz.Create(Guid.NewGuid(), "Someone Else's Quiz", null, null, "⚓", "primary", Difficulty.Beginner, []);
         othersQuiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
         othersQuiz.Publish();
         _quizRepository.GetByIdAsync(othersQuiz.Id, Arg.Any<CancellationToken>()).Returns(othersQuiz);

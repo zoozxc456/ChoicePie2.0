@@ -25,7 +25,7 @@ public class GetRelatedQuizzesQueryHandlerTests
         IReadOnlyList<QuizSummaryDto> expected =
         [
             new QuizSummaryDto(
-                Guid.NewGuid(), "Related Quiz", null, "🎯", "from-red-500 to-orange-500", "beginner", "published",
+                Guid.NewGuid(), "Related Quiz", null, null, "🎯", "primary", "beginner", "published",
                 5, 10, 0.8m, Guid.NewGuid(), "Someone", null, ["tag"], DateTime.UtcNow, DateTime.UtcNow)
         ];
         _quizQueryService.GetRelatedAsync(quizId, 6, Arg.Any<CancellationToken>()).Returns(expected);

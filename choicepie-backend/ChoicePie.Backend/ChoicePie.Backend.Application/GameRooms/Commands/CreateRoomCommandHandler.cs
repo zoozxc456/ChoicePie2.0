@@ -28,8 +28,8 @@ public sealed class CreateRoomCommandHandler(
         var roomCode = await GenerateUniqueRoomCodeAsync(cancellationToken);
 
         var room = GameRoom.Create(
-            request.HostUserId, roomCode, quiz.Id, quiz.Title, quiz.Cover.Emoji, quiz.Cover.Gradient,
-            questions, request.TimeLimitSeconds, timeProvider.GetUtcNow().UtcDateTime);
+            request.HostUserId, roomCode, quiz.Id, quiz.Title, quiz.Cover.ImageUrl, quiz.Cover.Emoji,
+            quiz.Cover.Gradient, questions, request.TimeLimitSeconds, timeProvider.GetUtcNow().UtcDateTime);
 
         await gameRoomRepository.SaveAsync(room, cancellationToken);
 

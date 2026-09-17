@@ -31,7 +31,7 @@ public class GameRoomCacheRepositoryTests
         {
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "e")
         };
-        return GameRoomAggregate.Create(HostUserId, roomCode, QuizId, "測試題庫", "📝", "grad", questions, 20, CreatedAtUtc);
+        return GameRoomAggregate.Create(HostUserId, roomCode, QuizId, "測試題庫", null, "📝", "primary", questions, 20, CreatedAtUtc);
     }
 
     [Test]

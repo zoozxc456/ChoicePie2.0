@@ -26,7 +26,7 @@ public class DeleteQuizCommandHandlerTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _sut = new DeleteQuizCommandHandler(_quizRepository, _currentUserService, _unitOfWork);
 
-        _quiz = Quiz.Create(_ownerId, "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(_ownerId, "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
     }
 

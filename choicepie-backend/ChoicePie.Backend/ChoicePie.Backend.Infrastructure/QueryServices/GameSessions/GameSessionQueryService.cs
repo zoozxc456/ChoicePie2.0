@@ -55,8 +55,8 @@ public sealed class GameSessionQueryService(IReadRepository readRepository) : IG
             : [];
 
         var dto = new GameSessionDetailDto(
-            session.Id, session.RoomCode, session.QuizId, session.QuizTitle, session.CoverEmoji, session.CoverGradient,
-            session.PlayedAtUtc, session.PlayerResults.Count, session.Questions.Count, isHost,
+            session.Id, session.RoomCode, session.QuizId, session.QuizTitle, session.CoverImageUrl, session.CoverEmoji,
+            session.CoverGradient, session.PlayedAtUtc, session.PlayerResults.Count, session.Questions.Count, isHost,
             rankings, myResult?.Rank, myResult?.FinalScore, wrongAnswers, questionBreakdown);
 
         return Task.FromResult<GameSessionDetailDto?>(dto);
@@ -114,8 +114,8 @@ public sealed class GameSessionQueryService(IReadRepository readRepository) : IG
         var mine = myMemberId is null ? null : session.PlayerResults.FirstOrDefault(r => r.MemberId == myMemberId);
 
         return new GameSessionSummaryDto(
-            session.Id, session.RoomCode, session.QuizId, session.QuizTitle, session.CoverEmoji, session.CoverGradient,
-            session.PlayedAtUtc, session.PlayerResults.Count, session.Questions.Count,
+            session.Id, session.RoomCode, session.QuizId, session.QuizTitle, session.CoverImageUrl, session.CoverEmoji,
+            session.CoverGradient, session.PlayedAtUtc, session.PlayerResults.Count, session.Questions.Count,
             top?.Nickname ?? string.Empty, top?.FinalScore ?? 0, mine?.Rank, mine?.FinalScore);
     }
 

@@ -413,6 +413,11 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("cover_gradient");
 
+                    b.Property<string>("CoverImageUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("cover_image_url");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -1431,6 +1436,11 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                                 .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("CoverGradient");
+
+                            b1.Property<string>("ImageUrl")
+                                .HasMaxLength(2048)
+                                .HasColumnType("character varying(2048)")
+                                .HasColumnName("CoverImageUrl");
 
                             b1.HasKey("QuizId");
 

@@ -44,7 +44,7 @@ public sealed class GameSessionsControllerTests
             Title = "GameSession Test Quiz",
             Description = "for GameSessionsController tests",
             CoverEmoji = "🎯",
-            CoverGradient = "from-red-500 to-orange-500",
+            CoverGradient = "primary",
             Difficulty = "beginner",
             Tags = new[] { "test" },
             Questions = new[]

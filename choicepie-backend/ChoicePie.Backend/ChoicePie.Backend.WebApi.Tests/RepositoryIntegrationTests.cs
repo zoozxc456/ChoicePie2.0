@@ -57,7 +57,7 @@ public sealed class RepositoryIntegrationTests
         var repository = scope.ServiceProvider.GetRequiredService<IQuizRepository>();
 
         var member = Member.Create("Quiz Owner");
-        var quiz = Quiz.Create(member.Id, "Repo Test Quiz", null, "🎯", "grad", Difficulty.Beginner, ["test"]);
+        var quiz = Quiz.Create(member.Id, "Repo Test Quiz", null, null, "🎯", "primary", Difficulty.Beginner, ["test"]);
         quiz.AddQuestion(Question.Create("Q?", ["1", "2", "3", "4"], 0, "e"));
         dbContext.Add(member);
         dbContext.Add(quiz);
@@ -77,7 +77,7 @@ public sealed class RepositoryIntegrationTests
         var repository = scope.ServiceProvider.GetRequiredService<IQuizAttemptRepository>();
 
         var member = Member.Create("Attempt Owner");
-        var quiz = Quiz.Create(member.Id, "Repo Attempt Quiz", null, "🎯", "grad", Difficulty.Beginner, ["test"]);
+        var quiz = Quiz.Create(member.Id, "Repo Attempt Quiz", null, null, "🎯", "primary", Difficulty.Beginner, ["test"]);
         var question = Question.Create("Q?", ["1", "2", "3", "4"], 1, "e");
         quiz.AddQuestion(question);
         var attempt = QuizAttemptAggregate.Start(quiz.Id, member.Id, [question.Id], DateTime.UtcNow);
@@ -103,7 +103,7 @@ public sealed class RepositoryIntegrationTests
         var hostUserId = Guid.NewGuid();
         var quizId = Guid.NewGuid();
         var questions = new List<GameQuestionSnapshot> { new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], 1, "e") };
-        var room = GameRoomAggregate.Create(hostUserId, "RPO123", quizId, "Repo Session Quiz", "🎯", "grad", questions, 20, DateTime.UtcNow);
+        var room = GameRoomAggregate.Create(hostUserId, "RPO123", quizId, "Repo Session Quiz", null, "🎯", "primary", questions, 20, DateTime.UtcNow);
         var startedAt = DateTime.UtcNow;
         var player = room.Join("Player", "conn-1", startedAt);
         room.StartGame(hostUserId, startedAt);
@@ -228,7 +228,7 @@ public sealed class RepositoryIntegrationTests
 
         var member = Member.Create("Read Repo Owner");
         var uniqueTitle = $"ReadRepo-{Guid.NewGuid()}";
-        var quiz = Quiz.Create(member.Id, uniqueTitle, null, "🎯", "grad", Difficulty.Beginner, ["test"]);
+        var quiz = Quiz.Create(member.Id, uniqueTitle, null, null, "🎯", "primary", Difficulty.Beginner, ["test"]);
         dbContext.Add(member);
         dbContext.Add(quiz);
         await dbContext.SaveChangesAsync();
@@ -247,7 +247,7 @@ public sealed class RepositoryIntegrationTests
         var repository = scope.ServiceProvider.GetRequiredService<IQuizFavoriteRepository>();
 
         var member = Member.Create("Favorite Owner");
-        var quiz = Quiz.Create(member.Id, "Favorite Repo Quiz", null, "🎯", "grad", Difficulty.Beginner, ["test"]);
+        var quiz = Quiz.Create(member.Id, "Favorite Repo Quiz", null, null, "🎯", "primary", Difficulty.Beginner, ["test"]);
         var favorite = QuizFavoriteAggregate.Create(quiz.Id, member.Id);
         dbContext.Add(member);
         dbContext.Add(quiz);
