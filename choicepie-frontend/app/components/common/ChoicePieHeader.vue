@@ -229,7 +229,7 @@ watch(() => route.path, closeMenu)
 }
 .dropdown-item--success:hover {
   background: var(--cp-success-bg);
-  color: #2e7d32;
+  color: var(--cp-success);
 }
 .dropdown-item--danger {
   color: var(--cp-danger);
