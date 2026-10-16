@@ -2,12 +2,12 @@ name: Backend CI
 
 on:
   push:
-    branches: [master, 'feat-**']
+    branches: [master, develop, 'feat/**']
     paths:
       - 'choicepie-backend/**'
       - '.github/workflows/backend-ci.yml'
   pull_request:
-    branches: [master]
+    branches: [master, develop]
     paths:
       - 'choicepie-backend/**'
       - '.github/workflows/backend-ci.yml'
