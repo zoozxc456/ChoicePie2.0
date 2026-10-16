@@ -5,7 +5,6 @@
     class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-black/70 text-white text-center px-6"
     role="status"
   >
-    <span class="text-5xl">⏸</span>
     <p class="text-2xl font-black">
       {{ t('room.question.paused') }}
     </p>

@@ -54,7 +54,6 @@
         class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/75 text-white"
         role="status"
       >
-        <span class="text-8xl">⏸</span>
         <p class="text-5xl font-black">
           {{ t('bigscreen.playing.paused') }}
         </p>
