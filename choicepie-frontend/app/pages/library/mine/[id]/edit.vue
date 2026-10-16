@@ -13,51 +13,14 @@
       {{ t('myQuizzesEdit.title') }}
     </h1>
 
-    <!-- Metadata -->
-    <div class="bg-cp-surface rounded-2xl border border-cp-border p-5 flex flex-col gap-4 mb-6">
-      <div class="flex flex-col gap-2">
-        <label class="text-[13px] font-bold text-cp-text-primary">
-          {{ t('myQuizzesEdit.titleLabel') }}
-        </label>
-        <UInput
-          v-model="metaTitle"
-          size="lg"
-          class="w-full"
-          :ui="{ base: 'h-11 text-sm px-3.5' }"
-        />
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="text-[13px] font-bold text-cp-text-primary">
-          {{ t('myQuizzesEdit.descriptionLabel') }}
-        </label>
-        <textarea
-          v-model="metaDescription"
-          rows="3"
-          class="w-full rounded-lg p-3 text-sm resize-none outline-none bg-cp-surface-muted border-[1.5px] border-transparent focus:border-cp-primary"
-          :placeholder="t('myQuizzesEdit.descriptionPlaceholder')"
-        />
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="text-[13px] font-bold text-cp-text-primary">
-          {{ t('myQuizzesEdit.tagsLabel') }}
-        </label>
-        <UInput
-          v-model="metaTagsInput"
-          size="lg"
-          class="w-full"
-          :placeholder="t('myQuizzesEdit.tagsPlaceholder')"
-          :ui="{ base: 'h-11 text-sm px-3.5' }"
-        />
-      </div>
-      <UButton
-        class="self-start rounded-full font-bold"
-        color="primary"
-        :loading="isSavingMeta"
-        @click="handleSaveMeta"
-      >
-        {{ t('myQuizzesEdit.saveMeta') }}
-      </UButton>
-    </div>
+    <QuizMetaForm
+      v-model:title="metaTitle"
+      v-model:description="metaDescription"
+      v-model:tags="metaTagsInput"
+      class="mb-6"
+      :saving="isSavingMeta"
+      @save="handleSaveMeta"
+    />
 
     <!-- Cover -->
     <div class="mb-6 flex flex-col gap-3">
@@ -111,13 +74,11 @@
       </div>
     </div>
 
-    <button
-      class="w-full h-12 rounded-2xl border-[1.5px] border-dashed border-cp-border hover:bg-cp-surface-muted text-cp-text-secondary font-semibold text-sm"
+    <AddQuestionButton
+      :label="t('myQuizzesEdit.addQuestion')"
       :disabled="isAddingQuestion"
-      @click="handleAddQuestion"
-    >
-      ＋ {{ t('myQuizzesEdit.addQuestion') }}
-    </button>
+      @add="handleAddQuestion"
+    />
   </div>
 
   <!-- Loading -->
@@ -129,8 +90,11 @@
 <script setup lang="ts">
 import BackLink from '~/components/common/BackLink.vue'
 import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
+import AddQuestionButton from '~/components/library/editor/AddQuestionButton.vue'
+import QuizMetaForm from '~/components/library/editor/QuizMetaForm.vue'
 import HostQuestionEditor from '~/components/host/QuestionEditor.vue'
 import CoverImagePicker from '~/components/library/CoverImagePicker.vue'
+import { createBlankQuestion } from '~/composables/useQuestionDrafts'
 import { useQuizStore } from '~/stores/quiz'
 import type { QuizCoverInput } from '~/stores/quiz'
 import type { Question } from '~/types/quiz'
@@ -156,13 +120,6 @@ const editingIndex = ref<number | null>(null)
 
 /** 本地編輯草稿，避免每次按鍵都打 API；按「儲存本題」才送出 */
 const drafts = ref<Question[]>([])
-
-const blankQuestion = (): Omit<Question, 'id'> => ({
-  text: '',
-  options: ['', '', '', ''],
-  answerIndex: 0,
-  explanation: ''
-})
 
 watch(quiz, (value) => {
   if (!value) return
@@ -199,7 +156,8 @@ const handleSaveCover = async () => {
 const handleAddQuestion = async () => {
   isAddingQuestion.value = true
   try {
-    await quizStore.addQuestion(quizId, blankQuestion())
+    const { id: _draftId, ...blank } = createBlankQuestion()
+    await quizStore.addQuestion(quizId, blank)
     editingIndex.value = drafts.value.length - 1
   } finally {
     isAddingQuestion.value = false
