@@ -192,9 +192,12 @@
           <div class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white bg-cp-secondary shrink-0">
             {{ quiz.creatorName[0] }}
           </div>
-          <p class="text-sm font-bold flex items-center gap-1 text-cp-text-primary">
+          <NuxtLink
+            :to="`/creators/${quiz.creatorId}`"
+            class="text-sm font-bold flex items-center gap-1 text-cp-text-primary hover:underline"
+          >
             {{ quiz.creatorName }}
-          </p>
+          </NuxtLink>
           <p
             v-if="creatorStore.profile"
             class="text-xs text-cp-text-muted"

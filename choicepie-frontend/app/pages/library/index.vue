@@ -6,33 +6,35 @@
 
     <div class="inline-flex gap-1 p-1 mb-7 rounded-full bg-cp-surface-muted">
       <button
+        v-for="tab in visibleTabs"
+        :key="tab"
         class="px-5 py-2.5 text-sm font-bold rounded-full transition-colors"
-        :class="activeTab === 'all'
+        :class="activeTab === tab
           ? 'bg-cp-surface text-cp-primary shadow-cp-sm'
           : 'text-cp-text-secondary'"
-        @click="activeTab = 'all'"
+        @click="activeTab = tab"
       >
-        {{ t('library.tabs.all') }}
-      </button>
-      <button
-        v-if="auth.isLoggedIn"
-        class="px-5 py-2.5 text-sm font-bold rounded-full transition-colors"
-        :class="activeTab === 'mine'
-          ? 'bg-cp-surface text-cp-primary shadow-cp-sm'
-          : 'text-cp-text-secondary'"
-        @click="activeTab = 'mine'"
-      >
-        {{ t('library.tabs.mine') }}
+        {{ t(`library.tabs.${tab}`) }}
       </button>
     </div>
 
     <AllQuizzesTab v-if="activeTab === 'all'" />
     <MyQuizzesTab v-else-if="activeTab === 'mine' && auth.isLoggedIn" />
+    <FavoritesTab
+      v-else-if="activeTab === 'favorites' && auth.isLoggedIn"
+      @browse="activeTab = 'all'"
+    />
+    <FollowingTab
+      v-else-if="activeTab === 'following' && auth.isLoggedIn"
+      @browse="activeTab = 'all'"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import AllQuizzesTab from '~/components/library/AllQuizzesTab.vue'
+import FavoritesTab from '~/components/library/FavoritesTab.vue'
+import FollowingTab from '~/components/library/FollowingTab.vue'
 import MyQuizzesTab from '~/components/library/MyQuizzesTab.vue'
 import { useAuthStore } from '~/stores/auth'
 
@@ -43,14 +45,21 @@ const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
-type LibraryTab = 'all' | 'mine'
+type LibraryTab = 'all' | 'mine' | 'favorites' | 'following'
 
-const resolveTab = (): LibraryTab => (route.query.tab === 'mine' && auth.isLoggedIn ? 'mine' : 'all')
+const MEMBER_TABS: LibraryTab[] = ['mine', 'favorites', 'following']
+
+const visibleTabs = computed<LibraryTab[]>(() => (auth.isLoggedIn ? ['all', ...MEMBER_TABS] : ['all']))
+
+const resolveTab = (): LibraryTab => {
+  const tab = route.query.tab as LibraryTab
+  return auth.isLoggedIn && MEMBER_TABS.includes(tab) ? tab : 'all'
+}
 
 const activeTab = ref<LibraryTab>(resolveTab())
 
 watch(activeTab, (tab) => {
-  router.replace({ query: { ...route.query, tab: tab === 'mine' ? 'mine' : undefined } })
+  router.replace({ query: { ...route.query, tab: tab === 'all' ? undefined : tab } })
 })
 
 watch(() => route.query.tab, () => {

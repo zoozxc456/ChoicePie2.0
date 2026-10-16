@@ -355,7 +355,25 @@
     "title": "遊戲題庫",
     "tabs": {
       "all": "所有題庫",
-      "mine": "我的題庫"
+      "mine": "我的題庫",
+      "favorites": "我的收藏",
+      "following": "追蹤中"
+    },
+    "loadMore": "載入更多",
+    "favorites": {
+      "empty": "還沒有收藏任何題庫",
+      "emptyDesc": "逛逛題庫，把喜歡的題庫收藏起來吧",
+      "emptyCta": "去逛逛題庫",
+      "remove": "取消收藏",
+      "removeError": "取消收藏失敗，請稍後再試"
+    },
+    "following": {
+      "empty": "還沒有追蹤任何創作者",
+      "emptyDesc": "追蹤喜歡的創作者，就能在這裡看到他們的最新題庫",
+      "emptyCta": "去逛逛題庫",
+      "creators": "追蹤中的創作者",
+      "feed": "最新題庫",
+      "feedEmpty": "追蹤的創作者還沒有發布新題庫"
     },
     "searchPlaceholder": "搜尋題庫...",
     "featured": "精選題庫",
@@ -926,5 +944,14 @@
     "questionsTitle": "題目列表",
     "saveQuestion": "儲存本題",
     "addQuestion": "新增題目"
+  },
+  "creatorPage": {
+    "seoTitle": "{name} 的題庫",
+    "seoDescription": "{name} 已發布 {count} 個題庫，累計 {challenges} 次挑戰",
+    "quizzes": "發布的題庫",
+    "noQuizzes": "還沒有發布任何題庫",
+    "notFound": "找不到這位創作者",
+    "loadError": "載入題庫失敗，請稍後再試",
+    "followToLogin": "登入後追蹤"
   }
 }

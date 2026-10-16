@@ -314,6 +314,14 @@ export interface CreatorProfileDto {
   isFollowing: boolean
 }
 
+export interface FollowedCreatorDto {
+  id: string
+  name: string
+  avatar: string | null
+  quizCount: number
+  followedAt: string
+}
+
 export interface AdminUserDto {
   id: string
   email: string

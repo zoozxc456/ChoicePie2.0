@@ -355,7 +355,25 @@
     "title": "Quiz Library",
     "tabs": {
       "all": "All quizzes",
-      "mine": "My quizzes"
+      "mine": "My quizzes",
+      "favorites": "Favorites",
+      "following": "Following"
+    },
+    "loadMore": "Load more",
+    "favorites": {
+      "empty": "No favorite quizzes yet",
+      "emptyDesc": "Browse the library and save the quizzes you like",
+      "emptyCta": "Browse quizzes",
+      "remove": "Remove from favorites",
+      "removeError": "Could not remove the favorite. Please try again."
+    },
+    "following": {
+      "empty": "You are not following any creators yet",
+      "emptyDesc": "Follow creators to see their latest quizzes here",
+      "emptyCta": "Browse quizzes",
+      "creators": "Creators you follow",
+      "feed": "Latest quizzes",
+      "feedEmpty": "The creators you follow have not published new quizzes"
     },
     "searchPlaceholder": "Search quizzes...",
     "featured": "Featured",
@@ -926,5 +944,14 @@
     "questionsTitle": "Questions",
     "saveQuestion": "Save Question",
     "addQuestion": "Add Question"
+  },
+  "creatorPage": {
+    "seoTitle": "Quizzes by {name}",
+    "seoDescription": "{name} has published {count} quizzes with {challenges} total challenges",
+    "quizzes": "Published quizzes",
+    "noQuizzes": "No published quizzes yet",
+    "notFound": "Creator not found",
+    "loadError": "Could not load quizzes. Please try again.",
+    "followToLogin": "Log in to follow"
   }
 }

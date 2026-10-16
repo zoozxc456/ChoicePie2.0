@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useCreatorClientApi } from '~/services/creator/client'
+import { toQuizFromSummary } from '~/stores/quiz'
 import type { CreatorProfileDto } from '~/types/api'
 
 export const useCreatorStore = defineStore('creator', () => {
@@ -9,6 +10,19 @@ export const useCreatorStore = defineStore('creator', () => {
   const isLoading = ref(false)
   const isTogglingFollow = ref(false)
   const error = ref<string | null>(null)
+
+  // 創作者公開作品（載入更多）
+  const currentCreatorId = ref('')
+  const quizList = createPagedList(
+    (page, pageSize) => creatorApi.fetchCreatorQuizzes(currentCreatorId.value, page, pageSize),
+    toQuizFromSummary
+  )
+
+  const fetchCreatorQuizzes = async (id: string) => {
+    if (currentCreatorId.value !== id) quizList.reset()
+    currentCreatorId.value = id
+    await quizList.load()
+  }
 
   const fetchCreatorProfile = async (id: string) => {
     isLoading.value = true
@@ -45,6 +59,13 @@ export const useCreatorStore = defineStore('creator', () => {
 
   return {
     profile, isLoading, isTogglingFollow, error,
-    fetchCreatorProfile, toggleFollow
+    fetchCreatorProfile, toggleFollow,
+    quizzes: quizList.items,
+    quizzesHasNext: quizList.hasNext,
+    isLoadingQuizzes: quizList.isLoading,
+    isLoadingMoreQuizzes: quizList.isLoadingMore,
+    quizzesHasError: quizList.hasError,
+    fetchCreatorQuizzes,
+    loadMoreQuizzes: quizList.loadMore
   }
 })

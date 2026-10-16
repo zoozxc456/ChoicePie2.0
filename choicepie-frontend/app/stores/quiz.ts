@@ -44,7 +44,7 @@ const toQuiz = (dto: QuizDto): Quiz => ({
   updatedAt: dto.updatedAt
 })
 
-const toQuizFromSummary = (dto: QuizSummaryDto): Quiz => ({
+export const toQuizFromSummary = (dto: QuizSummaryDto): Quiz => ({
   id: dto.id,
   title: dto.title,
   description: dto.description ?? undefined,
