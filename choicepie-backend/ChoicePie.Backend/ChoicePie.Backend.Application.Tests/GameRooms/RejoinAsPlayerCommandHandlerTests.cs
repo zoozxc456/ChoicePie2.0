@@ -30,7 +30,7 @@ public class RejoinAsPlayerCommandHandlerTests
         {
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "基本加法")
         };
-        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
+        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", null, "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
         room.Join("小明", "conn-1", CreatedAtUtc.AddSeconds(1));
         room.Join("小華", "conn-2", CreatedAtUtc.AddSeconds(2));
         room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
