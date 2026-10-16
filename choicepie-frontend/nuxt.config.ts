@@ -10,7 +10,8 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@nuxtjs/sitemap',
     'pinia-plugin-persistedstate/nuxt',
-    '@nuxtjs/i18n'
+    '@nuxtjs/i18n',
+    '@sentry/nuxt/module'
   ],
   devtools: {
     enabled: true
@@ -21,7 +22,13 @@ export default defineNuxtConfig({
     backendApiUrl: 'https://choicepie-dev-api.minjie.demo',
     public: {
       apiBaseUrl: 'https://choicepie-dev-api.minjie.demo',
-      googleClientId: ''
+      googleClientId: '',
+      sentry: {
+        // 空字串 = 不啟用 Sentry。由 NUXT_PUBLIC_SENTRY_DSN 覆寫。
+        dsn: '',
+        environment: process.env.NODE_ENV || 'production',
+        tracesSampleRate: 0
+      }
     }
   },
   devServer: {
@@ -54,5 +61,10 @@ export default defineNuxtConfig({
     defaultLocale: 'zh-TW',
     langDir: 'locales/',
     strategy: 'no_prefix'
+  },
+  // 不上傳 source map（需要 SENTRY_AUTH_TOKEN）；如需啟用請見 .env.example。
+  sentry: {
+    sourcemaps: { disable: true },
+    telemetry: false
   }
 })
