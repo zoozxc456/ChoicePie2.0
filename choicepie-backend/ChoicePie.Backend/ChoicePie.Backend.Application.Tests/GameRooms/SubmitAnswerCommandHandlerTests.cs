@@ -68,4 +68,21 @@ public class SubmitAnswerCommandHandlerTests
 
         Assert.ThrowsAsync<RoomNotFoundException>(() => _sut.Handle(command, CancellationToken.None));
     }
+
+    [Test]
+    public void Handle_GivenRoomIsPaused_WhenCalled_ThenThrowsGamePausedExceptionAndDoesNotSave()
+    {
+        var createdAt = new DateTime(2026, 7, 11, 12, 0, 0, DateTimeKind.Utc);
+        var startedAt = createdAt.AddSeconds(1);
+        var room = CreateStartedRoom(createdAt, startedAt);
+        var playerId = room.Players[0].Id;
+        room.TogglePause(_hostUserId, startedAt.AddSeconds(1));
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+        _timeProvider.GetUtcNow().Returns(new DateTimeOffset(startedAt.AddSeconds(2)));
+
+        var command = new SubmitAnswerCommand("ABC123", playerId, 1);
+
+        Assert.ThrowsAsync<GamePausedException>(() => _sut.Handle(command, CancellationToken.None));
+        _gameRoomRepository.DidNotReceive().SaveAsync(Arg.Any<Domain.Aggregates.GameRoom.GameRoom>(), Arg.Any<CancellationToken>());
+    }
 }

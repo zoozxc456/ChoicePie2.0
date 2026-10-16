@@ -18,7 +18,9 @@ public class RejoinRoomQueryHandlerTests
     public void SetUp()
     {
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
-        _sut = new RejoinRoomQueryHandler(_gameRoomRepository);
+        var timeProvider = Substitute.For<TimeProvider>();
+        timeProvider.GetUtcNow().Returns(new DateTimeOffset(CreatedAtUtc.AddMinutes(1).AddSeconds(5)));
+        _sut = new RejoinRoomQueryHandler(_gameRoomRepository, timeProvider);
     }
 
     private Domain.Aggregates.GameRoom.GameRoom CreateRoom(int questionCount = 1)
@@ -128,5 +130,36 @@ public class RejoinRoomQueryHandlerTests
         var query = new RejoinRoomQuery("ABC123", Guid.NewGuid());
 
         Assert.ThrowsAsync<RoomAccessDeniedException>(() => _sut.Handle(query, CancellationToken.None));
+    }
+
+    [Test]
+    public async Task Handle_GivenPausedQuestion_WhenCalled_ThenReturnsPausedStateAndFrozenRemainingMs()
+    {
+        var room = CreateRoom();
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
+        room.TogglePause(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(4));
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+
+        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsPaused, Is.True);
+            Assert.That(result.RemainingMs, Is.EqualTo(16_000));
+        });
+    }
+
+    [Test]
+    public async Task Handle_GivenDisconnectedPlayerAfterStart_WhenCalled_ThenHostViewMarksPlayerNotConnected()
+    {
+        var room = CreateRoom();
+        var player = room.Players[0];
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
+        room.DisconnectPlayer(player.Id, "conn-1");
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+
+        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
+
+        Assert.That(result.Room.Players.Single().IsConnected, Is.False);
     }
 }
