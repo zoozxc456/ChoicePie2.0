@@ -20,6 +20,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Nitro server routes 用來呼叫真正後端的位址（server-only，不會被打包進前端 bundle）。
     backendApiUrl: 'https://choicepie-dev-api.minjie.demo',
+    // 只有 Nuxt 本身位於可信任的負載平衡器後方時才設為 true（NUXT_TRUST_PROXY_HEADERS），
+    // 此時才採用進來的 X-Forwarded-For 當使用者 IP；預設只用 socket 位址，避免被偽造。
+    trustProxyHeaders: false,
+    // 開啟後在非 dev 環境也印出（已遮蔽憑證的）backendFetch 日誌（NUXT_DEBUG_BACKEND_FETCH）。
+    debugBackendFetch: false,
     public: {
       apiBaseUrl: 'https://choicepie-dev-api.minjie.demo',
       googleClientId: '',
