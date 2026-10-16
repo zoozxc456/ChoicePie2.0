@@ -115,7 +115,8 @@
       "liveRank": "即時排名",
       "voteCount": "{count} 人",
       "waitingForAnswers": "等待玩家作答中...",
-      "answeredSoFar": "已作答 {answered} / {total} 人"
+      "answeredSoFar": "已作答 {answered} / {total} 人",
+      "pausedHint": "遊戲已暫停，準備好後按「繼續」恢復作答"
     },
     "ended": {
       "title": "遊戲結束！",
@@ -144,7 +145,8 @@
     "ended": {
       "title": "最終排名",
       "rankSuffix": "名"
-    }
+    },
+    "unavailable": "無法顯示此房間，房間可能已結束或代碼有誤"
   },
   "login": {
     "title": "登入 ChoicePie",
@@ -884,7 +886,8 @@
     },
     "search": {
       "clear": "清除搜尋"
-    }
+    },
+    "hostOffline": "主持人連線中斷，等待主持人重新連線…"
   },
   "attempt": {
     "question": {

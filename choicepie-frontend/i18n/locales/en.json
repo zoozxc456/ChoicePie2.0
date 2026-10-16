@@ -115,7 +115,8 @@
       "liveRank": "Live Rankings",
       "voteCount": "{count}",
       "waitingForAnswers": "Waiting for players to answer...",
-      "answeredSoFar": "{answered} / {total} answered"
+      "answeredSoFar": "{answered} / {total} answered",
+      "pausedHint": "The game is paused. Press Resume when you are ready to continue."
     },
     "ended": {
       "title": "Game Over!",
@@ -144,7 +145,8 @@
     "ended": {
       "title": "Final Rankings",
       "rankSuffix": ""
-    }
+    },
+    "unavailable": "This room cannot be displayed. It may have ended or the code is wrong."
   },
   "login": {
     "title": "Sign in to ChoicePie",
@@ -884,7 +886,8 @@
     },
     "search": {
       "clear": "Clear search"
-    }
+    },
+    "hostOffline": "Host disconnected. Waiting for the host to reconnect…"
   },
   "attempt": {
     "question": {

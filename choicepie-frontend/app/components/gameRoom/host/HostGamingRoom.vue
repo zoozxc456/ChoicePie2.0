@@ -95,6 +95,15 @@
         </TransitionGroup>
       </div>
 
+      <!-- 暫停提示：重連後遊戲維持暫停，需由 Host 手動按繼續 -->
+      <p
+        v-if="gameStore.isPaused"
+        class="rounded-xl px-4 py-3 text-sm font-semibold bg-cp-warning/15 text-cp-warning"
+        role="status"
+      >
+        {{ t('host.playing.pausedHint') }}
+      </p>
+
       <!-- Host Controls -->
       <div class="flex gap-3">
         <UButton
@@ -106,8 +115,8 @@
           {{ t('host.playing.skipQuestion') }}
         </UButton>
         <UButton
-          color="neutral"
-          variant="outline"
+          :color="gameStore.isPaused ? 'primary' : 'neutral'"
+          :variant="gameStore.isPaused ? 'solid' : 'outline'"
           @click="gameRoom.pauseGame(props.code)"
         >
           {{ gameStore.isPaused ? t('host.playing.resume') : t('host.playing.pause') }}

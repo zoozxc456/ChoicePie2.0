@@ -1,5 +1,6 @@
 <template>
   <div class="max-w-md mx-auto px-4 py-6">
+    <HostOfflineBanner />
     <p
       v-if="joinError"
       class="text-center text-sm text-error-500"
@@ -20,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import HostOfflineBanner from '~/components/gameRoom/HostOfflineBanner.vue'
 import WaitingRoom from '~/components/gameRoom/WaitingRoom.vue'
 import GamingRoom from '~/components/gameRoom/GamingRoom.vue'
 import QuizResult from '~/components/gameRoom/result/QuizResult.vue'

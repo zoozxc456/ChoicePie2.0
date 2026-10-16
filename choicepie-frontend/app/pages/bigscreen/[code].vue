@@ -1,5 +1,6 @@
 <template>
   <div class="flex flex-col min-h-screen p-8">
+    <HostOfflineBanner large />
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-3">
@@ -13,8 +14,16 @@
       </div>
     </div>
 
+    <!-- ─── UNAVAILABLE ─── -->
+    <p
+      v-if="watchFailed"
+      class="flex-1 flex items-center justify-center text-2xl text-white/60 text-center"
+    >
+      {{ t('bigscreen.unavailable') }}
+    </p>
+
     <!-- ─── WAITING ─── -->
-    <template v-if="gameStore.phase === 'waiting' || gameStore.phase === 'idle'">
+    <template v-else-if="gameStore.phase === 'waiting' || gameStore.phase === 'idle'">
       <div class="flex-1 flex flex-col items-center justify-center text-center gap-8">
         <div>
           <p class="text-xl mb-4 text-white/60">
@@ -186,6 +195,8 @@
 </template>
 
 <script setup lang="ts">
+import HostOfflineBanner from '~/components/gameRoom/HostOfflineBanner.vue'
+
 definePageMeta({ layout: 'big-screen' })
 
 const { t } = useI18n()
@@ -195,6 +206,8 @@ const origin = useRequestURL().origin
 
 const gameStore = useGameStore()
 const gameRoom = useGameRoom()
+
+const watchFailed = ref(false)
 
 const optionLetters = ['A', 'B', 'C', 'D']
 const optionColorClasses = ['bg-cp-danger', 'bg-cp-info', 'bg-cp-primary', 'bg-cp-success']
@@ -228,7 +241,12 @@ const podiumEntries = computed(() =>
 )
 
 onMounted(async () => {
-  await gameRoom.connect()
+  try {
+    // 大螢幕是匿名旁觀者：連線後必須 WatchRoom 才會進入房間群組、收到廣播與目前階段快照
+    await gameRoom.watchRoom(code.value)
+  } catch {
+    watchFailed.value = true
+  }
 })
 
 onUnmounted(() => gameRoom.disconnect())
