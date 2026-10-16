@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import AdminMembershipTierRow from '~/components/admin/AdminMembershipTierRow.vue'
+import MembershipTierFormModal from '~/components/admin/MembershipTierFormModal.vue'
 import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import type { MembershipTierDto } from '~/types/api'
 

@@ -75,6 +75,8 @@
 </template>
 
 <script setup lang="ts">
+import AuthCardLayout from '~/components/common/AuthCardLayout.vue'
+import AuthStepIndicator from '~/components/common/AuthStepIndicator.vue'
 import PasswordInput from '~/components/common/PasswordInput.vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useResetPasswordSchema, type ResetPasswordSchema } from '~/types/auth'

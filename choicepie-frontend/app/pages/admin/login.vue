@@ -52,6 +52,7 @@
 </template>
 
 <script setup lang="ts">
+import AuthCardLayout from '~/components/common/AuthCardLayout.vue'
 import PasswordInput from '~/components/common/PasswordInput.vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { ApiError } from '~/composables/useApi'

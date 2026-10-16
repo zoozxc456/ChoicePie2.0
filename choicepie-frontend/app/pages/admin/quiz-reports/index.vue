@@ -63,6 +63,7 @@
 
 <script setup lang="ts">
 import AdminQuizReportCard from '~/components/admin/AdminQuizReportCard.vue'
+import ResolveQuizReportModal from '~/components/admin/ResolveQuizReportModal.vue'
 import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import { totalPagesOf } from '~/utils/pagination'
 
