@@ -36,7 +36,7 @@
     <div class="flex items-center gap-3 px-8 py-5 bg-cp-surface rounded-b-2xl mb-6 flex-wrap border border-t-0 border-cp-border">
       <button
         class="w-11 h-11 rounded-full flex items-center justify-center text-lg text-white shrink-0 bg-cp-primary cursor-pointer transition-transform hover:scale-110"
-        @click="isStartModalOpen = true"
+        @click="handleOpenStartModal"
       >
         <UIcon name="i-lucide-play" />
       </button>
@@ -90,10 +90,10 @@
       />
 
       <button
-        v-if="!isOwner && auth.isLoggedIn"
+        v-if="!isOwner"
         class="h-10 px-4 rounded-full text-[13px] font-semibold bg-cp-surface-muted whitespace-nowrap cursor-pointer disabled:opacity-60"
         :disabled="quizStore.hasReported"
-        @click="isReportModalOpen = true"
+        @click="handleOpenReportModal"
       >
         {{ quizStore.hasReported ? t('libraryDetail.report.reported') : t('libraryDetail.report.action') }}
       </button>
@@ -373,13 +373,34 @@ if (auth.isLoggedIn) {
   await quizStore.fetchFavoriteStatus(quizId)
 }
 
+// 封面圖（R2 上傳）存在時才帶 OG 圖與大圖卡片；以絕對網址輸出，社群爬蟲才抓得到。
+const requestOrigin = useRequestURL().origin
+const ogImageUrl = computed(() =>
+  toAbsoluteUrl(quiz.value?.coverImageUrl, requestOrigin))
+
 useSeoMeta({
   title: () => quiz.value?.title,
   ogTitle: () => quiz.value?.title,
   description: () => quiz.value?.description ?? undefined,
   ogDescription: () => quiz.value?.description ?? undefined,
-  ogType: 'website'
+  ogType: 'website',
+  ogImage: () => ogImageUrl.value,
+  twitterCard: () => ogImageUrl.value ? 'summary_large_image' : undefined,
+  twitterImage: () => ogImageUrl.value
 })
+
+// 需要登入的動作統一在這裡攔截：未登入者導向登入頁，登入後導回本題庫。
+const redirectToLogin = async () => {
+  await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+}
+
+const handleOpenStartModal = async () => {
+  if (!auth.isLoggedIn) {
+    await redirectToLogin()
+    return
+  }
+  isStartModalOpen.value = true
+}
 
 const difficultyClass = computed(() => ({
   beginner: 'bg-success-100 text-success-800',
@@ -437,9 +458,8 @@ const handleCreateRoom = async () => {
 
 const handleSoloPractice = async () => {
   if (!quiz.value) return
-  const auth = useAuthStore()
   if (!auth.isLoggedIn) {
-    await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    await redirectToLogin()
     return
   }
   isStartingAttempt.value = true
@@ -458,6 +478,14 @@ const gameSettings = computed(() => [
 
 const isReportModalOpen = ref(false)
 
+const handleOpenReportModal = async () => {
+  if (!auth.isLoggedIn) {
+    await redirectToLogin()
+    return
+  }
+  isReportModalOpen.value = true
+}
+
 const handleReport = async (reason: string, description?: string) => {
   if (!quiz.value) return
   try {
@@ -471,7 +499,7 @@ const handleReport = async (reason: string, description?: string) => {
 const handleToggleFavorite = async () => {
   if (!quiz.value) return
   if (!auth.isLoggedIn) {
-    await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    await redirectToLogin()
     return
   }
   try {
@@ -484,7 +512,7 @@ const handleToggleFavorite = async () => {
 const handleToggleFollow = async () => {
   if (!quiz.value) return
   if (!auth.isLoggedIn) {
-    await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    await redirectToLogin()
     return
   }
   try {
