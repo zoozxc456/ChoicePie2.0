@@ -1,4 +1,5 @@
 using ChoicePie.Backend.Application.Quizzes.Contracts;
+using ChoicePie.Backend.Infrastructure.Caching.Quizzes;
 using ChoicePie.Backend.Infrastructure.ExternalServices.Quizzes.Providers;
 using ChoicePie.Backend.Infrastructure.ExternalServices.WebPages;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
@@ -59,6 +60,8 @@ builder.Services
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Infrastructure.Security.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Infrastructure.Email.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Hosting.AssemblyReference).Assembly)
+    // 快取 decorator 不走 marker interface 掃描，否則會被當成另一個 IQuizQueryService 實作註冊。
+    .Decorate<IQuizQueryService, CachedQuizQueryService>()
     .AddSingleton<DomainExceptionHubFilter>();
 
 builder.Services.AddChoicePieHealthChecks()

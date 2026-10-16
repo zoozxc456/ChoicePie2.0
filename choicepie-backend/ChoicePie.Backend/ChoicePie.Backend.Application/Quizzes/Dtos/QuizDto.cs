@@ -1,7 +1,10 @@
+using System.ComponentModel;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
 
 namespace ChoicePie.Backend.Application.Quizzes.Dtos;
 
+// 會被快取，L1 命中時多個請求共用同一個實例；只能用 with 產生修改後的副本，不可就地修改。
+[ImmutableObject(true)]
 public sealed record QuizDto(
     Guid Id,
     string Title,

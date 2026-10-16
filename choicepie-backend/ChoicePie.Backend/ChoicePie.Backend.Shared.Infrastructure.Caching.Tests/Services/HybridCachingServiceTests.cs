@@ -2,6 +2,7 @@ using ChoicePie.Backend.Shared.Application.Abstractions.Caching;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Services;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace ChoicePie.Backend.Shared.Infrastructure.Caching.Tests.Services;
 
@@ -14,10 +15,10 @@ public class HybridCachingServiceTests
     [SetUp]
     public void SetUp()
     {
-        // 沒有配置 StackExchangeRedisCache 的話 AddHybridCache 純用 in-process memory 當 L1/L2，
-        // 不需要真的起一個 Redis 就能測 HybridCachingService 的行為。
+        // 正式環境的 HybridCache 是 FusionCache 的 adapter；這裡不接 Redis，只用 L1 記憶體，
+        // 不需要真的起一個 Redis 就能測 HybridCachingService 在 adapter 底下的行為。
         var services = new ServiceCollection();
-        services.AddHybridCache();
+        services.AddFusionCache().AsHybridCache();
         _serviceProvider = services.BuildServiceProvider();
         _sut = new HybridCachingService(_serviceProvider.GetRequiredService<HybridCache>());
     }
