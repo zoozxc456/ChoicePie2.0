@@ -28,7 +28,7 @@ public class SubmitAnswerCommandHandlerTests
         {
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "基本加法")
         };
-        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, createdAtUtc);
+        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", null, "📝", "linear-gradient(135deg,#000,#111)", questions, 20, createdAtUtc);
         room.Join("小明", "conn-1", createdAtUtc.AddSeconds(1));
         room.StartGame(_hostUserId, startedAtUtc);
         return room;
@@ -67,5 +67,22 @@ public class SubmitAnswerCommandHandlerTests
         var command = new SubmitAnswerCommand("ZZZZZZ", Guid.NewGuid(), 0);
 
         Assert.ThrowsAsync<RoomNotFoundException>(() => _sut.Handle(command, CancellationToken.None));
+    }
+
+    [Test]
+    public void Handle_GivenRoomIsPaused_WhenCalled_ThenThrowsGamePausedExceptionAndDoesNotSave()
+    {
+        var createdAt = new DateTime(2026, 7, 11, 12, 0, 0, DateTimeKind.Utc);
+        var startedAt = createdAt.AddSeconds(1);
+        var room = CreateStartedRoom(createdAt, startedAt);
+        var playerId = room.Players[0].Id;
+        room.TogglePause(_hostUserId, startedAt.AddSeconds(1));
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+        _timeProvider.GetUtcNow().Returns(new DateTimeOffset(startedAt.AddSeconds(2)));
+
+        var command = new SubmitAnswerCommand("ABC123", playerId, 1);
+
+        Assert.ThrowsAsync<GamePausedException>(() => _sut.Handle(command, CancellationToken.None));
+        _gameRoomRepository.DidNotReceive().SaveAsync(Arg.Any<Domain.Aggregates.GameRoom.GameRoom>(), Arg.Any<CancellationToken>());
     }
 }

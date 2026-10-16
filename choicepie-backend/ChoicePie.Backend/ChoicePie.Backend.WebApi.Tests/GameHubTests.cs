@@ -29,7 +29,7 @@ public sealed class GameHubTests
             Title = "Integration Test Quiz",
             Description = "for GameHub tests",
             CoverEmoji = "🎯",
-            CoverGradient = "from-red-500 to-orange-500",
+            CoverGradient = "primary",
             Difficulty = "beginner",
             Tags = new[] { "test" },
             Questions = new[]

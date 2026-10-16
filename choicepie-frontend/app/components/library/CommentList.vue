@@ -1,6 +1,6 @@
 <template>
-  <div class="bg-white border border-neutral-200 rounded-2xl p-5">
-    <h2 class="text-base font-bold mb-3">
+  <div class="bg-cp-surface rounded-2xl border border-cp-border p-5">
+    <h2 class="text-base font-bold mb-3 text-cp-text-primary">
       {{ t('libraryDetail.comments.title') }}
     </h2>
 
@@ -27,14 +27,14 @@
     </div>
     <p
       v-else
-      class="text-[13px] text-neutral-400 mb-5"
+      class="text-[13px] text-cp-text-muted mb-5"
     >
       {{ t('libraryDetail.comments.loginToComment') }}
     </p>
 
     <p
       v-if="!quizStore.isLoadingComments && quizStore.comments.length === 0"
-      class="text-[13px] text-neutral-400"
+      class="text-[13px] text-cp-text-muted"
     >
       {{ t('libraryDetail.comments.empty') }}
     </p>

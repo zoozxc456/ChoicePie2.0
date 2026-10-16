@@ -5,7 +5,7 @@ namespace ChoicePie.Backend.WebApi.Hubs;
 
 /// <summary>
 /// SignalR 預設會吞掉例外訊息、只回傳通用的 HubException，這裡比照 WebApi 的全域例外處理鏈，
-/// 把 DomainException 轉成帶有 UserFriendlyMessage 的 HubException，讓前端能顯示有意義的錯誤。
+/// 把 DomainException 轉成帶有 ErrorCode 與 UserFriendlyMessage 的 HubException，讓前端能顯示有意義的錯誤。
 /// </summary>
 public sealed class DomainExceptionHubFilter(ILogger<DomainExceptionHubFilter> logger) : IHubFilter
 {
@@ -20,7 +20,8 @@ public sealed class DomainExceptionHubFilter(ILogger<DomainExceptionHubFilter> l
         {
             logger.LogWarning(ex, "Hub method {HubMethod} 因 domain 例外中止，ConnectionId={ConnectionId}",
                 invocationContext.HubMethodName, invocationContext.Context.ConnectionId);
-            throw new HubException(ex.UserFriendlyMessage, ex);
+            // 訊息開頭附上 ErrorCode（例如 "[GAME_ROOM_DUPLICATE_NICKNAME] ..."），前端可據此分辨錯誤類型而不必比對中文字串。
+            throw new HubException($"[{ex.ErrorCode}] {ex.UserFriendlyMessage}", ex);
         }
         catch (Exception ex)
         {

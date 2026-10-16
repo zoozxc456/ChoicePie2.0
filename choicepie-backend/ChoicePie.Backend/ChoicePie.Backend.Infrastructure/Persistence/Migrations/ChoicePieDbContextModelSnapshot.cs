@@ -123,6 +123,69 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                     b.ToTable("admin_user", (string)null);
                 });
 
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.AiUsageLog.AiUsageLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("member_id");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("model");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("provider");
+
+                    b.Property<int>("TokensUsed")
+                        .HasColumnType("integer")
+                        .HasColumnName("tokens_used");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ai_usage_log");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_ai_usage_log_created_at");
+
+                    b.HasIndex("MemberId")
+                        .HasDatabaseName("ix_ai_usage_log_member_id");
+
+                    b.ToTable("ai_usage_log", (string)null);
+                });
+
             modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.AuthAccount.AuthAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -350,6 +413,11 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("cover_gradient");
 
+                    b.Property<string>("CoverImageUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("cover_image_url");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -467,10 +535,76 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("suspended_until");
 
+                    b.Property<Guid?>("TierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tier_id");
+
                     b.HasKey("Id")
                         .HasName("pk_member");
 
+                    b.HasIndex("TierId")
+                        .HasDatabaseName("ix_member_tier_id");
+
                     b.ToTable("member", (string)null);
+                });
+
+            modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.MembershipTier.MembershipTier", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("creator_id");
+
+                    b.Property<int>("DailyGenerationLimit")
+                        .HasColumnType("integer")
+                        .HasColumnName("daily_generation_limit");
+
+                    b.Property<int>("DailyTokenBudget")
+                        .HasColumnType("integer")
+                        .HasColumnName("daily_token_budget");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleter_id");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
+
+                    b.Property<Guid?>("LastModiferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modifer_id");
+
+                    b.Property<DateTime>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_membership_tier");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_membership_tier_name");
+
+                    b.ToTable("membership_tier", (string)null);
                 });
 
             modelBuilder.Entity("ChoicePie.Backend.Domain.Aggregates.PasswordResetToken.PasswordResetToken", b =>
@@ -1302,6 +1436,11 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                                 .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("CoverGradient");
+
+                            b1.Property<string>("ImageUrl")
+                                .HasMaxLength(2048)
+                                .HasColumnType("character varying(2048)")
+                                .HasColumnName("CoverImageUrl");
 
                             b1.HasKey("QuizId");
 

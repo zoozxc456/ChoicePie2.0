@@ -23,7 +23,7 @@ public class GetQuizForAttemptQueryHandlerTests
     public async Task Handle_GivenServiceReturnsQuiz_WhenCalled_ThenReturnsIt()
     {
         var quizId = Guid.NewGuid();
-        var dto = new QuizForAttemptDto(quizId, "Kubernetes 101", null, "⚓", "g", "beginner", Guid.NewGuid(), "Host Name", null, [], []);
+        var dto = new QuizForAttemptDto(quizId, "Kubernetes 101", null, null, "⚓", "primary", "beginner", Guid.NewGuid(), "Host Name", null, [], []);
         _quizQueryService.GetForAttemptAsync(quizId, Arg.Any<CancellationToken>()).Returns(dto);
 
         var result = await _sut.Handle(new GetQuizForAttemptQuery(quizId), CancellationToken.None);

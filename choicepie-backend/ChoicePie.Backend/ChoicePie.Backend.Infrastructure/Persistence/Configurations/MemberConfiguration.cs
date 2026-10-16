@@ -12,5 +12,7 @@ public sealed class MemberConfiguration : AuditableEntityConfiguration<Member>
 
         builder.Property(m => m.Name).IsRequired().HasMaxLength(20);
         builder.Property(m => m.SuspendedReason).HasMaxLength(500);
+
+        builder.HasIndex(m => m.TierId);
     }
 }

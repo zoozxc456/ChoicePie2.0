@@ -1,5 +1,6 @@
 <template>
   <div class="flex flex-col min-h-screen p-8">
+    <HostOfflineBanner large />
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-3">
@@ -13,8 +14,16 @@
       </div>
     </div>
 
+    <!-- ─── UNAVAILABLE ─── -->
+    <p
+      v-if="watchFailed"
+      class="flex-1 flex items-center justify-center text-2xl text-white/60 text-center"
+    >
+      {{ t('bigscreen.unavailable') }}
+    </p>
+
     <!-- ─── WAITING ─── -->
-    <template v-if="gameStore.phase === 'waiting' || gameStore.phase === 'idle'">
+    <template v-else-if="gameStore.phase === 'waiting' || gameStore.phase === 'idle'">
       <div class="flex-1 flex flex-col items-center justify-center text-center gap-8">
         <div>
           <p class="text-xl mb-4 text-white/60">
@@ -48,6 +57,17 @@
 
     <!-- ─── QUESTION ─── -->
     <template v-else-if="gameStore.phase === 'question' || gameStore.phase === 'result'">
+      <!-- Paused overlay -->
+      <div
+        v-if="gameStore.isPaused"
+        class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/75 text-white"
+        role="status"
+      >
+        <p class="text-5xl font-black">
+          {{ t('bigscreen.playing.paused') }}
+        </p>
+      </div>
+
       <!-- Question header -->
       <div class="flex items-center justify-between mb-6">
         <span class="text-lg font-semibold text-white/50">
@@ -94,10 +114,11 @@
             {{ optionLetters[i] }}
           </span>
           <span class="text-xl font-semibold text-white">{{ opt }}</span>
-          <span
+          <UIcon
             v-if="gameStore.correctAnswerIndex === i"
+            name="i-lucide-check"
             class="ml-auto text-2xl"
-          >✓</span>
+          />
         </div>
       </div>
 
@@ -129,9 +150,11 @@
             :key="podium.entry?.nickname"
             class="flex flex-col items-center gap-3"
           >
-            <p class="text-2xl">
-              {{ podium.meta.medal }}
-            </p>
+            <UIcon
+              name="i-lucide-medal"
+              class="text-4xl"
+              :class="podium.meta.textColorClass"
+            />
             <p class="text-xl font-bold text-white">
               {{ podium.entry?.nickname }}
             </p>
@@ -172,6 +195,8 @@
 </template>
 
 <script setup lang="ts">
+import HostOfflineBanner from '~/components/gameRoom/HostOfflineBanner.vue'
+
 definePageMeta({ layout: 'big-screen' })
 
 const { t } = useI18n()
@@ -181,6 +206,8 @@ const origin = useRequestURL().origin
 
 const gameStore = useGameStore()
 const gameRoom = useGameRoom()
+
+const watchFailed = ref(false)
 
 const optionLetters = ['A', 'B', 'C', 'D']
 const optionColorClasses = ['bg-cp-danger', 'bg-cp-info', 'bg-cp-primary', 'bg-cp-success']
@@ -203,9 +230,9 @@ const optionBackgroundClass = (index: number): string => {
 
 // 頒獎台名次視覺（依原始名次 0=金 1=銀 2=銅），版面呈現順序為 銀/金/銅
 const PODIUM_META = [
-  { medal: '🥇', place: 2, colorClass: 'bg-cp-primary', height: '140px' },
-  { medal: '🥈', place: 1, colorClass: 'bg-cp-info', height: '100px' },
-  { medal: '🥉', place: 3, colorClass: 'bg-cp-warning', height: '70px' }
+  { place: 2, colorClass: 'bg-cp-primary', textColorClass: 'text-cp-primary', height: '140px' },
+  { place: 1, colorClass: 'bg-cp-info', textColorClass: 'text-cp-info', height: '100px' },
+  { place: 3, colorClass: 'bg-cp-warning', textColorClass: 'text-cp-warning', height: '70px' }
 ]
 const podiumEntries = computed(() =>
   [1, 0, 2]
@@ -214,7 +241,12 @@ const podiumEntries = computed(() =>
 )
 
 onMounted(async () => {
-  await gameRoom.connect()
+  try {
+    // 大螢幕是匿名旁觀者：連線後必須 WatchRoom 才會進入房間群組、收到廣播與目前階段快照
+    await gameRoom.watchRoom(code.value)
+  } catch {
+    watchFailed.value = true
+  }
 })
 
 onUnmounted(() => gameRoom.disconnect())

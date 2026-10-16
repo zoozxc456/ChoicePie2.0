@@ -39,7 +39,7 @@ public class CreateQuizCommandHandlerTests
         Title = "Kubernetes 101",
         Description = "A quiz",
         CoverEmoji = "⚓",
-        CoverGradient = "gradient",
+        CoverGradient = "primary",
         Difficulty = "beginner",
         Tags = ["Kubernetes"],
         Questions =

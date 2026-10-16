@@ -8,6 +8,8 @@ export interface Player {
   hasAnswered: boolean
   /** 該玩家本題所選的選項索引（僅 Host 可見，公布答案前不應揭露給其他玩家） */
   selectedOptionIndex?: number
+  /** 遊戲開始後斷線的玩家會保留在名單上並標示為離線（未提供時視為在線） */
+  isConnected?: boolean
 }
 
 export type RoomStatus = 'waiting' | 'playing' | 'ended'
@@ -30,6 +32,7 @@ export interface HostedGameSummary {
   id: string
   quizId: string
   quizTitle: string
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   playerCount: number
@@ -53,6 +56,7 @@ export interface WrongAnswerReview {
 export interface PlayedGameSummary {
   id: string
   quizTitle: string
+  coverImageUrl: string | null
   coverEmoji: string
   coverGradient: string
   playerCount: number

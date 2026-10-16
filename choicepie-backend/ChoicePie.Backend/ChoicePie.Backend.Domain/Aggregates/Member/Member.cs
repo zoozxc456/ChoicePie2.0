@@ -13,6 +13,7 @@ public sealed class Member : AggregateRoot<Guid>
     public bool IsSuspended { get; private set; }
     public string? SuspendedReason { get; private set; }
     public DateTime? SuspendedUntil { get; private set; }
+    public Guid? TierId { get; private set; }
 
     private Member()
     {
@@ -34,14 +35,41 @@ public sealed class Member : AggregateRoot<Guid>
         return member;
     }
 
-    public bool CanGenerateQuizToday(DateTime nowUtc)
+    public void Rename(string name)
     {
-        return LastAiGenerationAt is null || LastAiGenerationAt.Value.Date < nowUtc.Date;
+        var personName = PersonName.Create(name, n => new InvalidMemberNameException(n));
+
+        Name = personName.Value.Trim();
+        Touch();
+    }
+
+    // 回傳舊的頭像網址，讓呼叫端可以清掉不再使用的檔案。
+    public string? ChangeAvatar(string avatarUrl)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(avatarUrl);
+
+        var previous = Avatar;
+        Avatar = avatarUrl;
+        Touch();
+
+        return previous;
+    }
+
+    // 使用者自行關閉（軟刪除）帳號；其他聚合（例如該使用者已發布的題庫）透過事件反應。
+    public void CloseAccount()
+    {
+        Delete(Id);
+        AddDomainEvent(new MemberAccountClosedDomainEvent(Id));
     }
 
     public void RecordAiGeneration(DateTime nowUtc)
     {
         LastAiGenerationAt = nowUtc;
+    }
+
+    public void AssignTier(Guid tierId)
+    {
+        TierId = tierId;
     }
 
     // SuspendedUntil = null means a permanent suspension; a concrete date expires automatically
@@ -56,6 +84,7 @@ public sealed class Member : AggregateRoot<Guid>
         IsSuspended = true;
         SuspendedReason = reason;
         SuspendedUntil = until;
+        AddDomainEvent(new MemberSuspendedDomainEvent(Id));
     }
 
     public void Unsuspend()
@@ -63,6 +92,7 @@ public sealed class Member : AggregateRoot<Guid>
         IsSuspended = false;
         SuspendedReason = null;
         SuspendedUntil = null;
+        AddDomainEvent(new MemberUnsuspendedDomainEvent(Id));
     }
 
     public bool IsCurrentlySuspended(DateTime nowUtc)

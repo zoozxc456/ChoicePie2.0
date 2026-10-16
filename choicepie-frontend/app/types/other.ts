@@ -78,6 +78,29 @@ export interface JoinRoomRequest {
 /** 後端 GameRoom.GamePhase 的字串值，與前端 GamePhase 命名不同（lobby/reveal vs waiting/result） */
 export type BackendGamePhase = 'lobby' | 'question' | 'reveal' | 'ended'
 
+/** Server → Client: Host 切換暫停/繼續；remainingMs 為伺服器計算的當前題目剩餘毫秒數 */
+export interface PauseStatePayload {
+  isPaused: boolean
+  remainingMs: number
+}
+
+/** 重連玩家本人的狀態（只在 RejoinAsPlayer 的 RoomStateSync 中提供） */
+export interface PlayerSelfPayload {
+  playerId: string
+  nickname: string
+  score: number
+  rank: number
+  hasAnswered: boolean
+  selectedOptionIndex?: number | null
+  lastAnswerResult?: AnswerResultPayload | null
+}
+
+/** JoinRoom 的叫用回傳值：reconnectToken 是重連憑證，只存在本機，不會出現在任何廣播中 */
+export interface JoinRoomResponse {
+  playerId: string
+  reconnectToken: string
+}
+
 /** Server → Client: 重新連線後同步完整房間狀態（用於重新整理 / 直接開啟房間頁） */
 export interface RoomStateSyncPayload {
   phase: BackendGamePhase
@@ -87,6 +110,16 @@ export interface RoomStateSyncPayload {
   totalCount?: number
   questionEnd?: QuestionEndPayload
   rankings?: RankEntry[]
+  isPaused?: boolean
+  remainingMs?: number | null
+  self?: PlayerSelfPayload | null
+  /** Host 是否在線；未帶時視為在線（相容舊後端） */
+  isHostOnline?: boolean
+}
+
+/** Server → Client: Host 連線狀態變化（connected=false 表示主持人離線） */
+export interface HostConnectionPayload {
+  connected: boolean
 }
 
 // ─────────────────────────────────────────────

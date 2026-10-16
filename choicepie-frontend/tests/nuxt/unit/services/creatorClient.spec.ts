@@ -16,6 +16,30 @@ describe('useCreatorClientApi', () => {
     expect(apiMock.get).toHaveBeenCalledWith('/api/v1/creators/c1')
   })
 
+  it('fetchCreatorQuizzes 帶分頁參數', () => {
+    const client = useCreatorClientApi()
+
+    client.fetchCreatorQuizzes('c1', 2, 6)
+
+    expect(apiMock.get).toHaveBeenCalledWith('/api/v1/creators/c1/quizzes', { page: 2, pageSize: 6 })
+  })
+
+  it('fetchFollowing 呼叫 me/following', () => {
+    const client = useCreatorClientApi()
+
+    client.fetchFollowing(1, 20)
+
+    expect(apiMock.get).toHaveBeenCalledWith('/api/v1/me/following', { page: 1, pageSize: 20 })
+  })
+
+  it('fetchFollowingQuizzes 呼叫 me/following/quizzes', () => {
+    const client = useCreatorClientApi()
+
+    client.fetchFollowingQuizzes(3, 12)
+
+    expect(apiMock.get).toHaveBeenCalledWith('/api/v1/me/following/quizzes', { page: 3, pageSize: 12 })
+  })
+
   it('followCreator 呼叫 PUT', () => {
     const client = useCreatorClientApi()
 

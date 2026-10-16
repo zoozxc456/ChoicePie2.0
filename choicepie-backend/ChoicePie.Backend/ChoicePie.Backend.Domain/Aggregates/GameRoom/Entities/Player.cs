@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using ChoicePie.Backend.Shared.Kernel.Primitives;
 
 namespace ChoicePie.Backend.Domain.Aggregates.GameRoom.Entities;
@@ -12,6 +13,14 @@ public sealed class Player : AuditableEntity<Guid>
     public int Score { get; private set; }
     public int? SelectedOptionIndex { get; private set; }
 
+    /// <summary>
+    /// 重連憑證：隨機、不可猜測，只在 JoinRoom 時回給該玩家本人。
+    /// 絕不可放進廣播的 DTO（PlayerId 會廣播給全房間，因此不能當憑證）。
+    /// </summary>
+    public string ReconnectToken { get; private set; } = null!;
+
+    public bool IsConnected { get; private set; } = true;
+
     private Player()
     {
     }
@@ -25,8 +34,12 @@ public sealed class Player : AuditableEntity<Guid>
         Id = Guid.NewGuid(),
         Nickname = nickname,
         ConnectionId = connectionId,
-        MemberId = memberId
+        MemberId = memberId,
+        ReconnectToken = GenerateReconnectToken()
     };
+
+    private static string GenerateReconnectToken() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).Replace('+', '-').Replace('/', '_').TrimEnd('=');
 
     public IReadOnlyDictionary<int, PlayerAnswer> Answers => _answersByQuestionIndex;
 
@@ -41,8 +54,27 @@ public sealed class Player : AuditableEntity<Guid>
 
     public void ResetForNextQuestion() => SelectedOptionIndex = null;
 
+    public void MarkDisconnected() => IsConnected = false;
+
+    public void Reconnect(string connectionId)
+    {
+        ConnectionId = connectionId;
+        IsConnected = true;
+    }
+
+    public bool MatchesReconnectToken(string? token)
+    {
+        if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(ReconnectToken))
+        {
+            return false;
+        }
+
+        return CryptographicOperations.FixedTimeEquals(
+            System.Text.Encoding.UTF8.GetBytes(ReconnectToken), System.Text.Encoding.UTF8.GetBytes(token));
+    }
+
     public PlayerMemento ToMemento() =>
-        new(Id, Nickname, ConnectionId, MemberId, Score, SelectedOptionIndex, _answersByQuestionIndex);
+        new(Id, Nickname, ConnectionId, MemberId, Score, SelectedOptionIndex, _answersByQuestionIndex, ReconnectToken, IsConnected);
 
     public static Player Restore(PlayerMemento memento)
     {
@@ -53,7 +85,9 @@ public sealed class Player : AuditableEntity<Guid>
             ConnectionId = memento.ConnectionId,
             MemberId = memento.MemberId,
             Score = memento.Score,
-            SelectedOptionIndex = memento.SelectedOptionIndex
+            SelectedOptionIndex = memento.SelectedOptionIndex,
+            ReconnectToken = memento.ReconnectToken ?? string.Empty,
+            IsConnected = memento.IsConnected
         };
 
         foreach (var (questionIndex, answer) in memento.Answers)
@@ -77,4 +111,6 @@ public sealed record PlayerMemento(
     Guid? MemberId,
     int Score,
     int? SelectedOptionIndex,
-    IReadOnlyDictionary<int, PlayerAnswer> Answers);
+    IReadOnlyDictionary<int, PlayerAnswer> Answers,
+    string? ReconnectToken = null,
+    bool IsConnected = true);

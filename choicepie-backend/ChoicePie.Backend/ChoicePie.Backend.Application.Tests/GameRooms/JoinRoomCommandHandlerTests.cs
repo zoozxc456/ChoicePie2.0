@@ -30,7 +30,7 @@ public class JoinRoomCommandHandlerTests
         {
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "基本加法")
         };
-        return Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
+        return Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", null, "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
     }
 
     [Test]
@@ -85,5 +85,33 @@ public class JoinRoomCommandHandlerTests
         var command = new JoinRoomCommand("ABC123", "小明", "conn-1");
 
         Assert.ThrowsAsync<RoomAlreadyStartedException>(() => _sut.Handle(command, CancellationToken.None));
+    }
+
+    [Test]
+    public async Task Handle_GivenRoomInLobby_WhenCalled_ThenReturnsReconnectTokenOnlyOnResultNotInPublicDtos()
+    {
+        var room = CreateLobbyRoom();
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+
+        var result = await _sut.Handle(new JoinRoomCommand("ABC123", "小明", "conn-1"), CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.ReconnectToken, Is.EqualTo(room.Players.Single().ReconnectToken));
+            Assert.That(System.Text.Json.JsonSerializer.Serialize(result.Player), Does.Not.Contain(result.ReconnectToken));
+            Assert.That(System.Text.Json.JsonSerializer.Serialize(result.RoomState), Does.Not.Contain(result.ReconnectToken));
+        });
+    }
+
+    [Test]
+    public void Handle_GivenDuplicateNickname_WhenCalled_ThenThrowsDuplicateNicknameException()
+    {
+        var room = CreateLobbyRoom();
+        room.Join("小明", "conn-0", CreatedAtUtc.AddSeconds(30));
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+
+        var command = new JoinRoomCommand("ABC123", " 小明 ", "conn-1");
+
+        Assert.ThrowsAsync<DuplicateNicknameException>(() => _sut.Handle(command, CancellationToken.None));
     }
 }

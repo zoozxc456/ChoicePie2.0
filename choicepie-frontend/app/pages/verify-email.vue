@@ -1,40 +1,50 @@
 <template>
-  <div class="min-h-[calc(100vh-56px)] bg-neutral-50 flex flex-col items-center px-6 py-16">
-    <NuxtLink
-      to="/"
-      class="text-6xl mb-6"
-    >
-      🥧
-    </NuxtLink>
+  <div class="min-h-[calc(100vh-56px)] bg-neutral-50 flex flex-col items-center justify-center px-6 py-16">
+    <div class="w-full max-w-sm flex flex-col items-center text-center gap-4">
+      <div
+        class="w-20 h-20 rounded-full flex items-center justify-center"
+        :class="{
+          'bg-primary-100': isVerifying,
+          'bg-cp-success-bg': !isVerifying && isSuccess,
+          'bg-cp-danger-bg': !isVerifying && !isSuccess
+        }"
+      >
+        <UIcon
+          v-if="isVerifying"
+          name="i-lucide-loader-2"
+          class="animate-spin text-4xl text-primary-500"
+        />
+        <UIcon
+          v-else-if="isSuccess"
+          name="i-lucide-check"
+          class="text-4xl text-cp-success"
+        />
+        <UIcon
+          v-else
+          name="i-lucide-x"
+          class="text-4xl text-cp-danger"
+        />
+      </div>
 
-    <div class="w-full max-w-md rounded-2xl bg-white shadow-cp-lg p-7 flex flex-col gap-3.5 text-center">
-      <h1 class="text-xl font-extrabold mb-1">
+      <h1 class="text-xl font-extrabold">
         {{ t('emailVerification.pageTitle') }}
       </h1>
-
-      <UIcon
-        v-if="isVerifying"
-        name="i-lucide-loader-2"
-        class="animate-spin text-3xl text-primary-500 mx-auto"
-      />
       <p
-        v-else-if="isSuccess"
+        v-if="isSuccess"
         class="text-sm text-neutral-600"
       >
         {{ t('emailVerification.success') }}
       </p>
       <p
-        v-else
+        v-else-if="!isVerifying"
         class="text-sm text-error-500"
       >
         {{ t('emailVerification.failed') }}
       </p>
 
-      <hr class="border-neutral-200">
-
       <NuxtLink
         to="/library"
-        class="text-center text-sm text-neutral-600"
+        class="mt-2 text-center text-sm font-semibold text-primary-500"
       >
         {{ t('emailVerification.backToLibrary') }}
       </NuxtLink>

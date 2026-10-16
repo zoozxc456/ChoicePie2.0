@@ -1,3 +1,5 @@
+using ChoicePie.Backend.Shared.Hosting.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning;
 using ChoicePie.Backend.Application.AdminUsers.Commands;
 using ChoicePie.Backend.Application.AdminUsers.Dtos;
@@ -21,6 +23,7 @@ namespace ChoicePie.Backend.WebApi.Controllers;
 public class AdminAuthController(IMediator mediator, IOptions<JwtSettings> jwtSettings) : ControllerBase
 {
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitPolicyNames.Auth)]
     public async Task<ActionResult<ApiResponse<AdminLoginResultDto>>> LoginAsync([FromBody] AdminLoginRequest request)
     {
         var result = await mediator.Send(request.ToCommand());

@@ -30,6 +30,11 @@
       </p>
     </div>
 
+    <CoverImagePicker
+      v-model="cover"
+      class="mb-5"
+    />
+
     <div class="flex flex-col gap-3 mb-4">
       <HostQuestionEditor
         v-for="(q, qi) in questions"
@@ -92,7 +97,9 @@
 <script setup lang="ts">
 import HostQuestionEditor from '~/components/host/QuestionEditor.vue'
 import HostPreviewQuizModal from '~/components/host/PreviewQuizModal.vue'
+import CoverImagePicker from '~/components/library/CoverImagePicker.vue'
 import { useQuizStore } from '~/stores/quiz'
+import type { QuizCoverInput } from '~/stores/quiz'
 import type { Question } from '~/types/quiz'
 
 definePageMeta({
@@ -113,6 +120,7 @@ const blankQuestion = (): Question => ({
 
 const title = ref('')
 const titleTouched = ref(false)
+const cover = ref<QuizCoverInput>({ coverImageUrl: null, coverEmoji: '📝', coverGradient: 'primary' })
 const questions = ref<Question[]>([blankQuestion()])
 const editingIndex = ref<number | null>(0)
 const isCreatingRoom = ref(false)
@@ -157,7 +165,7 @@ const openPreview = () => {
 const handleSaveQuiz = async () => {
   isCreatingRoom.value = true
   try {
-    const quiz = await quizStore.saveQuiz(validQuestions.value, title.value.trim(), 'intermediate')
+    const quiz = await quizStore.saveQuiz(validQuestions.value, title.value.trim(), 'intermediate', cover.value)
     await navigateTo(`/library/${quiz.id}`)
   } catch {
     isCreatingRoom.value = false

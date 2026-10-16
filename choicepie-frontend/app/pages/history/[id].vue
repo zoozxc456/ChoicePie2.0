@@ -43,12 +43,14 @@
       <!-- ─── Left: Game info ─── -->
       <div class="flex flex-col gap-5">
         <div class="rounded-2xl bg-white border border-cp-border p-6 text-center">
-          <div
-            class="mx-auto w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-4"
-            :style="game.coverGradient"
-          >
-            {{ game.coverEmoji }}
-          </div>
+          <QuizCoverThumbnail
+            :cover-image-url="game.coverImageUrl"
+            :cover-emoji="game.coverEmoji"
+            :cover-gradient="game.coverGradient"
+            size="lg"
+            rounded="2xl"
+            class="mx-auto mb-4"
+          />
           <span
             class="inline-block text-xs font-bold px-3 py-1 rounded-full mb-3"
             :class="isHost ? 'bg-cp-primary-light text-cp-primary' : 'bg-cp-info-bg text-cp-info'"
@@ -133,10 +135,13 @@
               :style="{ animationDelay: `${podium.order * 140}ms` }"
             >
               <div
-                class="w-16 h-16 rounded-full flex items-center justify-center text-xl font-black text-white"
+                class="w-16 h-16 rounded-full flex items-center justify-center text-white"
                 :class="[podium.meta.colorClass, podium.rank === 0 ? podium.meta.glowClass : '']"
               >
-                {{ podium.meta.medal }}
+                <UIcon
+                  name="i-lucide-medal"
+                  class="text-2xl"
+                />
               </div>
               <p
                 class="font-bold text-sm truncate max-w-24"
@@ -190,7 +195,12 @@
               class="relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
               :class="rankBarClass(entry.rank)"
             >
-              {{ entry.rank <= 3 ? rankMedal(entry.rank) : entry.rank }}
+              <UIcon
+                v-if="entry.rank <= 3"
+                name="i-lucide-medal"
+                class="text-sm"
+              />
+              <template v-else>{{ entry.rank }}</template>
             </span>
             <span
               class="relative flex-1 font-medium text-sm"
@@ -257,7 +267,7 @@
                     :style="{ width: `${optionPercent(opt, q)}%` }"
                   />
                   <div class="relative flex items-center justify-between gap-3 text-xs">
-                    <span :class="opt.isCorrect ? 'font-semibold text-[#2e7d32]' : 'text-cp-text-secondary'">
+                    <span :class="opt.isCorrect ? 'font-semibold text-cp-success' : 'text-cp-text-secondary'">
                       {{ opt.text }}
                     </span>
                     <span class="shrink-0 tabular-nums text-cp-text-muted">
@@ -275,6 +285,7 @@
 </template>
 
 <script setup lang="ts">
+import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
 import { useGameSessionStore } from '~/stores/gameSession'
 import type { GameSessionOptionStatDto, GameSessionQuestionBreakdownDto } from '~/types/api'
 
@@ -292,8 +303,9 @@ const isHost = computed(() => session.value?.isHost ?? false)
 const game = computed(() => {
   if (!session.value) return undefined
   return {
+    coverImageUrl: session.value.coverImageUrl,
     coverEmoji: session.value.coverEmoji,
-    coverGradient: `background: ${session.value.coverGradient};`,
+    coverGradient: session.value.coverGradient,
     quizTitle: session.value.quizTitle,
     playerCount: session.value.playerCount,
     questionCount: session.value.questionCount,
@@ -340,9 +352,9 @@ const formatDate = (iso: string) =>
 // 頒獎台名次視覺（依原始名次 0=金 1=銀 2=銅），與 host/room/[code].vue 共用同一套視覺語言
 // order 為畫面呈現順序（銀/金/銅），用來讓進場動畫從中間的冠軍開始擴散
 const PODIUM_META = [
-  { medal: '🥇', place: 2, colorClass: 'bg-cp-primary', glowClass: 'rank-1', height: '70px' },
-  { medal: '🥈', place: 1, colorClass: 'bg-cp-info', glowClass: 'rank-2', height: '52px' },
-  { medal: '🥉', place: 3, colorClass: 'bg-cp-warning', glowClass: 'rank-3', height: '36px' }
+  { place: 2, colorClass: 'bg-cp-primary', glowClass: 'rank-1', height: '70px' },
+  { place: 1, colorClass: 'bg-cp-info', glowClass: 'rank-2', height: '52px' },
+  { place: 3, colorClass: 'bg-cp-warning', glowClass: 'rank-3', height: '36px' }
 ]
 const PODIUM_ORDER = [1, 0, 2]
 const podiumEntries = computed(() =>
@@ -354,8 +366,6 @@ const podiumEntries = computed(() =>
 const topScore = computed(() => game.value?.rankings[0]?.score ?? 1)
 const scorePercent = (score: number) => Math.max((score / topScore.value) * 100, 6)
 
-const rankMedal = (rank: number) => ({ 1: '🥇', 2: '🥈', 3: '🥉' }[rank] ?? `${rank}`)
-
 const rankBarClass = (rank: number) => ({
   1: 'bg-cp-primary',
   2: 'bg-cp-info',
@@ -363,7 +373,7 @@ const rankBarClass = (rank: number) => ({
 }[rank] ?? 'bg-neutral-300')
 
 const reviewOptionClass = (qa: { myAnswerIndex: number, correctAnswerIndex: number }, optionIndex: number) => {
-  if (optionIndex === qa.correctAnswerIndex) return 'border-cp-success bg-cp-success-bg text-[#2e7d32]'
+  if (optionIndex === qa.correctAnswerIndex) return 'border-cp-success bg-cp-success-bg text-cp-success'
   if (optionIndex === qa.myAnswerIndex) return 'border-cp-danger bg-cp-danger-bg text-cp-danger'
   return 'border-cp-border text-cp-text-secondary'
 }

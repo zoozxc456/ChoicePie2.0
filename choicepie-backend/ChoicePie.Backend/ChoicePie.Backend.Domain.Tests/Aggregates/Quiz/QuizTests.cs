@@ -16,8 +16,9 @@ public class QuizTests
         creatorId: CreatorId,
         title: "Kubernetes 101",
         description: "A quiz about k8s",
+        coverImageUrl: null,
         coverEmoji: "⚓",
-        coverGradient: "background: linear-gradient(135deg,#0f3460,#533483);",
+        coverGradient: "primary",
         difficulty: Difficulty.Beginner,
         tags: tags ?? ["Kubernetes"]);
 
@@ -76,7 +77,7 @@ public class QuizTests
     public void Create_GivenBlankTitle_WhenCalled_ThenThrowsInvalidQuizException()
     {
         Assert.Throws<InvalidQuizException>(() => QuizAggregate.Create(
-            CreatorId, "   ", null, "⚓", "gradient", Difficulty.Beginner, []));
+            CreatorId, "   ", null, null, "⚓", "primary", Difficulty.Beginner, []));
     }
 
     [Test]

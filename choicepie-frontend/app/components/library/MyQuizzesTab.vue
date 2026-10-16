@@ -7,7 +7,7 @@
     >
       <UIcon
         name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-primary-500"
+        class="animate-spin text-4xl text-cp-primary"
       />
     </div>
 
@@ -19,10 +19,10 @@
       <div class="text-6xl mb-4">
         🥧
       </div>
-      <p class="font-bold text-base mb-1.5">
+      <p class="font-bold text-base mb-1.5 text-cp-text-primary">
         {{ t('myQuizzes.empty') }}
       </p>
-      <p class="text-sm text-neutral-600 mb-6">
+      <p class="text-sm text-cp-text-secondary mb-6">
         {{ t('myQuizzes.emptyDesc') }}
       </p>
       <NuxtLink to="/library/new">
@@ -64,11 +64,11 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         @click.self="confirmDeleteId = null"
       >
-        <div class="rounded-2xl bg-white w-full max-w-sm mx-4 overflow-hidden shadow-cp-xl p-6">
-          <h2 class="text-lg font-bold mb-1">
+        <div class="rounded-2xl bg-cp-surface w-full max-w-sm mx-4 overflow-hidden shadow-cp-xl p-6">
+          <h2 class="text-lg font-bold mb-1 text-cp-text-primary">
             {{ t('myQuizzes.deleteConfirm.title') }}
           </h2>
-          <p class="text-sm text-neutral-600 mb-5">
+          <p class="text-sm text-cp-text-secondary mb-5">
             {{ t('myQuizzes.deleteConfirm.subtitle') }}
           </p>
           <UButton

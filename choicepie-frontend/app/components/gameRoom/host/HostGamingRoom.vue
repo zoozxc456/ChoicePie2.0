@@ -8,6 +8,12 @@
             {{ t('host.playing.questionOf', { current: (gameStore.currentQuestion?.index ?? 0) + 1, total: gameStore.currentQuestion?.total }) }}
           </span>
           <span
+            v-if="gameStore.isPaused"
+            class="px-2 py-0.5 rounded-full text-xs font-bold bg-cp-warning text-white"
+          >
+            {{ t('host.playing.paused') }}
+          </span>
+          <span
             class="text-2xl font-bold tabular-nums"
             :class="gameStore.isTimerUrgent ? 'text-cp-danger' : 'text-cp-primary'"
           >
@@ -73,7 +79,8 @@
             v-for="player in gameStore.players"
             :key="player.id"
             class="player-chip"
-            :class="{ 'player-chip-answered': player.hasAnswered }"
+            :class="{ 'player-chip-answered': player.hasAnswered, 'opacity-40 grayscale': player.isConnected === false }"
+            :title="player.isConnected === false ? t('host.playing.playerDisconnected') : undefined"
           >
             <span
               v-if="player.hasAnswered"
@@ -88,6 +95,15 @@
         </TransitionGroup>
       </div>
 
+      <!-- 暫停提示：重連後遊戲維持暫停，需由 Host 手動按繼續 -->
+      <p
+        v-if="gameStore.isPaused"
+        class="rounded-xl px-4 py-3 text-sm font-semibold bg-cp-warning/15 text-cp-warning"
+        role="status"
+      >
+        {{ t('host.playing.pausedHint') }}
+      </p>
+
       <!-- Host Controls -->
       <div class="flex gap-3">
         <UButton
@@ -99,11 +115,11 @@
           {{ t('host.playing.skipQuestion') }}
         </UButton>
         <UButton
-          color="neutral"
-          variant="outline"
+          :color="gameStore.isPaused ? 'primary' : 'neutral'"
+          :variant="gameStore.isPaused ? 'solid' : 'outline'"
           @click="gameRoom.pauseGame(props.code)"
         >
-          {{ t('host.playing.pause') }}
+          {{ gameStore.isPaused ? t('host.playing.resume') : t('host.playing.pause') }}
         </UButton>
       </div>
     </div>

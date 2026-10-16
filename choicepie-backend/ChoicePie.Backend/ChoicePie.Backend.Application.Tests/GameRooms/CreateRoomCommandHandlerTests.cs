@@ -30,7 +30,7 @@ public class CreateRoomCommandHandlerTests
 
     private Quiz CreateQuizWithQuestions(int count)
     {
-        var quiz = Quiz.Create(_hostUserId, "Kubernetes 101", null, "⚓", "gradient", Difficulty.Beginner, []);
+        var quiz = Quiz.Create(_hostUserId, "Kubernetes 101", null, null, "⚓", "primary", Difficulty.Beginner, []);
         for (var i = 0; i < count; i++)
         {
             quiz.AddQuestion(Question.Create($"Q{i}", ["1", "2", "3", "4"], 1, "explanation"));
@@ -83,5 +83,23 @@ public class CreateRoomCommandHandlerTests
         _quizRepository.GetByIdAsync(_quizId, Arg.Any<CancellationToken>()).Returns((Quiz?)null);
 
         Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+    }
+
+    [Test]
+    public async Task Handle_GivenHostConnectionId_WhenCalled_ThenSavedRoomTracksHostConnectionAsOnline()
+    {
+        _quizRepository.GetByIdAsync(_quizId, Arg.Any<CancellationToken>()).Returns(CreateQuizWithQuestions(1));
+        var command = new CreateRoomCommand
+        {
+            HostUserId = _hostUserId,
+            QuizId = _quizId,
+            HostConnectionId = "host-conn"
+        };
+
+        await _sut.Handle(command, CancellationToken.None);
+
+        await _gameRoomRepository.Received(1).SaveAsync(
+            Arg.Is<Domain.Aggregates.GameRoom.GameRoom>(r => r.HostConnectionId == "host-conn" && r.IsHostOnline),
+            Arg.Any<CancellationToken>());
     }
 }

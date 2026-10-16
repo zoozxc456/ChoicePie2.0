@@ -494,9 +494,15 @@ describe('useQuizStore', () => {
       const result = await store.saveQuiz(
         [{ id: 'q1', text: 'Q1', options: ['a', 'b'], answerIndex: 0, explanation: 'exp' }],
         'New Quiz',
-        'beginner'
+        'beginner',
+        { coverImageUrl: 'https://cdn.example.com/cover.png', coverEmoji: '📝', coverGradient: 'g' }
       )
 
+      expect(saveQuiz).toHaveBeenCalledWith(expect.objectContaining({
+        coverImageUrl: 'https://cdn.example.com/cover.png',
+        coverEmoji: '📝',
+        coverGradient: 'g'
+      }))
       expect(result.id).toBe('quiz-new')
       expect(store.quizzes[0]?.id).toBe('quiz-new')
       expect(store.quizzes).toHaveLength(2)

@@ -1,3 +1,5 @@
+using ChoicePie.Backend.Shared.Hosting.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning;
 using ChoicePie.Backend.Application.Identity.Commands;
 using ChoicePie.Backend.Application.Identity.Dtos;
@@ -21,6 +23,7 @@ namespace ChoicePie.Backend.WebApi.Controllers;
 public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSettings) : ControllerBase
 {
     [HttpPost("register")]
+    [EnableRateLimiting(RateLimitPolicyNames.Auth)]
     public async Task<ActionResult<ApiResponse<MemberDto>>> RegisterAsync([FromBody] RegisterMemberRequest request)
     {
         var result = await mediator.Send(request.ToCommand());
@@ -28,6 +31,7 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitPolicyNames.Auth)]
     public async Task<ActionResult<ApiResponse<LoginResultDto>>> LoginAsync([FromBody] LoginRequest request)
     {
         var result = await mediator.Send(request.ToCommand());
@@ -39,6 +43,7 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
     }
 
     [HttpPost("google")]
+    [EnableRateLimiting(RateLimitPolicyNames.Auth)]
     public async Task<ActionResult<ApiResponse<LoginResultDto>>> GoogleLoginAsync([FromBody] GoogleLoginRequest request)
     {
         var result = await mediator.Send(request.ToCommand());
@@ -71,6 +76,7 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
     }
 
     [HttpPost("forgot-password")]
+    [EnableRateLimiting(RateLimitPolicyNames.Email)]
     public async Task<ActionResult<ApiResponse>> ForgotPasswordAsync([FromBody] ForgotPasswordRequest request)
     {
         await mediator.Send(request.ToCommand());
@@ -78,6 +84,7 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
     }
 
     [HttpPost("reset-password")]
+    [EnableRateLimiting(RateLimitPolicyNames.Auth)]
     public async Task<ActionResult<ApiResponse>> ResetPasswordAsync([FromBody] ResetPasswordRequest request)
     {
         await mediator.Send(request.ToCommand());
@@ -85,6 +92,7 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
     }
 
     [HttpPost("verify-email")]
+    [EnableRateLimiting(RateLimitPolicyNames.Auth)]
     public async Task<ActionResult<ApiResponse>> VerifyEmailAsync([FromBody] VerifyEmailRequest request)
     {
         await mediator.Send(request.ToCommand());
@@ -92,6 +100,7 @@ public class AuthController(IMediator mediator, IOptions<JwtSettings> jwtSetting
     }
 
     [HttpPost("resend-verification")]
+    [EnableRateLimiting(RateLimitPolicyNames.Email)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse>> ResendVerificationAsync()
     {

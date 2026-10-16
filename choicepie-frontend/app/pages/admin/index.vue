@@ -108,12 +108,13 @@
             <span class="w-6 text-base font-bold text-neutral-400 text-center shrink-0">
               {{ index + 1 }}
             </span>
-            <span
-              class="text-xl w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-              :style="{ background: quiz.coverGradient }"
-            >
-              {{ quiz.coverEmoji }}
-            </span>
+            <QuizCoverThumbnail
+              :cover-image-url="quiz.coverImageUrl"
+              :cover-emoji="quiz.coverEmoji"
+              :cover-gradient="quiz.coverGradient"
+              size="xs"
+              rounded="lg"
+            />
             <span class="flex-1 min-w-0">
               <span class="block text-base font-bold truncate">{{ quiz.title }}</span>
               <span class="block text-xs text-neutral-500 truncate">{{ quiz.creatorName }}</span>
@@ -153,6 +154,8 @@
 </template>
 
 <script setup lang="ts">
+import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
+
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
 
 const { t } = useI18n()

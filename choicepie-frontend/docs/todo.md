@@ -26,14 +26,25 @@
 無人作答時為 `null`），由 `GameSessionQueryService.BuildQuestionBreakdown()` 計算平均值。前端逐題分析卡片
 （`app/pages/history/[id].vue`）在答對率旁補上「平均作答 X 秒」顯示。
 
-## AI 出題 — 只差真實 LLM provider
+## AI 出題 — 已完成（Anthropic provider + 網址擷取）
 
-2026-07-24 更新：前端頁面（`library/new/ai.vue`）、額度控管、controller、DTO 端到端流程都已接好，**但後端 `PlaceholderQuizGenerationService`
-（`ChoicePie.Backend.Infrastructure/ExternalServices/Quizzes/PlaceholderQuizGenerationService.cs`）目前只回傳寫死的
-「Placeholder question N」，沒有呼叫任何真實 LLM**（`TokensUsed` 也固定回 0）。需要：
-1. 選定並串接真實 LLM provider，取代 `PlaceholderQuizGenerationService` 的實作
-2. 確認現有輸入介面（主題/關鍵字/難度）、產生題目後的審核與編輯流程是否足夠，不需要另外規劃
-3. 成本控管（token 用量、額度限制）——確認現有額度邏輯是否已涵蓋真實 API 呼叫成本
+2026-07-24 當時只差真實 LLM provider；現已完成：`QuizGenerationService`
+（`ChoicePie.Backend.Infrastructure/ExternalServices/Quizzes/`）依 `AiQuizGeneration:Provider` 選擇
+`IQuizGenerationProvider`，目前實作為 `AnthropicQuizGenerationProvider`（設定 `AiQuizGeneration:ApiKey`/`Model`）。
+原先的 `PlaceholderQuizGenerationService` 已不存在。額度由後端依會員等級（`MembershipTier`）與 `AiUsageLog`
+當日用量於伺服器端強制（見 `GenerateQuizQuestionsCommandHandler`），`POST /api/v1/quizzes/generate-questions`
+另掛 `ai` 速率限制 policy。
+
+2026-10-16：AI 出題支援貼上網址擷取內容（`ExternalServices/WebPages/`）：
+
+- **SSRF 防護**：`WebPageUrlGuard` 只允許 http/https、不可帶帳密、連接埠僅 80 / 443 / 8080 / 8443、
+  拒絕 localhost 與內網 / 保留位址（含 IPv4-mapped、NAT64、6to4 等內嵌 IPv4 的 IPv6 形式）；
+  `SsrfSafeConnector` 在實際連線時再檢查解析出的 IP。
+- **結構化資料備援**：頁面內文過少時改從嵌入的結構化資料（`WebPageStructuredDataExtractor`）擷取文字。
+- **JS-only 偵測**：仍擷取不到足夠文字時丟 `WebPageRequiresJavaScriptException`，前端 `library/new/ai.vue`
+  的網址欄位提示說明不支援需要 JavaScript 才會渲染的頁面。
+- 注意：`WebPageContentFetcher` 以 typed `HttpClient` 註冊（`Program.cs`），**刻意不實作 DI marker interface**，
+  否則 Scrutor 掃描註冊會覆蓋 typed client，SSRF handler 會被繞過。
 
 ## Google 註冊登入 — 已完成
 
@@ -258,3 +269,53 @@ attempts，依 `CompletedAt` 新到舊排序，`QuizAttemptHistoryItemDto` 額�
   設計（例如伺服器端產生的動態卡片圖）。
 
 `app/stores/quiz.ts` 的 `recordShare` action 與後端 API 皆未變動。
+
+## 近期功能（2026-10-16 彙整）
+
+匿名題庫詳情 / 分享預覽 / 安全登入導回：
+
+- `GET /api/v1/quizzes/{id}` 標記 `[AllowAnonymous]`，未登入者可直接看題庫詳情（`library/[id].vue` 不掛 `auth` middleware，
+  需要登入的動作統一導向 `/login?redirect=...` 並在登入後導回）。
+- `library/[id].vue` 的 `useSeoMeta` 在題庫有封面圖（`coverImageUrl`）時帶 `ogImage`/`twitterImage`（以 `toAbsoluteUrl` 轉成絕對網址）
+  與 `summary_large_image` 卡片，取代 2026-07-24 時「沒有 ogImage」的限制；沒有封面圖時仍不輸出圖片。
+- `app/utils/safeRedirect.ts` 的 `sanitizeRedirect` 只接受站內路徑（拒絕 `//host`、反斜線、控制字元），登入後的 `redirect` query 一律經過它。
+
+速率限制 / 轉發標頭 / 健康檢查 / Sentry：
+
+- 後端 `Shared.Hosting/RateLimiting`：固定視窗，policy 為 `auth` / `email` / `ai` / `write`，另有全域限制 `Global`（健康檢查路徑不限制）；
+  已登入以 `sub` 分區，否則以 IP。額度由 `RateLimiting:*` 設定，超限回應由 `RateLimitRejectionWriter` 輸出，前端 `useApi` 對 429 顯示固定友善訊息。
+- `ForwardedHeaders:KnownProxies` / `KnownNetworks`：只信任名單內的 proxy 帶的 `X-Forwarded-For`；Nuxt BFF 的 `backendFetch` 會轉發真實使用者 IP
+  （`NUXT_TRUST_PROXY_HEADERS` 控制是否採信進來的 `X-Forwarded-For`）。部署時須把 BFF 的 IP/網段加進後端名單，否則速率限制會把所有人視為同一人。
+- 健康檢查：`/health/live`（process 存活）、`/health/ready`（PostgreSQL + Redis），匿名、位於 `/api/v1` 之外。
+- Sentry：後端（`Sentry:Dsn`）與前端（`NUXT_PUBLIC_SENTRY_DSN`）皆為 DSN 為空即完全不啟用；後端只上報落到 5xx 的未預期例外。
+- BFF 的 `backendFetch` 僅在 dev 或 `NUXT_DEBUG_BACKEND_FETCH=true` 時記錄 log，且遮蔽 authorization / refresh token / cookie / password 等欄位。
+- CI：`.github/workflows/backend-ci.yml` 與 `frontend-ci.yml`；前端新增 `pnpm lint`、`pnpm typecheck`（與 `pnpm test` 同為 CI 步驟）。
+
+會員資料與創作者：
+
+- `MeController`：`GET /api/v1/me/favorites`、`/me/following`、`/me/following/quizzes`（追蹤對象的題庫動態），對應前端
+  `favorites`/`following` store 與題庫庫的 `FavoritesTab`/`FollowingTab`（`library/index.vue` 以分頁籤切換全部 / 我的 / 收藏 / 追蹤）。
+- `GET /api/v1/creators/{id}/quizzes` + 前端 `/creators/[id]` 創作者頁（`creator` store 的 `fetchCreatorQuizzes`）。
+- `AccountController`（`/api/v1/account`）+ 前端 `/settings`（`app/components/settings/*`、`account` store）：更新名稱、上傳頭像、變更密碼、
+  綁定 / 解除綁定 Google、刪除帳號；BFF 對應路由為 `server/api/v1/account/{avatar,password,delete}`。
+- `MemberOnly` policy 現在除了 role claim，還要求 JWT `sub` 對應的會員仍存在、未刪除、未停權（`ActiveMemberRequirement`）；
+  不符時回 401（而非 403），讓前端既有的 401 → refresh 流程處理。判斷結果以會員為單位快取（總 TTL 60 秒、本機 L1 10 秒），
+  會員被刪除 / 停權 / 解除停權時由領域事件處理器主動失效。
+
+遊戲房間（SignalR）：
+
+- 暫停：`PauseGame` → 廣播 `PauseStateChanged`；前端 `game` store 的 `isPaused` 與 `setPauseState`。
+- 玩家重連：`JoinRoom` 回傳 `JoinRoomResponse`（含 `ReconnectToken`），前端以 `usePlayerSession`（localStorage，依房間代碼存放）保存，
+  斷線 / 重新整理後呼叫 `RejoinAsPlayer`；斷線與重連分別廣播 `PlayerDisconnected` / `PlayerReconnected`；憑證無效則丟 `InvalidReconnectTokenException`。
+- 暱稱不可重複（不分大小寫，`DuplicateNicknameException`）。
+- 大螢幕：匿名呼叫 `WatchRoom` 只加入房間群組（收不到 `AnswerProgress`），不算玩家、不佔 30 人名額；`useGameRoom` 重連時會自動 `WatchRoom`。
+- Host 連線追蹤：Host 斷線時（`DisconnectHostCommand`）自動暫停並廣播 `HostConnectionChanged(false)`；Host 以 `RejoinRoom`（現為 command，
+  `RejoinAsHostCommand`）回來後廣播 `HostConnectionChanged(true)` 並回傳 `RoomStateSync`。前端 `game` store 的 `isHostOnline` 驅動
+  `components/gameRoom/HostOfflineBanner.vue`，Host 頁另有 `HostReconnecting.vue`/`HostRejoinFailed.vue`。
+
+## 仍待規劃
+
+- `tests/nuxt/unit/middleware/auth.spec.ts` 為過時測試（仍預期「已登入時不呼叫 `fetchMe`」，現行 `middleware/auth.ts` 每次都會 `fetchMe()`），待決定修正或移除。
+- `GameRoomLock` 是同程序內的每房間互斥鎖，只適用單一後端執行個體；多執行個體部署前需改為分散式鎖。
+- `bigscreen/[code].vue` 仍有部分寫死的 `bg-white` / `text-white` class，尚未全面改用 `cp-*` 設計 token。
+- 多節點部署時，會員存活狀態（`MemberOnly`）的失效最多會延遲約 10 秒（其他節點的 L1 本機快取過期前）。

@@ -33,7 +33,7 @@
       <div
         v-for="member in members"
         :key="member.id"
-        class="relative grid grid-cols-[1fr_112px] rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden transition-colors hover:border-primary-300"
+        class="relative grid grid-cols-[1fr_112px] rounded-2xl bg-white border border-neutral-200 overflow-hidden transition-all hover:border-primary-300 hover:shadow-cp-md"
       >
         <NuxtLink
           :to="`/admin/members/${member.id}`"
@@ -43,9 +43,17 @@
 
         <div class="p-4 min-w-0 flex items-center justify-between gap-3 pointer-events-none">
           <div class="min-w-0 flex-1">
-            <p class="text-lg font-bold truncate">
-              {{ member.name }}
-            </p>
+            <div class="flex items-center gap-2 min-w-0">
+              <p class="text-lg font-bold truncate">
+                {{ member.name }}
+              </p>
+              <span
+                v-if="member.tierName"
+                class="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 border border-primary-200"
+              >
+                {{ member.tierName }}
+              </span>
+            </div>
             <p class="text-base text-neutral-400 mt-0.5 truncate">
               {{ member.email }}
             </p>

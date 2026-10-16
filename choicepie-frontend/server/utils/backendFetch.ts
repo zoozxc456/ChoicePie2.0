@@ -33,15 +33,28 @@ export const backendFetch = async <T>(event: H3Event, path: string, options: Bac
   if (options.accessToken) headers.authorization = `Bearer ${options.accessToken}`
   if (options.refreshToken) headers['x-refresh-token'] = options.refreshToken
 
-  const method = options.method ?? 'GET'
-
-  // 除錯用：印出打給後端的完整 request 與收到的 response。只在 Nitro server 的 terminal
-  // 輸出（不會進到瀏覽器 console），但仍含有 token 明碼，僅供本機除錯，不要留在正式環境。
-  console.warn('[backendFetch] →', method, `${config.backendApiUrl}${path}`, {
-    query: options.query,
-    headers,
-    body: options.body
+  // BFF 對後端而言是唯一的來源 IP，必須把真實使用者 IP 帶過去，後端的速率限制才不會把所有人當成同一個人。
+  // 後端只會在請求來自它設定的 ForwardedHeaders:KnownProxies / KnownNetworks 時才採信這個 header。
+  const clientIp = resolveClientIp({
+    socketIp: getRequestIP(event),
+    forwardedFor: getRequestHeader(event, 'x-forwarded-for'),
+    trustProxyHeaders: config.trustProxyHeaders === true
   })
+  if (clientIp) headers['x-forwarded-for'] = clientIp
+
+  const method = options.method ?? 'GET'
+  const url = `${config.backendApiUrl}${path}`
+
+  // 僅在 dev 或明確開啟 debugBackendFetch 時才印出 request / response，且一律遮蔽
+  // authorization、x-refresh-token、cookie 與 body 內的 password / token 欄位，避免憑證進到 log。
+  const shouldLog = import.meta.dev || config.debugBackendFetch === true
+  if (shouldLog) {
+    console.warn('[backendFetch] →', method, url, {
+      query: options.query,
+      headers: redactHeaders(headers),
+      body: redactBody(options.body)
+    })
+  }
 
   const response = await $fetch.raw<T>(path, {
     baseURL: config.backendApiUrl,
@@ -52,10 +65,12 @@ export const backendFetch = async <T>(event: H3Event, path: string, options: Bac
     ignoreResponseError: true
   })
 
-  console.warn('[backendFetch] ←', response.status, method, `${config.backendApiUrl}${path}`, {
-    headers: Object.fromEntries(response.headers.entries()),
-    body: response._data
-  })
+  if (shouldLog) {
+    console.warn('[backendFetch] ←', response.status, method, url, {
+      headers: redactHeaders(Object.fromEntries(response.headers.entries())),
+      body: redactBody(response._data)
+    })
+  }
 
   if (options.forwardSetCookie) {
     for (const cookie of response.headers.getSetCookie()) {

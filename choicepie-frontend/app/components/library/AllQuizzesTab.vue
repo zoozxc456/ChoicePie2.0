@@ -3,17 +3,17 @@
     <!-- AI Banner -->
     <NuxtLink
       to="/library/new"
-      class="cursor-pointer bg-linear-to-br from-[#1a1a2e] to-secondary-800 rounded-2xl px-6 py-5 mb-6 flex items-center justify-between gap-4 flex-wrap"
+      class="cursor-pointer bg-cp-primary-light border border-cp-primary-border rounded-2xl px-6 py-5 mb-6 flex items-center justify-between gap-4 flex-wrap"
     >
       <div>
-        <p class="text-base font-bold text-white">
+        <p class="text-base font-bold text-cp-text-primary">
           {{ t('library.aiBanner.title') }}
         </p>
-        <p class="text-[13px] text-white/60 mt-1">
+        <p class="text-[13px] text-cp-text-secondary mt-1">
           {{ t('library.aiBanner.subtitle') }}
         </p>
       </div>
-      <div class="h-10 px-5 rounded-full bg-primary-500 text-white font-bold text-[13px] flex items-center whitespace-nowrap">
+      <div class="h-10 px-5 rounded-full bg-cp-primary text-white font-bold text-[13px] flex items-center whitespace-nowrap">
         {{ t('library.aiBanner.cta') }}
       </div>
     </NuxtLink>
@@ -26,7 +26,7 @@
         size="lg"
         icon="i-lucide-search"
         class="w-full"
-        :ui="{ base: 'h-12 text-sm px-4' }"
+        :ui="{ base: 'h-12 text-sm px-4 rounded-2xl bg-cp-surface-muted' }"
       />
     </div>
 
@@ -37,8 +37,8 @@
         :key="tag"
         class="shrink-0 px-4 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all"
         :class="activeTag === tag
-          ? 'bg-primary-500 text-white'
-          : 'bg-neutral-100 text-neutral-600'"
+          ? 'bg-cp-primary text-white'
+          : 'bg-cp-surface-muted text-cp-text-secondary'"
         @click="activeTag = tag"
       >
         {{ tag }}
@@ -52,7 +52,7 @@
     >
       <UIcon
         name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-primary-500"
+        class="animate-spin text-4xl text-cp-primary"
       />
     </div>
 
@@ -62,7 +62,7 @@
         v-if="featured.length"
         class="mb-10"
       >
-        <h2 class="text-lg font-bold mb-4">
+        <h2 class="text-lg font-bold mb-4 text-cp-text-primary">
           {{ t('library.featured') }}
         </h2>
         <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
@@ -77,7 +77,7 @@
 
       <!-- Latest -->
       <section v-if="latest.length">
-        <h2 class="text-lg font-bold mb-4">
+        <h2 class="text-lg font-bold mb-4 text-cp-text-primary">
           {{ t('library.latest') }}
         </h2>
         <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
@@ -92,7 +92,7 @@
       <!-- No results -->
       <div
         v-if="!featured.length && !latest.length"
-        class="text-center py-16 text-sm text-neutral-400"
+        class="text-center py-16 text-sm text-cp-text-muted"
       >
         {{ t('library.noResults') }}
       </div>

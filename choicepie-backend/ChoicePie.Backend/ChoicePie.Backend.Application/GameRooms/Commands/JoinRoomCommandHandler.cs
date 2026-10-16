@@ -13,26 +13,14 @@ public sealed class JoinRoomCommandHandler(IGameRoomRepository gameRoomRepositor
         var room = await gameRoomRepository.GetByRoomCodeAsync(request.RoomCode, cancellationToken)
                    ?? throw new RoomNotFoundException(request.RoomCode);
 
-        var player = room.Join(request.Nickname, request.ConnectionId, timeProvider.GetUtcNow().UtcDateTime, request.MemberId);
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var player = room.Join(request.Nickname, request.ConnectionId, now, request.MemberId);
 
         await gameRoomRepository.SaveAsync(room, cancellationToken);
 
         var playerDto = PlayerDto.ForPublic(player, rank: room.Players.Count, room.CurrentQuestionIndex);
+        var roomState = GameRoomStateFactory.Build(room, now, forHost: false);
 
-        var players = room.Players
-            .OrderByDescending(p => p.Score)
-            .Select((p, index) => PlayerDto.ForPublic(p, index + 1, room.CurrentQuestionIndex))
-            .ToList();
-
-        var roomDto = new GameRoomDto(
-            room.RoomCode,
-            GameRoomDto.StatusOf(room.Phase),
-            players,
-            room.CurrentQuestionIndex,
-            room.Questions.Count);
-
-        var roomState = new RoomStateSyncDto(room.Phase.Name, roomDto, null, null, null, null, null);
-
-        return new JoinRoomResult(playerDto, roomState);
+        return new JoinRoomResult(playerDto, roomState, player.ReconnectToken);
     }
 }

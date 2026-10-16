@@ -36,7 +36,7 @@ public class AddCommentCommandHandlerTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _sut = new AddCommentCommandHandler(_commentRepository, _quizRepository, _memberRepository, _currentUserService, _unitOfWork);
 
-        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _author = Member.Create("Alice");
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
         _memberRepository.GetByIdAsync(_userId, Arg.Any<CancellationToken>()).Returns(_author);

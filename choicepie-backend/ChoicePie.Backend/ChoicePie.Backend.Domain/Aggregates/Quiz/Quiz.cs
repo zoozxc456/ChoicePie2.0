@@ -55,6 +55,7 @@ public sealed class Quiz : AggregateRoot<Guid>
         Guid creatorId,
         string title,
         string? description,
+        string? coverImageUrl,
         string coverEmoji,
         string coverGradient,
         Difficulty difficulty,
@@ -67,7 +68,7 @@ public sealed class Quiz : AggregateRoot<Guid>
             Id = Guid.NewGuid(),
             Title = title,
             Description = description,
-            Cover = QuizCover.Create(coverEmoji, coverGradient),
+            Cover = QuizCover.Create(coverImageUrl, coverEmoji, coverGradient),
             Difficulty = difficulty,
             Status = QuizStatus.Draft
         };
@@ -132,6 +133,14 @@ public sealed class Quiz : AggregateRoot<Guid>
         _tags.Clear();
         _tags.AddRange(TagList.Create(tags).Values);
 
+        Touch();
+    }
+
+    public void UpdateCover(string? imageUrl, string emoji, string gradient)
+    {
+        EnsureEditable();
+
+        Cover = QuizCover.Create(imageUrl, emoji, gradient);
         Touch();
     }
 

@@ -39,7 +39,7 @@ public sealed class QuizzesControllerTests
         Title = title,
         Description = "for QuizzesController tests",
         CoverEmoji = "🎯",
-        CoverGradient = "from-red-500 to-orange-500",
+        CoverGradient = "primary",
         Difficulty = "beginner",
         Tags = new[] { "test" },
         Questions = new[] { OneQuestionPayload() }
@@ -311,7 +311,7 @@ public sealed class QuizzesControllerTests
             Title = "Tagged Quiz",
             Description = (string?)null,
             CoverEmoji = "🎯",
-            CoverGradient = "from-red-500 to-orange-500",
+            CoverGradient = "primary",
             Difficulty = "beginner",
             Tags = new[] { uniqueTag },
             Questions = new[] { OneQuestionPayload() }

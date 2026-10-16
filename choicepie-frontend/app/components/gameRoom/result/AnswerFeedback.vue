@@ -3,9 +3,11 @@
     class="rounded-2xl p-5 mb-4 text-center border-2"
     :class="gameStore.isCorrect ? 'bg-success-50 border-success-500' : 'bg-error-50 border-error-500'"
   >
-    <div class="text-4xl mb-2">
-      {{ gameStore.isCorrect ? '🎉' : '😅' }}
-    </div>
+    <UIcon
+      :name="gameStore.isCorrect ? 'i-lucide-check-circle-2' : 'i-lucide-x-circle'"
+      class="text-4xl mb-2"
+      :class="gameStore.isCorrect ? 'text-success-500' : 'text-error-500'"
+    />
     <p
       class="text-xl font-black mb-1"
       :class="gameStore.isCorrect ? 'text-success-500' : 'text-error-500'"

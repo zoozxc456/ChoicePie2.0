@@ -33,7 +33,7 @@ public sealed class QuizAttemptsControllerTests
             Title = "Attempt Test Quiz",
             Description = "for QuizAttempts tests",
             CoverEmoji = "🎯",
-            CoverGradient = "from-red-500 to-orange-500",
+            CoverGradient = "primary",
             Difficulty = "beginner",
             Tags = new[] { "test" },
             Questions = new[]
@@ -93,7 +93,7 @@ public sealed class QuizAttemptsControllerTests
             Title = "Draft Quiz",
             Description = (string?)null,
             CoverEmoji = "🎯",
-            CoverGradient = "from-red-500 to-orange-500",
+            CoverGradient = "primary",
             Difficulty = "beginner",
             Tags = new[] { "test" },
             Questions = new[]

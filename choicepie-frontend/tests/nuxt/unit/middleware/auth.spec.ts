@@ -12,13 +12,14 @@ describe('middleware/auth', () => {
     vi.clearAllMocks()
   })
 
-  it('已登入時不呼叫 fetchMe，也不導向', async () => {
-    const fetchMe = vi.fn()
+  // persisted 的 isLoggedIn 只代表曾經登入過，cookie 可能已過期，所以即使已登入也要用 fetchMe 向後端驗證。
+  it('已登入時仍呼叫 fetchMe 驗證 session，驗證通過則不導向', async () => {
+    const fetchMe = vi.fn().mockResolvedValue(true)
     useAuthStoreMock.mockReturnValue({ isLoggedIn: true, fetchMe })
 
     const result = await authMiddleware(makeRoute('/host/room/ABCD'), makeRoute('/'))
 
-    expect(fetchMe).not.toHaveBeenCalled()
+    expect(fetchMe).toHaveBeenCalledOnce()
     expect(navigateToMock).not.toHaveBeenCalled()
     expect(result).toBeUndefined()
   })

@@ -4,13 +4,13 @@
       :items="shareActions"
       :content="{ align: 'start' }"
     >
-      <button class="h-10 px-4 rounded-full text-[13px] font-semibold border border-neutral-200 bg-white whitespace-nowrap cursor-pointer">
+      <button class="h-10 px-4 rounded-full text-[13px] font-semibold bg-cp-surface-muted whitespace-nowrap cursor-pointer">
         {{ t('libraryDetail.share.action') }}
       </button>
     </UDropdownMenu>
     <span
       v-if="isCopied"
-      class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[11px] text-white bg-neutral-800 px-2 py-1 rounded-lg whitespace-nowrap"
+      class="absolute top-full left-1/2 -translate-x-1/2 mt-1 text-[11px] text-white bg-cp-secondary px-2 py-1 rounded-lg whitespace-nowrap"
     >
       {{ t('libraryDetail.share.copied') }}
     </span>
