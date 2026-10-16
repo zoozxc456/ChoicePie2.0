@@ -7,6 +7,7 @@
     "howToUse": "如何使用",
     "about": "關於我們",
     "login": "登入 / 註冊",
+    "accountSettings": "帳號設定",
     "logout": "登出"
   },
   "join": {
@@ -953,5 +954,67 @@
     "notFound": "找不到這位創作者",
     "loadError": "載入題庫失敗，請稍後再試",
     "followToLogin": "登入後追蹤"
+  },
+  "settings": {
+    "title": "帳號設定",
+    "loading": "載入中…",
+    "common": {
+      "failed": "操作失敗，請稍後再試"
+    },
+    "profile": {
+      "title": "個人資料",
+      "description": "更新你的顯示名稱與頭像。",
+      "avatarAlt": "頭像",
+      "changeAvatar": "更換頭像",
+      "uploading": "上傳中…",
+      "avatarHint": "支援 JPEG、PNG、WebP，5MB 以內。",
+      "avatarInvalidType": "不支援的圖片格式，僅接受 JPEG、PNG、WebP。",
+      "avatarTooLarge": "圖片檔案過大，請上傳 5MB 以內的圖片。",
+      "email": "電子郵件",
+      "name": "顯示名稱",
+      "nameLength": "顯示名稱長度需介於 {min} 到 {max} 字之間",
+      "save": "儲存",
+      "saved": "已儲存"
+    },
+    "password": {
+      "changeTitle": "變更密碼",
+      "changeDescription": "輸入目前密碼後即可設定新密碼。",
+      "setTitle": "設定密碼",
+      "setDescription": "你目前只使用 Google 登入。設定密碼後，也能用電子郵件與密碼登入。",
+      "current": "目前密碼",
+      "new": "新密碼",
+      "confirm": "確認新密碼",
+      "currentRequired": "請輸入目前密碼",
+      "min": "密碼至少需要 {min} 個字元",
+      "mismatch": "兩次輸入的密碼不一致",
+      "changeSubmit": "變更密碼",
+      "setSubmit": "設定密碼",
+      "changed": "密碼已變更",
+      "setDone": "密碼已設定",
+      "otherSessionsNote": "變更後，其他裝置上的登入狀態會被登出。"
+    },
+    "loginMethods": {
+      "title": "登入方式",
+      "description": "管理可以用來登入此帳號的方式。",
+      "password": "電子郵件與密碼",
+      "enabled": "已啟用",
+      "notSet": "未設定",
+      "link": "連結",
+      "unlink": "解除連結",
+      "lastMethodHint": "這是你唯一的登入方式，請先設定密碼才能解除 Google 連結。"
+    },
+    "delete": {
+      "title": "刪除帳號",
+      "description": "刪除後將無法復原，你已發布的題庫會被封存。",
+      "button": "刪除我的帳號",
+      "modalTitle": "確定要刪除帳號嗎？",
+      "warning": "此動作無法復原。你的所有登入狀態會被登出，已發布的題庫會被封存。",
+      "passwordLabel": "請輸入密碼以確認",
+      "emailLabel": "請輸入你的電子郵件 {email} 以確認",
+      "cancel": "取消",
+      "confirm": "永久刪除",
+      "doneTitle": "帳號已刪除",
+      "doneDescription": "感謝你使用 ChoicePie，期待未來再見。"
+    }
   }
 }

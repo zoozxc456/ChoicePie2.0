@@ -44,8 +44,14 @@
         >
           <template v-if="auth.isLoggedIn">
             <div class="flex items-center gap-2.5 px-3.5 py-3 bg-[linear-gradient(135deg,#fff8f0_0%,#fff3e0_100%)]">
-              <span class="flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold text-white bg-cp-primary ring-2 ring-white shadow-cp-sm">
-                {{ (auth.user?.name ?? '?').charAt(0).toUpperCase() }}
+              <span class="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden text-sm font-bold text-white bg-cp-primary ring-2 ring-white shadow-cp-sm">
+                <img
+                  v-if="auth.user?.avatar"
+                  :src="auth.user.avatar"
+                  :alt="auth.user.name"
+                  class="w-full h-full object-cover"
+                >
+                <template v-else>{{ (auth.user?.name ?? '?').charAt(0).toUpperCase() }}</template>
               </span>
               <span class="text-sm font-bold text-cp-text-primary truncate">
                 {{ auth.user?.name }}
@@ -76,6 +82,14 @@
                 name="i-lucide-bar-chart-3"
                 class="dropdown-item__icon"
               />{{ t('nav.history') }}</NuxtLink>
+              <NuxtLink
+                to="/settings"
+                class="dropdown-item dropdown-item--info"
+                @click="closeMenu"
+              ><UIcon
+                name="i-lucide-settings"
+                class="dropdown-item__icon"
+              />{{ t('nav.accountSettings') }}</NuxtLink>
             </div>
             <hr class="my-1 border-cp-border">
             <div class="py-1">

@@ -7,6 +7,7 @@
     "howToUse": "How to Use",
     "about": "About",
     "login": "Sign In / Sign Up",
+    "accountSettings": "Account Settings",
     "logout": "Sign Out"
   },
   "join": {
@@ -953,5 +954,67 @@
     "notFound": "Creator not found",
     "loadError": "Could not load quizzes. Please try again.",
     "followToLogin": "Log in to follow"
+  },
+  "settings": {
+    "title": "Account Settings",
+    "loading": "Loading…",
+    "common": {
+      "failed": "Something went wrong. Please try again."
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Update your display name and avatar.",
+      "avatarAlt": "Avatar",
+      "changeAvatar": "Change avatar",
+      "uploading": "Uploading…",
+      "avatarHint": "JPEG, PNG or WebP, up to 5MB.",
+      "avatarInvalidType": "Unsupported image format. Only JPEG, PNG and WebP are accepted.",
+      "avatarTooLarge": "The image is too large. Please upload one under 5MB.",
+      "email": "Email",
+      "name": "Display name",
+      "nameLength": "Display name must be {min} to {max} characters",
+      "save": "Save",
+      "saved": "Saved"
+    },
+    "password": {
+      "changeTitle": "Change password",
+      "changeDescription": "Enter your current password to set a new one.",
+      "setTitle": "Set a password",
+      "setDescription": "You currently sign in with Google only. Set a password to also sign in with email and password.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "currentRequired": "Please enter your current password",
+      "min": "Password must be at least {min} characters",
+      "mismatch": "Passwords do not match",
+      "changeSubmit": "Change password",
+      "setSubmit": "Set password",
+      "changed": "Password changed",
+      "setDone": "Password set",
+      "otherSessionsNote": "You will be signed out on your other devices."
+    },
+    "loginMethods": {
+      "title": "Sign-in methods",
+      "description": "Manage the ways you can sign in to this account.",
+      "password": "Email and password",
+      "enabled": "Enabled",
+      "notSet": "Not set",
+      "link": "Link",
+      "unlink": "Unlink",
+      "lastMethodHint": "This is your only sign-in method. Set a password before unlinking Google."
+    },
+    "delete": {
+      "title": "Delete account",
+      "description": "This cannot be undone. Your published quizzes will be archived.",
+      "button": "Delete my account",
+      "modalTitle": "Delete your account?",
+      "warning": "This cannot be undone. You will be signed out everywhere and your published quizzes will be archived.",
+      "passwordLabel": "Enter your password to confirm",
+      "emailLabel": "Type your email {email} to confirm",
+      "cancel": "Cancel",
+      "confirm": "Delete permanently",
+      "doneTitle": "Account deleted",
+      "doneDescription": "Thanks for using ChoicePie. We hope to see you again."
+    }
   }
 }
