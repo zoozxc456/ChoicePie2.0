@@ -19,7 +19,7 @@ When filing a bug, include:
 - Browser and device for frontend issues; logs or the `ApiResponse` error body for backend issues
 - Screenshots or a short recording if it's a UI issue
 
-**Do not report security vulnerabilities in public issues.** Email zoozxc456@gmail.com instead.
+**Do not report security vulnerabilities in public issues.** Follow [SECURITY.md](SECURITY.md) instead.
 
 ## Development workflow
 

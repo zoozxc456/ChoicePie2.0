@@ -198,6 +198,9 @@ dotnet test ChoicePie.Backend.sln
 
 | Document | Contents |
 |---|---|
+| [choicepie-frontend/README.md](choicepie-frontend/README.md) | Frontend setup, scripts, and structure |
+| [choicepie-backend/README.md](choicepie-backend/README.md) | Backend setup, configuration, API overview, migrations |
+| [SECURITY.md](SECURITY.md) | How to report security vulnerabilities |
 | [choicepie-frontend/CLAUDE.md](choicepie-frontend/CLAUDE.md) | Frontend architecture, routing, state management, component conventions |
 | [choicepie-backend/ChoicePie.Backend/CLAUDE.md](choicepie-backend/ChoicePie.Backend/CLAUDE.md) | Backend architecture, configuration, auth flow, DDD / CQRS conventions |
 | [choicepie-backend/docs/backend-spec.md](choicepie-backend/docs/backend-spec.md) | Data models and API spec |
