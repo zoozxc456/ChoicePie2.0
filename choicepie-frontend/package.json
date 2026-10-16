@@ -2,12 +2,15 @@
   "name": "choicepie-frontend",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@10.13.1",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },

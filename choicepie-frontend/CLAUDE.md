@@ -20,12 +20,13 @@ solo-attempt quizzes). Backend is a separate .NET project at `../choicepie-backe
 
 ## Commands
 
-There is no `lint`/`typecheck` script in `package.json`. Use these directly:
+`pnpm lint`, `pnpm typecheck` and `pnpm test` are the same checks CI runs. For quick iteration use these directly:
 
 ```bash
 npx eslint <files>          # lint specific files (fast, preferred over linting the whole repo)
 npx eslint --fix <files>    # auto-fix (e.g. operator-linebreak)
-npx vue-tsc --noEmit        # typecheck
+npx vue-tsc --noEmit        # typecheck (pnpm typecheck)
+pnpm lint                   # eslint . (whole repo, as CI does)
 npx vitest run              # run unit tests (tests/nuxt/unit/**/*.spec.ts)
 ```
 
