@@ -10,7 +10,7 @@ public class PublishedQuizzesByCreatorSpecificationTests
 {
     private static QuizAggregate CreateQuiz(Guid creatorId, bool publish)
     {
-        var quiz = QuizAggregate.Create(creatorId, "Title", null, "x", "g", Difficulty.Beginner, ["tag"]);
+        var quiz = QuizAggregate.Create(creatorId, "Title", null, null, "x", "primary",Difficulty.Beginner, ["tag"]);
         if (publish)
         {
             quiz.AddQuestion(Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math"));
