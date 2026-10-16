@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { ApiError } from '~/composables/useApi'
 import { useQuizClientApi } from '~/services/quiz/client'
 import type { Quiz, Question, Difficulty } from '~/types/quiz'
 import type { QuizDto, QuizSummaryDto, QuestionDto, CreateQuestionRequestItem, CommentDto } from '~/types/api'
@@ -376,7 +377,10 @@ export const useQuizStore = defineStore('quiz', () => {
       }))
       recordAiUsage()
     } catch (e) {
-      error.value = 'AI 出題失敗，請稍後再試'
+      // 4xx 的 DomainException 訊息（例如網址無法讀取、額度用完）本身就是給使用者看的，直接顯示。
+      error.value = e instanceof ApiError && e.status >= 400 && e.status < 500
+        ? e.message
+        : 'AI 出題失敗，請稍後再試'
       console.error(e)
       throw e
     } finally {

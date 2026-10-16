@@ -738,7 +738,7 @@
         "switchToManual": "改為手動出題"
       },
       "contentPlaceholder": "貼上一段文字、簡報重點，或直接貼網址連結...",
-      "urlHint": "系統將自動擷取頁面內容",
+      "urlHint": "系統將擷取此網址的公開網頁文字（需免登入，部分網站可能無法讀取）",
       "charCount": "{count} / 5000 字",
       "minCharsHint": "請輸入至少 30 字",
       "questionCountLabel": "題數",

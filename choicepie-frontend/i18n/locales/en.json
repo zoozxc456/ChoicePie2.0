@@ -738,7 +738,7 @@
         "switchToManual": "Switch to manual"
       },
       "contentPlaceholder": "Paste text, presentation notes, or a URL...",
-      "urlHint": "The system will automatically extract page content",
+      "urlHint": "We will read the text of this public web page (no login required; some sites may not be readable)",
       "charCount": "{count} / 5000 chars",
       "minCharsHint": "Please enter at least 30 characters",
       "questionCountLabel": "Questions",

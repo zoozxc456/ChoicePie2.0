@@ -50,7 +50,7 @@
             <template v-else>{{ t('hostNew.ai.charCount', { count: content.length }) }}</template>
           </span>
           <span
-            v-if="content.length > 0 && content.length < 30"
+            v-if="content.length > 0 && content.length < 30 && !isUrlInput"
             class="text-xs text-warning-500"
           >
             {{ t('hostNew.ai.minCharsHint') }}
@@ -200,10 +200,13 @@ const isPreviewOpen = ref(false)
 
 const isUrlInput = computed(() => {
   const v = content.value.trim()
-  return v.startsWith('http://') || v.startsWith('https://')
+  // 與後端一致：單一、不含空白的 http(s) 網址才會被當成要抓取的網頁
+  return /^https?:\/\/\S+$/i.test(v)
 })
 
-const canGenerate = computed(() => content.value.trim().length >= 30 && quizStore.canUseAiToday)
+const canGenerate = computed(() =>
+  (isUrlInput.value || content.value.trim().length >= 30) && quizStore.canUseAiToday
+)
 
 const handleGenerate = async () => {
   try {
