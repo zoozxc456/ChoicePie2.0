@@ -20,6 +20,7 @@
     "submit": "Join Game",
     "roomNotFound": "Room not found. Please check the room code.",
     "backHome": "Back to home",
+    "duplicateNickname": "That nickname is already taken. Please pick another one.",
     "validation": {
       "roomCodeLength": "Room code must be exactly 6 characters",
       "nicknameMin": "Nickname must be at least 2 characters",
@@ -53,7 +54,9 @@
     },
     "question": {
       "questionOf": "Question {current} / {total}",
-      "answered": "Answer submitted, waiting for result..."
+      "answered": "Answer submitted, waiting for result...",
+      "paused": "Paused",
+      "pausedHint": "The host paused the game. Please wait."
     },
     "result": {
       "correct": "Correct!",
@@ -106,6 +109,9 @@
       "answerProgress": "Answer Progress",
       "skipQuestion": "Skip Question",
       "pause": "Pause",
+      "resume": "Resume",
+      "paused": "Paused",
+      "playerDisconnected": "Disconnected",
       "liveRank": "Live Rankings",
       "voteCount": "{count}",
       "waitingForAnswers": "Waiting for players to answer...",
@@ -132,7 +138,8 @@
     },
     "playing": {
       "questionOf": "Question {current} / {total}",
-      "answeredOf": "{answered} / {total} answered"
+      "answeredOf": "{answered} / {total} answered",
+      "paused": "Paused"
     },
     "ended": {
       "title": "Final Rankings",

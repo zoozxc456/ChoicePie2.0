@@ -34,7 +34,7 @@ const rejoinFailed = ref(false)
 // 後端本身不會自動計時，SkipQuestion 是切換式（question -> reveal -> question），故由 Host 端主動呼叫推進。
 // 公布答案（result）階段只能靠倒數結束推進下一題；作答（question）階段則倒數結束或所有人送出答案（提前結算）都會推進。
 watch(() => gameStore.timeLeft, (timeLeft) => {
-  if (timeLeft === 0 && (gameStore.phase === 'question' || gameStore.phase === 'result')) {
+  if (timeLeft === 0 && !gameStore.isPaused && (gameStore.phase === 'question' || gameStore.phase === 'result')) {
     gameRoom.skipQuestion(code.value)
   }
 })

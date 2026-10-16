@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { usePlayerSession } from '~/composables/usePlayerSession'
 import {
   hubConnectionMock,
   resetHubConnectionMock,
@@ -26,6 +27,10 @@ const makeGameStore = () => ({
   endGame: vi.fn(),
   setRoomState: vi.fn(),
   setMyNickname: vi.fn(),
+  markPlayerDisconnected: vi.fn(),
+  markPlayerReconnected: vi.fn(),
+  setPauseState: vi.fn(),
+  roomCode: 'ABCD',
   reset: vi.fn()
 })
 
@@ -38,6 +43,7 @@ describe('useGameRoom', () => {
     resetBuilderMock()
     useGameStoreMock.mockReturnValue(makeGameStore())
     useAuthStoreMock.mockReturnValue({ isLoggedIn: true, fetchMe: vi.fn().mockResolvedValue(true), logout: vi.fn() })
+    localStorage.clear()
   })
 
   afterEach(() => {
@@ -166,6 +172,44 @@ describe('useGameRoom', () => {
       expect(gameStore.setRoomState).toHaveBeenCalledWith(payload)
     })
 
+    it('PauseStateChanged 呼叫 setPauseState', async () => {
+      const gameStore = makeGameStore()
+      useGameStoreMock.mockReturnValue(gameStore)
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+      await gameRoom.connect()
+
+      hubConnectionMock.handlers.get('PauseStateChanged')?.({ isPaused: true, remainingMs: 12000 })
+
+      expect(gameStore.setPauseState).toHaveBeenCalledWith({ isPaused: true, remainingMs: 12000 })
+    })
+
+    it('PlayerDisconnected / PlayerReconnected 更新玩家連線狀態', async () => {
+      const gameStore = makeGameStore()
+      useGameStoreMock.mockReturnValue(gameStore)
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+      await gameRoom.connect()
+
+      hubConnectionMock.handlers.get('PlayerDisconnected')?.('p1')
+      const player = { id: 'p1', nickname: 'Alice' }
+      hubConnectionMock.handlers.get('PlayerReconnected')?.(player)
+
+      expect(gameStore.markPlayerDisconnected).toHaveBeenCalledWith('p1')
+      expect(gameStore.markPlayerReconnected).toHaveBeenCalledWith(player)
+    })
+
+    it('GameEnd 後清除本機玩家 session', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+      hubConnectionMock.invoke.mockResolvedValueOnce({ playerId: 'p1', reconnectToken: 'tok-1' })
+      await gameRoom.joinRoom('ABCD', 'Alice')
+
+      hubConnectionMock.handlers.get('GameEnd')?.([])
+
+      expect(usePlayerSession().load('ABCD')).toBeNull()
+    })
+
     it('RoomCreated 導向 host room 頁面', async () => {
       const { useGameRoom } = await importUseGameRoom()
       const gameRoom = useGameRoom()
@@ -193,11 +237,76 @@ describe('useGameRoom', () => {
       useGameStoreMock.mockReturnValue(gameStore)
       const { useGameRoom } = await importUseGameRoom()
       const gameRoom = useGameRoom()
+      hubConnectionMock.invoke.mockResolvedValueOnce({ playerId: 'p1', reconnectToken: 'tok-1' })
 
       await gameRoom.joinRoom('ABCD', 'Alice')
 
       expect(gameStore.setMyNickname).toHaveBeenCalledWith('Alice')
       expect(hubConnectionMock.invoke).toHaveBeenCalledWith('JoinRoom', 'ABCD', 'Alice')
+    })
+
+    it('joinRoom 成功後把重連憑證存進 localStorage', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+      hubConnectionMock.invoke.mockResolvedValueOnce({ playerId: 'p1', reconnectToken: 'tok-1' })
+
+      await gameRoom.joinRoom('ABCD', 'Alice')
+
+      expect(usePlayerSession().load('ABCD')).toEqual({ roomCode: 'ABCD', nickname: 'Alice', reconnectToken: 'tok-1' })
+    })
+
+    it('rejoinAsPlayer invoke RejoinAsPlayer 並帶上憑證', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+
+      await gameRoom.rejoinAsPlayer('ABCD', 'tok-1')
+
+      expect(hubConnectionMock.invoke).toHaveBeenCalledWith('RejoinAsPlayer', 'ABCD', 'tok-1')
+    })
+
+    it('SignalR 自動重連後（connectionId 改變）重新呼叫 RejoinAsPlayer', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+      hubConnectionMock.invoke.mockResolvedValueOnce({ playerId: 'p1', reconnectToken: 'tok-1' })
+      await gameRoom.joinRoom('ABCD', 'Alice')
+      hubConnectionMock.invoke.mockClear()
+
+      const onReconnected = hubConnectionMock.onreconnected.mock.calls[0]![0] as () => Promise<void>
+      await onReconnected()
+
+      expect(hubConnectionMock.invoke).toHaveBeenCalledWith('RejoinAsPlayer', 'ABCD', 'tok-1')
+    })
+
+    it('自動重連後重連失敗時清除本機憑證', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+      hubConnectionMock.invoke.mockResolvedValueOnce({ playerId: 'p1', reconnectToken: 'tok-1' })
+      await gameRoom.joinRoom('ABCD', 'Alice')
+      hubConnectionMock.invoke.mockRejectedValueOnce(new Error('[GAME_ROOM_INVALID_RECONNECT_TOKEN] x'))
+
+      const onReconnected = hubConnectionMock.onreconnected.mock.calls[0]![0] as () => Promise<void>
+      await onReconnected()
+
+      expect(usePlayerSession().load('ABCD')).toBeNull()
+    })
+
+    it('非玩家連線（Host）自動重連後不呼叫 RejoinAsPlayer', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+      await gameRoom.connect()
+      hubConnectionMock.invoke.mockClear()
+
+      const onReconnected = hubConnectionMock.onreconnected.mock.calls[0]![0] as () => Promise<void>
+      await onReconnected()
+
+      expect(hubConnectionMock.invoke).not.toHaveBeenCalled()
+    })
+
+    it('extractHubErrorCode 取出後端錯誤代碼', async () => {
+      const { extractHubErrorCode } = await importUseGameRoom()
+
+      expect(extractHubErrorCode(new Error('An error: [GAME_ROOM_DUPLICATE_NICKNAME] 此暱稱已有人使用'))).toBe('GAME_ROOM_DUPLICATE_NICKNAME')
+      expect(extractHubErrorCode(new Error('boom'))).toBeNull()
     })
 
     it('submitAnswer invoke SubmitAnswer', async () => {

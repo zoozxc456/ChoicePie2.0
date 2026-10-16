@@ -169,10 +169,19 @@ const joinState = reactive<JoinForm>({
   nickname: ''
 })
 
+const playerSession = usePlayerSession()
+
 const handleJoin = async () => {
   isJoining.value = true
   error.value = ''
-  gameStore.setMyNickname(joinState.nickname.trim())
+  const nickname = joinState.nickname.trim()
+  const roomCode = joinState.roomCode.toUpperCase()
+  // 本機有同一房間、同一暱稱的重連憑證時保留（等同回到原本的玩家）；暱稱不同代表想用新身分加入
+  const stored = playerSession.load(roomCode)
+  if (stored && stored.nickname.toLowerCase() !== nickname.toLowerCase()) {
+    playerSession.clear(roomCode)
+  }
+  gameStore.setMyNickname(nickname)
   await navigateTo(`/join/${joinState.roomCode.toUpperCase()}`)
 }
 
@@ -188,6 +197,9 @@ const previewPlayers = ['Amy', 'Ben', 'Cathy', '+15']
 const route = useRoute()
 if (route.query.code) {
   joinState.roomCode = (route.query.code as string).toUpperCase()
+}
+if (route.query.error === 'duplicateNickname') {
+  error.value = t('join.duplicateNickname')
 }
 </script>
 

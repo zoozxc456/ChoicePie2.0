@@ -372,6 +372,167 @@ describe('useGameStore', () => {
     })
   })
 
+  describe('暫停 (setPauseState)', () => {
+    it('暫停時停止倒數並凍結在伺服器回報的剩餘秒數', () => {
+      const store = useGameStore()
+      store.setRoom(makeRoom())
+      store.setQuestion(makeQuestion({ timeLimit: 20 }))
+      vi.advanceTimersByTime(3000)
+
+      store.setPauseState({ isPaused: true, remainingMs: 15500 })
+      vi.advanceTimersByTime(10000)
+
+      expect(store.isPaused).toBe(true)
+      expect(store.timeLeft).toBe(16)
+      expect(store.timeLimitTotal).toBe(20)
+    })
+
+    it('繼續時從伺服器剩餘秒數重新倒數，總時間不變', () => {
+      const store = useGameStore()
+      store.setRoom(makeRoom())
+      store.setQuestion(makeQuestion({ timeLimit: 20 }))
+      store.setPauseState({ isPaused: true, remainingMs: 15000 })
+
+      store.setPauseState({ isPaused: false, remainingMs: 15000 })
+      vi.advanceTimersByTime(2000)
+
+      expect(store.isPaused).toBe(false)
+      expect(store.timeLeft).toBe(13)
+      expect(store.timeLimitTotal).toBe(20)
+    })
+
+    it('暫停中不會觸發提前結算', () => {
+      const store = useGameStore()
+      store.setRoom(makeRoom())
+      store.setQuestion(makeQuestion())
+      store.setAnswerProgress({ answered: 1, total: 1, playerId: 'p1', selectedOptionIndex: 0 })
+      store.setPauseState({ isPaused: true, remainingMs: 10000 })
+
+      expect(store.isAllAnsweredEarly).toBe(false)
+    })
+
+    it('新題目開始與公布答案會清除暫停狀態', () => {
+      const store = useGameStore()
+      store.setRoom(makeRoom())
+      store.setQuestion(makeQuestion())
+      store.setPauseState({ isPaused: true, remainingMs: 10000 })
+
+      store.setQuestionEnd({ answerIndex: 1, explanation: '', rankings: [] })
+      expect(store.isPaused).toBe(false)
+
+      store.setPauseState({ isPaused: true, remainingMs: 10000 })
+      store.setQuestion(makeQuestion({ index: 1 }))
+      expect(store.isPaused).toBe(false)
+    })
+
+    it('setRoomState 還原暫停狀態：凍結剩餘秒數、不啟動倒數', () => {
+      const store = useGameStore()
+
+      store.setRoomState({
+        phase: 'question',
+        room: makeRoom({ status: 'playing' }),
+        currentQuestion: makeQuestion({ timeLimit: 30 }),
+        isPaused: true,
+        remainingMs: 12000
+      })
+      vi.advanceTimersByTime(5000)
+
+      expect(store.isPaused).toBe(true)
+      expect(store.timeLeft).toBe(12)
+      expect(store.timeLimitTotal).toBe(30)
+    })
+
+    it('setRoomState 未暫停時以伺服器剩餘時間開始倒數', () => {
+      const store = useGameStore()
+
+      store.setRoomState({
+        phase: 'question',
+        room: makeRoom({ status: 'playing' }),
+        currentQuestion: makeQuestion({ timeLimit: 30 }),
+        isPaused: false,
+        remainingMs: 12000
+      })
+      vi.advanceTimersByTime(2000)
+
+      expect(store.timeLeft).toBe(10)
+    })
+  })
+
+  describe('玩家斷線 / 重連', () => {
+    it('markPlayerDisconnected 把玩家標示離線但保留在名單', () => {
+      const store = useGameStore()
+      store.setRoom(makeRoom({ players: [makePlayer({ id: 'p1' }), makePlayer({ id: 'p2', nickname: 'Bob' })] }))
+
+      store.markPlayerDisconnected('p1')
+
+      expect(store.players).toHaveLength(2)
+      expect(store.players.find(p => p.id === 'p1')?.isConnected).toBe(false)
+      expect(store.players.find(p => p.id === 'p2')?.isConnected).toBeUndefined()
+    })
+
+    it('markPlayerReconnected 標示回在線，名單上沒有時補上', () => {
+      const store = useGameStore()
+      store.setRoom(makeRoom({ players: [makePlayer({ id: 'p1' })] }))
+      store.markPlayerDisconnected('p1')
+
+      store.markPlayerReconnected(makePlayer({ id: 'p1' }))
+      store.markPlayerReconnected(makePlayer({ id: 'p9', nickname: 'New' }))
+
+      expect(store.players.find(p => p.id === 'p1')?.isConnected).toBe(true)
+      expect(store.players.find(p => p.id === 'p9')?.isConnected).toBe(true)
+    })
+
+    it('setRoomState 帶 self 時還原自己的分數、名次與已作答狀態', () => {
+      const store = useGameStore()
+
+      store.setRoomState({
+        phase: 'question',
+        room: makeRoom({ status: 'playing' }),
+        currentQuestion: makeQuestion(),
+        remainingMs: 8000,
+        self: {
+          playerId: 'p1',
+          nickname: 'Alice',
+          score: 900,
+          rank: 2,
+          hasAnswered: true,
+          selectedOptionIndex: 1,
+          lastAnswerResult: { isCorrect: true, correctAnswerIndex: 1, pointsEarned: 900 }
+        }
+      })
+
+      expect(store.myNickname).toBe('Alice')
+      expect(store.myScore).toBe(900)
+      expect(store.myRank).toBe(2)
+      expect(store.selectedAnswerIndex).toBe(1)
+      expect(store.isCorrect).toBe(true)
+      expect(store.pointsEarned).toBe(900)
+    })
+
+    it('setRoomState 的 self 尚未作答時不選取任何選項', () => {
+      const store = useGameStore()
+
+      store.setRoomState({
+        phase: 'question',
+        room: makeRoom({ status: 'playing' }),
+        currentQuestion: makeQuestion(),
+        remainingMs: 8000,
+        self: { playerId: 'p1', nickname: 'Alice', score: 0, rank: 1, hasAnswered: false, selectedOptionIndex: null, lastAnswerResult: null }
+      })
+
+      expect(store.selectedAnswerIndex).toBeNull()
+    })
+
+    it('clearSelectedAnswer 還原本地選取', () => {
+      const store = useGameStore()
+      store.selectAnswer(2)
+
+      store.clearSelectedAnswer()
+
+      expect(store.selectedAnswerIndex).toBeNull()
+    })
+  })
+
   describe('reset', () => {
     it('將所有狀態還原成初始值', () => {
       const store = useGameStore()

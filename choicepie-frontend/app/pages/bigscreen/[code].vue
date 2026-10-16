@@ -48,6 +48,18 @@
 
     <!-- ─── QUESTION ─── -->
     <template v-else-if="gameStore.phase === 'question' || gameStore.phase === 'result'">
+      <!-- Paused overlay -->
+      <div
+        v-if="gameStore.isPaused"
+        class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/75 text-white"
+        role="status"
+      >
+        <span class="text-8xl">⏸</span>
+        <p class="text-5xl font-black">
+          {{ t('bigscreen.playing.paused') }}
+        </p>
+      </div>
+
       <!-- Question header -->
       <div class="flex items-center justify-between mb-6">
         <span class="text-lg font-semibold text-white/50">
