@@ -119,7 +119,7 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize(Policy = "MemberOnly")]
+    [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<QuizDto>>> GetByIdAsync(Guid id)
     {
         var result = await mediator.Send(new GetQuizByIdQuery(id));

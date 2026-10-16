@@ -1,7 +1,6 @@
 using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
 using ChoicePie.Backend.Application.Quizzes.Queries;
-using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using NSubstitute;
@@ -28,8 +27,8 @@ public class GetQuizByIdQueryHandlerTests
 
     private static readonly QuestionDto Question = new(Guid.NewGuid(), "What is a Pod?", ["A", "B", "C", "D"], 0, "Explanation");
 
-    private QuizDto MakeDto(Guid quizId) => new(
-        quizId, "Kubernetes 101", null, null, "⚓", "primary", "beginner", "draft", 0, 0, _ownerId, "Host Name", null,
+    private QuizDto MakeDto(Guid quizId, string status = "draft") => new(
+        quizId, "Kubernetes 101", null, null, "⚓", "primary", "beginner", status, 0, 0, _ownerId, "Host Name", null,
         [Question], [new QuestionStubDto(Question.Id)], 1, [], 0,
         DateTime.UtcNow, DateTime.UtcNow);
 
@@ -58,7 +57,7 @@ public class GetQuizByIdQueryHandlerTests
     public async Task Handle_GivenNonOwner_WhenCalled_ThenReturnsQuizWithoutQuestions()
     {
         var quizId = Guid.NewGuid();
-        var dto = MakeDto(quizId);
+        var dto = MakeDto(quizId, "published");
         _quizQueryService.GetByIdAsync(quizId, Arg.Any<CancellationToken>()).Returns(dto);
         _currentUserService.UserId.Returns(Guid.NewGuid());
 
@@ -70,10 +69,51 @@ public class GetQuizByIdQueryHandlerTests
     }
 
     [Test]
-    public void Handle_GivenNoCurrentUser_WhenCalled_ThenThrowsUnauthenticatedException()
+    public async Task Handle_GivenAnonymousAndPublishedQuiz_WhenCalled_ThenReturnsStubsWithoutQuestions()
     {
+        var quizId = Guid.NewGuid();
+        _quizQueryService.GetByIdAsync(quizId, Arg.Any<CancellationToken>()).Returns(MakeDto(quizId, "published"));
         _currentUserService.UserId.Returns((Guid?)null);
 
-        Assert.ThrowsAsync<UnauthenticatedException>(() => _sut.Handle(new GetQuizByIdQuery(Guid.NewGuid()), CancellationToken.None));
+        var result = await _sut.Handle(new GetQuizByIdQuery(quizId), CancellationToken.None);
+
+        Assert.That(result.Questions, Is.Empty);
+        Assert.That(result.QuestionStubs, Is.Not.Empty);
+        Assert.That(result.QuestionCount, Is.EqualTo(1));
+    }
+
+    [TestCase("draft")]
+    [TestCase("archived")]
+    [TestCase("takendown")]
+    [TestCase("deleted")]
+    public void Handle_GivenAnonymousAndNonPublishedQuiz_WhenCalled_ThenThrowsQuizNotFoundException(string status)
+    {
+        var quizId = Guid.NewGuid();
+        _quizQueryService.GetByIdAsync(quizId, Arg.Any<CancellationToken>()).Returns(MakeDto(quizId, status));
+        _currentUserService.UserId.Returns((Guid?)null);
+
+        Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(new GetQuizByIdQuery(quizId), CancellationToken.None));
+    }
+
+    [Test]
+    public void Handle_GivenNonOwnerAndDraftQuiz_WhenCalled_ThenThrowsQuizNotFoundException()
+    {
+        var quizId = Guid.NewGuid();
+        _quizQueryService.GetByIdAsync(quizId, Arg.Any<CancellationToken>()).Returns(MakeDto(quizId, "draft"));
+        _currentUserService.UserId.Returns(Guid.NewGuid());
+
+        Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(new GetQuizByIdQuery(quizId), CancellationToken.None));
+    }
+
+    [Test]
+    public async Task Handle_GivenOwnerAndArchivedQuiz_WhenCalled_ThenReturnsQuiz()
+    {
+        var quizId = Guid.NewGuid();
+        var dto = MakeDto(quizId, "archived");
+        _quizQueryService.GetByIdAsync(quizId, Arg.Any<CancellationToken>()).Returns(dto);
+
+        var result = await _sut.Handle(new GetQuizByIdQuery(quizId), CancellationToken.None);
+
+        Assert.That(result, Is.SameAs(dto));
     }
 }
