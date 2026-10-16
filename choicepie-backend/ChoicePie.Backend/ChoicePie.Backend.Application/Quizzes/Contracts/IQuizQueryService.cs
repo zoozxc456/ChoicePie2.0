@@ -23,6 +23,18 @@ public interface IQuizQueryService
     Task<PagedResult<QuizSummaryDto>> AdminListAsync(
         string? search, int pageNumber, int pageSize, CancellationToken cancellationToken);
 
+    // 會員收藏中仍為 Published 的測驗，依收藏時間新到舊。
+    Task<PagedResult<QuizSummaryDto>> ListFavoritesAsync(
+        Guid userId, int pageNumber, int pageSize, CancellationToken cancellationToken);
+
+    // 追蹤中創作者的 Published 測驗動態，新到舊。
+    Task<PagedResult<QuizSummaryDto>> ListFollowingFeedAsync(
+        Guid userId, int pageNumber, int pageSize, CancellationToken cancellationToken);
+
+    // 指定創作者的 Published 測驗，新到舊（公開）。
+    Task<PagedResult<QuizSummaryDto>> ListByCreatorAsync(
+        Guid creatorId, int pageNumber, int pageSize, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<string>> GetTagsAsync(CancellationToken cancellationToken);
 
     Task<IReadOnlyList<QuizSummaryDto>> GetRelatedAsync(Guid quizId, int limit, CancellationToken cancellationToken);
