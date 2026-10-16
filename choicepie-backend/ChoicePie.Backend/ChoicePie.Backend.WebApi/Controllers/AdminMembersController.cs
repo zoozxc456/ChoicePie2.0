@@ -69,6 +69,13 @@ public class AdminMembersController(IMediator mediator) : ControllerBase
         return Ok(ResponseHelper.Success(result));
     }
 
+    [HttpGet("{id:guid}/ai-usage")]
+    public async Task<ActionResult<ApiResponse<AdminMemberAiUsageDto>>> GetAiUsageAsync(Guid id)
+    {
+        var result = await mediator.Send(new AdminGetMemberAiUsageQuery(id));
+        return Ok(ResponseHelper.Success(result));
+    }
+
     [HttpPost("{id:guid}/suspend")]
     public async Task<ActionResult<ApiResponse>> SuspendAsync(Guid id, [FromBody] SuspendMemberRequest request)
     {
@@ -80,6 +87,13 @@ public class AdminMembersController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ApiResponse>> UnsuspendAsync(Guid id)
     {
         await mediator.Send(new AdminUnsuspendMemberCommand(id));
+        return Ok(ResponseHelper.Success());
+    }
+
+    [HttpPost("{id:guid}/tier")]
+    public async Task<ActionResult<ApiResponse>> AssignTierAsync(Guid id, [FromBody] AssignMemberTierRequest request)
+    {
+        await mediator.Send(request.ToCommand(id));
         return Ok(ResponseHelper.Success());
     }
 }

@@ -2,6 +2,7 @@ using ChoicePie.Backend.Application.AdminDashboard.Dtos;
 using ChoicePie.Backend.Application.AdminQuizzes.Dtos;
 using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
+using ChoicePie.Backend.Domain.Aggregates.CreatorFollow;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
@@ -25,6 +26,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                     q.Id,
                     q.Title,
                     q.Description,
+                    q.Cover.ImageUrl,
+
                     q.Cover.Emoji,
                     q.Cover.Gradient,
                     q.Difficulty.Name,
@@ -58,6 +61,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                     q.Id,
                     q.Title,
                     q.Description,
+                    q.Cover.ImageUrl,
+
                     q.Cover.Emoji,
                     q.Cover.Gradient,
                     q.Difficulty.Name,
@@ -94,6 +99,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                     q.Id,
                     q.Title,
                     q.Description,
+                    q.Cover.ImageUrl,
+
                     q.Cover.Emoji,
                     q.Cover.Gradient,
                     q.Difficulty.Name,
@@ -136,6 +143,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                 q.Id,
                 q.Title,
                 q.Description,
+                q.Cover.ImageUrl,
+
                 q.Cover.Emoji,
                 q.Cover.Gradient,
                 q.Difficulty.Name,
@@ -179,6 +188,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                 q.Id,
                 q.Title,
                 q.Description,
+                q.Cover.ImageUrl,
+
                 q.Cover.Emoji,
                 q.Cover.Gradient,
                 q.Difficulty.Name,
@@ -199,6 +210,76 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
             .ToList();
 
         return Task.FromResult(new PagedResult<QuizSummaryDto>(items, pageNumber, pageSize, totalCount));
+    }
+
+    public Task<PagedResult<QuizSummaryDto>> ListFavoritesAsync(
+        Guid userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
+        var ordered =
+            from f in readRepository.Query<QuizFavorite>()
+            where f.CreatorId == userId
+            join q in readRepository.Query<Quiz>() on f.QuizId equals q.Id
+            where q.Status == QuizStatus.Published
+            orderby f.CreatedAt descending
+            select q;
+
+        return Task.FromResult(ToPagedSummaries(ordered, pageNumber, pageSize));
+    }
+
+    public Task<PagedResult<QuizSummaryDto>> ListFollowingFeedAsync(
+        Guid userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
+        var followedCreatorIds = readRepository.Query<CreatorFollow>()
+            .Where(f => f.CreatorId == userId)
+            .Select(f => f.FollowedCreatorId);
+
+        var ordered = readRepository.Query<Quiz>()
+            .Where(q => q.Status == QuizStatus.Published && followedCreatorIds.Contains(q.CreatorId!.Value))
+            .OrderByDescending(q => q.CreatedAt);
+
+        return Task.FromResult(ToPagedSummaries(ordered, pageNumber, pageSize));
+    }
+
+    public Task<PagedResult<QuizSummaryDto>> ListByCreatorAsync(
+        Guid creatorId, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
+        var ordered = readRepository.Query<Quiz>()
+            .Where(q => q.CreatorId == creatorId && q.Status == QuizStatus.Published)
+            .OrderByDescending(q => q.CreatedAt);
+
+        return Task.FromResult(ToPagedSummaries(ordered, pageNumber, pageSize));
+    }
+
+    // 接收已排序的 Quiz 查詢，分頁後投影成 QuizSummaryDto（創作者資訊以相關子查詢取得，保留原排序）。
+    private PagedResult<QuizSummaryDto> ToPagedSummaries(IQueryable<Quiz> ordered, int pageNumber, int pageSize)
+    {
+        var totalCount = ordered.Count();
+        var members = readRepository.Query<Member>();
+
+        var items = ordered
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(q => new QuizSummaryDto(
+                q.Id,
+                q.Title,
+                q.Description,
+                q.Cover.ImageUrl,
+                q.Cover.Emoji,
+                q.Cover.Gradient,
+                q.Difficulty.Name,
+                q.Status.Name.ToLower(),
+                q.Questions.Count,
+                q.Stats.Count,
+                q.Stats.PassRate,
+                q.CreatorId!.Value,
+                members.Where(m => m.Id == q.CreatorId).Select(m => m.Name).FirstOrDefault() ?? "Unknown",
+                members.Where(m => m.Id == q.CreatorId).Select(m => m.Avatar).FirstOrDefault(),
+                q.Tags,
+                q.CreatedAt,
+                q.LastModifiedAt))
+            .ToList();
+
+        return new PagedResult<QuizSummaryDto>(items, pageNumber, pageSize, totalCount);
     }
 
     public Task<IReadOnlyList<string>> GetTagsAsync(CancellationToken cancellationToken)
@@ -234,6 +315,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                 q.Id,
                 q.Title,
                 q.Description,
+                q.Cover.ImageUrl,
+
                 q.Cover.Emoji,
                 q.Cover.Gradient,
                 q.Difficulty.Name,
@@ -298,6 +381,8 @@ public sealed class QuizQueryService(IReadRepository readRepository, TimeProvide
                 q.Id,
                 q.Title,
                 q.Description,
+                q.Cover.ImageUrl,
+
                 q.Cover.Emoji,
                 q.Cover.Gradient,
                 q.Difficulty.Name,

@@ -10,6 +10,7 @@ public sealed record CreateQuestionRequestItem(string Text, IReadOnlyList<string
 public sealed record CreateQuizRequest(
     string Title,
     string? Description,
+    string? CoverImageUrl,
     string CoverEmoji,
     string CoverGradient,
     string Difficulty,
@@ -20,6 +21,7 @@ public sealed record CreateQuizRequest(
     {
         Title = Title,
         Description = Description,
+        CoverImageUrl = CoverImageUrl,
         CoverEmoji = CoverEmoji,
         CoverGradient = CoverGradient,
         Difficulty = Difficulty,

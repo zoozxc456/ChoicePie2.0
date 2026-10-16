@@ -45,9 +45,17 @@ public sealed class RefreshTokenCommandHandler(
         var member = await memberRepository.GetByIdAsync(existingToken.OwnerId, cancellationToken)
                      ?? throw new MemberNotFoundException(existingToken.OwnerId);
 
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+
+        // 停權中的會員不能換發新 token；以 401 拒絕（而非 403），讓 BFF 清掉 session、前端回到登入頁。
+        // 已刪除的會員由軟刪除 query filter 擋下（查不到 → NotFound），且關閉帳號時 refresh token 已全數撤銷。
+        if (member.IsCurrentlySuspended(now))
+        {
+            throw new InvalidRefreshTokenException();
+        }
+
         var accessToken = tokenService.GenerateAccessToken(member);
         var (rawRefreshToken, refreshTokenHash) = refreshTokenGenerator.Generate();
-        var now = timeProvider.GetUtcNow().UtcDateTime;
         var newRefreshToken =
             RefreshTokenAggregate.Issue(member.Id, RefreshTokenOwnerType.Member, refreshTokenHash, now);
 

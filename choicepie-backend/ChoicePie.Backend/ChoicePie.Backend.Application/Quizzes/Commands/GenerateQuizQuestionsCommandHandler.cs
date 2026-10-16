@@ -1,20 +1,31 @@
+using ChoicePie.Backend.Application.AiUsage.Contracts;
 using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
+using ChoicePie.Backend.Domain.Aggregates.AiUsageLog;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
 using MediatR;
+using Microsoft.Extensions.Options;
 
 namespace ChoicePie.Backend.Application.Quizzes.Commands;
 
 public sealed class GenerateQuizQuestionsCommandHandler(
     IMemberRepository memberRepository,
+    IMembershipTierRepository membershipTierRepository,
+    IAiUsageLogRepository aiUsageLogRepository,
+    IAiUsageLogQueryService aiUsageLogQueryService,
     ICurrentUserService currentUserService,
     IQuizGenerationService generationService,
+    IWebPageContentFetcher webPageContentFetcher,
+    IOptions<AiQuizGenerationSettings> aiSettings,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
     : IRequestHandler<GenerateQuizQuestionsCommand, GenerateQuestionsResultDto>
@@ -36,17 +47,40 @@ public sealed class GenerateQuizQuestionsCommandHandler(
         var member = await memberRepository.GetByIdAsync(memberId, cancellationToken)
                      ?? throw new MemberNotFoundException(memberId);
 
+        var tier = member.TierId is { } tierId
+            ? await membershipTierRepository.GetByIdAsync(tierId, cancellationToken)
+              ?? throw new MembershipTierNotFoundException(tierId)
+            : null;
+
         var now = timeProvider.GetUtcNow().UtcDateTime;
-        if (!member.CanGenerateQuizToday(now))
+
+        if (tier is not null)
         {
-            throw new AiGenerationQuotaExceededException(memberId);
+            var todayUsage = await aiUsageLogQueryService.GetTodayUsageAsync(memberId, now, cancellationToken);
+
+            if (todayUsage.GenerationCount >= tier.DailyGenerationLimit)
+            {
+                throw new AiGenerationQuotaExceededException(memberId);
+            }
+
+            if (todayUsage.TokensUsed >= tier.DailyTokenBudget)
+            {
+                throw new AiTokenBudgetExceededException(memberId);
+            }
         }
 
+        // 先抓取網頁，失敗就直接丟出例外：此時尚未記錄任何用量，不會消耗額度。
+        var (content, source) = await ResolveContentAsync(request.Content, cancellationToken);
+
         var result = await generationService.GenerateAsync(
-            request.Content, request.QuestionCount, difficulty, cancellationToken);
+            content, request.QuestionCount, difficulty, cancellationToken, source);
 
         member.RecordAiGeneration(now);
         await memberRepository.UpdateAsync(member, cancellationToken);
+
+        var usageLog = AiUsageLog.Create(memberId, aiSettings.Value.Provider, aiSettings.Value.Model, result.TokensUsed);
+        await aiUsageLogRepository.AddAsync(usageLog, cancellationToken);
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var questions = result.Questions
@@ -54,5 +88,33 @@ public sealed class GenerateQuizQuestionsCommandHandler(
             .ToList();
 
         return new GenerateQuestionsResultDto(questions, result.TokensUsed);
+    }
+
+    /// <summary>
+    /// 輸入為單一 http/https 網址時抓取網頁文字（截斷至上限並重新檢查最小長度）；純文字原樣使用。
+    /// </summary>
+    private async Task<(string Content, WebPageSource? Source)> ResolveContentAsync(
+        string input, CancellationToken cancellationToken)
+    {
+        var url = QuizContentInput.ParseUrlOrNull(input);
+        if (url is null)
+        {
+            return (input, null);
+        }
+
+        var page = await webPageContentFetcher.FetchAsync(url, cancellationToken);
+
+        var text = page.Text.Trim();
+        if (text.Length > QuizContentInput.MaxContentLength)
+        {
+            text = text[..QuizContentInput.MaxContentLength];
+        }
+
+        if (text.Length < QuizContentInput.MinContentLength)
+        {
+            throw new WebPageContentInsufficientException(text.Length);
+        }
+
+        return (text, new WebPageSource(page.Url, page.Title));
     }
 }

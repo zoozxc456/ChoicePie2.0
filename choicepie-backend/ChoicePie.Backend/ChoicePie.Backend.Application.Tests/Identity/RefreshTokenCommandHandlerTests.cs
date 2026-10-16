@@ -128,4 +128,32 @@ public class RefreshTokenCommandHandlerTests
 
         Assert.ThrowsAsync<InvalidRefreshTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }
+
+    [Test]
+    public async Task Handle_GivenPermanentlySuspendedMember_WhenCalled_ThenThrowsAndDoesNotIssueTokens()
+    {
+        _member.Suspend("spamming", null);
+
+        Assert.ThrowsAsync<InvalidRefreshTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        Assert.That(_existingRefreshToken.RevokedAt, Is.Null);
+    }
+
+    [Test]
+    public void Handle_GivenSuspensionNotYetExpired_WhenCalled_ThenThrowsInvalidRefreshTokenException()
+    {
+        _member.Suspend("spamming", DateTime.UtcNow.AddHours(1));
+
+        Assert.ThrowsAsync<InvalidRefreshTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+    }
+
+    [Test]
+    public async Task Handle_GivenSuspensionAlreadyExpired_WhenCalled_ThenIssuesNewTokens()
+    {
+        _member.Suspend("spamming", DateTime.UtcNow.AddHours(-1));
+
+        var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
+
+        Assert.That(result.AccessToken, Is.EqualTo("new-access-token"));
+    }
 }

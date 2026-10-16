@@ -1,4 +1,18 @@
 <template>
+  <!-- Paused overlay：Host 暫停時蓋住整個作答畫面，倒數凍結 -->
+  <div
+    v-if="gameStore.isPaused"
+    class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-black/70 text-white text-center px-6"
+    role="status"
+  >
+    <p class="text-2xl font-black">
+      {{ t('room.question.paused') }}
+    </p>
+    <p class="text-sm text-white/70">
+      {{ t('room.question.pausedHint') }}
+    </p>
+  </div>
+
   <!-- Progress + Timer -->
   <div class="flex items-center justify-between mb-3">
     <span class="text-sm font-semibold text-neutral-600">
@@ -38,7 +52,7 @@
       :letter="optionLetters[i] ?? ''"
       :text="opt"
       :state="optionState(i)"
-      :disabled="gameStore.selectedAnswerIndex !== null"
+      :disabled="gameStore.selectedAnswerIndex !== null || gameStore.isPaused"
       @click="handleAnswer(i)"
     />
   </div>
@@ -67,9 +81,14 @@ const gameRoom = useGameRoom()
 const optionLetters = ['A', 'B', 'C', 'D']
 
 const handleAnswer = async (index: number) => {
-  if (gameStore.selectedAnswerIndex !== null) return
+  if (gameStore.selectedAnswerIndex !== null || gameStore.isPaused) return
   gameStore.selectAnswer(index)
-  await gameRoom.submitAnswer(props.code, index)
+  try {
+    await gameRoom.submitAnswer(props.code, index)
+  } catch {
+    // 被伺服器拒絕（例如送出瞬間剛好暫停）：還原選取，繼續後可重新作答
+    gameStore.clearSelectedAnswer()
+  }
 }
 
 const optionState = (index: number): QuizOptionState => {

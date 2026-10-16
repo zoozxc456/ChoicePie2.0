@@ -2,6 +2,7 @@ using ChoicePie.Backend.Application.GameRooms.Commands;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.ValueObjects;
+using ChoicePie.Backend.Application.GameRooms.Dtos;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.GameRooms;
@@ -10,6 +11,7 @@ namespace ChoicePie.Backend.Application.Tests.GameRooms;
 public class PauseGameCommandHandlerTests
 {
     private IGameRoomRepository _gameRoomRepository = null!;
+    private TimeProvider _timeProvider = null!;
     private PauseGameCommandHandler _sut = null!;
     private readonly Guid _hostUserId = Guid.NewGuid();
     private static readonly DateTime CreatedAtUtc = new(2026, 7, 11, 12, 0, 0, DateTimeKind.Utc);
@@ -18,8 +20,12 @@ public class PauseGameCommandHandlerTests
     public void SetUp()
     {
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
-        _sut = new PauseGameCommandHandler(_gameRoomRepository);
+        _timeProvider = Substitute.For<TimeProvider>();
+        SetNow(CreatedAtUtc.AddMinutes(1).AddSeconds(5));
+        _sut = new PauseGameCommandHandler(_gameRoomRepository, _timeProvider);
     }
+
+    private void SetNow(DateTime utc) => _timeProvider.GetUtcNow().Returns(new DateTimeOffset(utc));
 
     private Domain.Aggregates.GameRoom.GameRoom CreateStartedRoom()
     {
@@ -27,34 +33,36 @@ public class PauseGameCommandHandlerTests
         {
             new(Guid.NewGuid(), "1+1=?", ["1", "2", "3", "4"], AnswerIndex: 1, "基本加法")
         };
-        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
+        var room = Domain.Aggregates.GameRoom.GameRoom.Create(_hostUserId, "ABC123", Guid.NewGuid(), "測試題庫", null, "📝", "linear-gradient(135deg,#000,#111)", questions, 20, CreatedAtUtc);
         room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         return room;
     }
 
     [Test]
-    public async Task Handle_GivenRunningQuestion_WhenCalledFirstTime_ThenPausesRoomSavesAndReturnsTrue()
+    public async Task Handle_GivenRunningQuestion_WhenCalledFirstTime_ThenPausesRoomSavesAndReturnsPausedStateWithRemainingMs()
     {
         var room = CreateStartedRoom();
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new PauseGameCommand("ABC123", _hostUserId), CancellationToken.None);
 
-        Assert.That(result, Is.True);
+        Assert.That(result, Is.EqualTo(new PauseStateDto(true, 15_000)));
         Assert.That(room.PausedAtUtc, Is.Not.Null);
         await _gameRoomRepository.Received(1).SaveAsync(room, Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_GivenAlreadyPaused_WhenCalledAgain_ThenResumesRoomAndReturnsFalse()
+    public async Task Handle_GivenAlreadyPaused_WhenCalledAgain_ThenResumesRoomAndReturnsRunningStateWithRemainingMs()
     {
         var room = CreateStartedRoom();
         room.TogglePause(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(2));
+        SetNow(CreatedAtUtc.AddMinutes(1).AddSeconds(12));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
         var result = await _sut.Handle(new PauseGameCommand("ABC123", _hostUserId), CancellationToken.None);
 
-        Assert.That(result, Is.False);
+        // 暫停 2s -> 12s 共 10s 不計入；已經過 2s，剩餘 18s。
+        Assert.That(result, Is.EqualTo(new PauseStateDto(false, 18_000)));
         Assert.That(room.PausedAtUtc, Is.Null);
     }
 

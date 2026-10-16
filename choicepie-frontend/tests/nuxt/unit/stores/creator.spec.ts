@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import type { CreatorProfileDto } from '~/types/api'
 import { creatorClientMock } from './mocks/creatorClient.mock'
 
-const { fetchCreatorProfile, followCreator, unfollowCreator } = creatorClientMock
+const { fetchCreatorProfile, followCreator, unfollowCreator, fetchCreatorQuizzes } = creatorClientMock
 
 const { useCreatorStore } = await import('~/stores/creator')
 
@@ -46,6 +46,54 @@ describe('useCreatorStore', () => {
       expect(store.error).toBe('無法載入創作者資料')
       expect(store.profile).toBeNull()
       expect(store.isLoading).toBe(false)
+    })
+  })
+
+  describe('fetchCreatorQuizzes / loadMoreQuizzes', () => {
+    const page = (pageNumber: number, ids: string[], hasNextPage: boolean) => ({
+      pageNumber,
+      pageSize: 12,
+      totalCount: 20,
+      hasNextPage,
+      items: ids.map(id => ({
+        id, title: id, description: null, coverEmoji: '📝', coverGradient: '', difficulty: 'beginner',
+        status: 'published', questionCount: 1, challengeCount: 0, passRate: 0, creatorId: 'creator-1',
+        creatorName: 'Alice', creatorAvatar: null, tags: [], createdAt: '', updatedAt: ''
+      }))
+    })
+
+    it('載入第一頁並以創作者 id 呼叫 API', async () => {
+      fetchCreatorQuizzes.mockResolvedValue(page(1, ['q1', 'q2'], true))
+      const store = useCreatorStore()
+
+      await store.fetchCreatorQuizzes('creator-1')
+
+      expect(fetchCreatorQuizzes).toHaveBeenCalledWith('creator-1', 1, 12)
+      expect(store.quizzes.map(q => q.id)).toEqual(['q1', 'q2'])
+      expect(store.quizzesHasNext).toBe(true)
+    })
+
+    it('載入更多時累加下一頁', async () => {
+      fetchCreatorQuizzes.mockResolvedValueOnce(page(1, ['q1'], true)).mockResolvedValueOnce(page(2, ['q2'], false))
+      const store = useCreatorStore()
+      await store.fetchCreatorQuizzes('creator-1')
+
+      await store.loadMoreQuizzes()
+
+      expect(fetchCreatorQuizzes).toHaveBeenLastCalledWith('creator-1', 2, 12)
+      expect(store.quizzes.map(q => q.id)).toEqual(['q1', 'q2'])
+      expect(store.quizzesHasNext).toBe(false)
+    })
+
+    it('切換創作者時清空舊作品', async () => {
+      fetchCreatorQuizzes.mockResolvedValueOnce(page(1, ['q1'], false)).mockRejectedValueOnce(new Error('boom'))
+      const store = useCreatorStore()
+      await store.fetchCreatorQuizzes('creator-1')
+
+      await store.fetchCreatorQuizzes('creator-2')
+
+      expect(store.quizzes).toEqual([])
+      expect(store.quizzesHasError).toBe(true)
     })
   })
 

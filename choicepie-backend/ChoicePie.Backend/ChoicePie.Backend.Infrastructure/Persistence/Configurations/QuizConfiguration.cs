@@ -44,6 +44,7 @@ public sealed class QuizConfiguration : AuditableEntityConfiguration<Quiz>
 
         builder.OwnsOne(q => q.Cover, cover =>
         {
+            cover.Property(c => c.ImageUrl).HasColumnName("CoverImageUrl").HasMaxLength(2048);
             cover.Property(c => c.Emoji).HasColumnName("CoverEmoji").IsRequired();
             cover.Property(c => c.Gradient).HasColumnName("CoverGradient").IsRequired();
         });

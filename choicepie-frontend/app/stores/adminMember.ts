@@ -1,6 +1,7 @@
 import { useAdminMemberClientApi } from '~/services/admin/member'
 import type {
   AdminListMembersQuery,
+  AdminMemberAiUsageDto,
   AdminMemberCommentDto,
   AdminMemberDetailDto,
   AdminMemberSummaryDto,
@@ -18,14 +19,17 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
   const memberHostedSessions = ref<PagedResult<GameSessionSummaryDto> | null>(null)
   const memberPlayedSessions = ref<PagedResult<GameSessionSummaryDto> | null>(null)
   const memberComments = ref<PagedResult<AdminMemberCommentDto> | null>(null)
+  const memberAiUsage = ref<AdminMemberAiUsageDto | null>(null)
   const isLoading = ref(false)
   const isLoadingDetail = ref(false)
   const isLoadingQuizzes = ref(false)
   const isLoadingHostedSessions = ref(false)
   const isLoadingPlayedSessions = ref(false)
   const isLoadingComments = ref(false)
+  const isLoadingAiUsage = ref(false)
   const isSuspending = ref(false)
   const isUnsuspending = ref(false)
+  const isAssigningTier = ref(false)
   const error = ref<string | null>(null)
 
   const fetchMembers = async (query?: AdminListMembersQuery) => {
@@ -158,6 +162,42 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
     }
   }
 
+  const fetchMemberAiUsage = async (id: string) => {
+    isLoadingAiUsage.value = true
+    try {
+      memberAiUsage.value = await adminMemberApi.fetchMemberAiUsage(id)
+      return memberAiUsage.value
+    } catch (e) {
+      console.error(e)
+      throw e
+    } finally {
+      isLoadingAiUsage.value = false
+    }
+  }
+
+  const assignMemberTier = async (id: string, tierId: string, tierName: string) => {
+    isAssigningTier.value = true
+    error.value = null
+    try {
+      await adminMemberApi.assignMemberTier(id, tierId)
+      if (members.value) {
+        members.value = {
+          ...members.value,
+          items: members.value.items.map(m => (m.id === id ? { ...m, tierName } : m))
+        }
+      }
+      if (currentMember.value?.id === id) {
+        currentMember.value = { ...currentMember.value, tierId, tierName }
+      }
+    } catch (e) {
+      error.value = '設定會員等級失敗，請稍後再試'
+      console.error(e)
+      throw e
+    } finally {
+      isAssigningTier.value = false
+    }
+  }
+
   return {
     members,
     currentMember,
@@ -165,14 +205,17 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
     memberHostedSessions,
     memberPlayedSessions,
     memberComments,
+    memberAiUsage,
     isLoading,
     isLoadingDetail,
     isLoadingQuizzes,
     isLoadingHostedSessions,
     isLoadingPlayedSessions,
     isLoadingComments,
+    isLoadingAiUsage,
     isSuspending,
     isUnsuspending,
+    isAssigningTier,
     error,
     fetchMembers,
     fetchMemberById,
@@ -180,7 +223,9 @@ export const useAdminMemberStore = defineStore('adminMember', () => {
     fetchMemberHostedSessions,
     fetchMemberPlayedSessions,
     fetchMemberComments,
+    fetchMemberAiUsage,
     suspendMember,
-    unsuspendMember
+    unsuspendMember,
+    assignMemberTier
   }
 })

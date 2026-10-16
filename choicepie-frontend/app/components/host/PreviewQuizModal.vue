@@ -52,14 +52,17 @@
                     : 'bg-neutral-100 text-neutral-600'"
                 >
                   <span>{{ ['A', 'B', 'C', 'D'][oi] }}. {{ opt }}</span>
-                  <span v-if="oi === q.answerIndex">✓</span>
+                  <UIcon
+                    v-if="oi === q.answerIndex"
+                    name="i-lucide-check"
+                  />
                 </div>
               </div>
               <p
                 v-if="q.explanation"
                 class="text-xs text-neutral-400 mt-2 ml-10"
               >
-                💡 {{ q.explanation }}
+                {{ q.explanation }}
               </p>
             </div>
           </div>

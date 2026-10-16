@@ -25,7 +25,7 @@ public class QuizAttemptQueryServiceTests
         _sut = new QuizAttemptQueryService(_readRepository);
 
         _member = Member.Create("Host Name");
-        _quiz = Quiz.Create(_member.Id, "Kubernetes 101", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(_member.Id, "Kubernetes 101", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _question = Question.Create("2+2=?", ["1", "2", "3", "4"], 3, "basic math");
         _quiz.AddQuestion(_question);
         _quiz.Publish();

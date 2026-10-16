@@ -27,7 +27,7 @@ public class GetGameSessionByIdQueryHandlerTests
     }
 
     private static GameSessionDetailDto MakeDto(Guid sessionId, bool isHost, int? myRank) => new(
-        sessionId, "ABCDEF", Guid.NewGuid(), "Quiz Title", "🎯", "grad",
+        sessionId, "ABCDEF", Guid.NewGuid(), "Quiz Title", null, "🎯", "primary",
         DateTime.UtcNow, 2, 1, isHost, [], myRank, myRank is null ? null : 100, [], []);
 
     [Test]

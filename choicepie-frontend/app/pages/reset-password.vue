@@ -1,98 +1,93 @@
 <template>
-  <div class="min-h-[calc(100vh-56px)] bg-neutral-50 flex flex-col items-center px-6 py-16">
-    <NuxtLink
-      to="/"
-      class="text-6xl mb-6"
+  <AuthCardLayout>
+    <AuthStepIndicator
+      :steps="[t('forgotPassword.step1'), t('forgotPassword.step2')]"
+      :current="1"
+    />
+    <h1 class="text-xl font-extrabold text-center mb-1">
+      {{ t('resetPassword.title') }}
+    </h1>
+
+    <p
+      v-if="!token"
+      class="text-sm text-error-500 text-center"
     >
-      🥧
-    </NuxtLink>
+      {{ t('resetPassword.missingToken') }}
+    </p>
 
-    <div class="w-full max-w-md rounded-2xl bg-white shadow-cp-lg p-7 flex flex-col gap-3.5">
-      <h1 class="text-xl font-extrabold text-center mb-1">
-        {{ t('resetPassword.title') }}
-      </h1>
-
-      <p
-        v-if="!token"
-        class="text-sm text-error-500 text-center"
+    <template v-else-if="!isSubmitted">
+      <UForm
+        :schema="resetPasswordSchema"
+        :state="formState"
+        class="flex flex-col gap-3.5"
+        @submit="handleSubmit"
       >
-        {{ t('resetPassword.missingToken') }}
-      </p>
-
-      <template v-else-if="!isSubmitted">
-        <UForm
-          :schema="resetPasswordSchema"
-          :state="formState"
-          class="flex flex-col gap-3.5"
-          @submit="handleSubmit"
-        >
-          <UFormField name="password">
-            <UInput
-              v-model="formState.password"
-              :type="showPassword ? 'text' : 'password'"
-              :placeholder="t('resetPassword.passwordPlaceholder')"
-              size="lg"
-              class="w-full"
-              :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-            >
-              <template #trailing>
-                <UButton
-                  color="neutral"
-                  variant="link"
-                  size="sm"
-                  :padded="false"
-                  :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-                  @click="showPassword = !showPassword"
-                />
-              </template>
-            </UInput>
-          </UFormField>
-          <UFormField name="confirmPassword">
-            <UInput
-              v-model="formState.confirmPassword"
-              :type="showPassword ? 'text' : 'password'"
-              :placeholder="t('resetPassword.confirmPasswordPlaceholder')"
-              size="lg"
-              class="w-full"
-              :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-            />
-          </UFormField>
-          <p
-            v-if="error"
-            class="text-sm text-error-500"
-          >
-            {{ error }}
-          </p>
-          <UButton
-            type="submit"
-            block
+        <UFormField name="password">
+          <UInput
+            v-model="formState.password"
+            :type="showPassword ? 'text' : 'password'"
+            :placeholder="t('resetPassword.passwordPlaceholder')"
             size="lg"
-            color="primary"
-            class="font-bold h-12 rounded-2xl"
-            :loading="auth.isResetPasswordLoading"
+            class="w-full"
+            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
           >
-            {{ t('resetPassword.submitBtn') }}
-          </UButton>
-        </UForm>
-      </template>
+            <template #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                size="sm"
+                :padded="false"
+                :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                @click="showPassword = !showPassword"
+              />
+            </template>
+          </UInput>
+        </UFormField>
+        <UFormField name="confirmPassword">
+          <UInput
+            v-model="formState.confirmPassword"
+            :type="showPassword ? 'text' : 'password'"
+            :placeholder="t('resetPassword.confirmPasswordPlaceholder')"
+            size="lg"
+            class="w-full"
+            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
+          />
+        </UFormField>
+        <p
+          v-if="error"
+          class="text-sm text-error-500"
+        >
+          {{ error }}
+        </p>
+        <UButton
+          type="submit"
+          block
+          size="lg"
+          color="primary"
+          class="font-bold h-12 rounded-2xl"
+          :loading="auth.isResetPasswordLoading"
+        >
+          {{ t('resetPassword.submitBtn') }}
+        </UButton>
+      </UForm>
+    </template>
 
-      <p
-        v-else
-        class="text-sm text-neutral-600 text-center"
-      >
-        {{ t('resetPassword.submitted') }}
-      </p>
+    <p
+      v-else
+      class="text-sm text-neutral-600 text-center"
+    >
+      {{ t('resetPassword.submitted') }}
+    </p>
 
-      <hr class="border-neutral-200">
+    <hr class="border-neutral-200">
 
-      <NuxtLink
-        to="/login"
-        class="text-center text-sm text-neutral-600"
-      >
-        {{ t('resetPassword.backToLogin') }}
-      </NuxtLink>
-    </div>
-  </div>
+    <NuxtLink
+      to="/login"
+      class="text-center text-sm text-neutral-600"
+    >
+      {{ t('resetPassword.backToLogin') }}
+    </NuxtLink>
+  </AuthCardLayout>
 </template>
 
 <script setup lang="ts">

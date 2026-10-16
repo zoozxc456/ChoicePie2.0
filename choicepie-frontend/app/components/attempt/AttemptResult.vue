@@ -4,9 +4,11 @@
       class="rounded-2xl p-6 mb-6 text-center border-2"
       :class="result.passed ? 'bg-success-50 border-success-500' : 'bg-error-50 border-error-500'"
     >
-      <div class="text-4xl mb-2">
-        {{ result.passed ? '🎉' : '😅' }}
-      </div>
+      <UIcon
+        :name="result.passed ? 'i-lucide-check-circle-2' : 'i-lucide-x-circle'"
+        class="text-4xl mb-2"
+        :class="result.passed ? 'text-success-500' : 'text-error-500'"
+      />
       <p
         class="text-2xl font-black mb-1"
         :class="result.passed ? 'text-success-500' : 'text-error-500'"

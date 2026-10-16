@@ -29,7 +29,7 @@ public class QuizQueryServiceTests
 
     private Quiz MakeQuiz(string title, bool published = true, params string[] tags)
     {
-        var quiz = Quiz.Create(_creator.Id, title, null, "⚓", "g", Difficulty.Beginner, tags);
+        var quiz = Quiz.Create(_creator.Id, title, null, null, "⚓", "primary", Difficulty.Beginner, tags);
         if (published)
         {
             quiz.AddQuestion(Question.Create("Q?", ["A", "B", "C", "D"], 0, "because"));
@@ -183,13 +183,13 @@ public class QuizQueryServiceTests
     [Test]
     public async Task GetTagsAsync_WhenCalled_ThenReturnsDistinctSortedTagsFromPublishedQuizzesOnly()
     {
-        var q1 = Quiz.Create(_creator.Id, "Q1", null, "⚓", "g", Difficulty.Beginner, ["Go", "Kubernetes"]);
+        var q1 = Quiz.Create(_creator.Id, "Q1", null, null, "⚓", "primary", Difficulty.Beginner, ["Go", "Kubernetes"]);
         q1.AddQuestion(Question.Create("Q?", ["A", "B", "C", "D"], 0, "because"));
         q1.Publish();
-        var q2 = Quiz.Create(_creator.Id, "Q2", null, "⚓", "g", Difficulty.Beginner, ["go", "AWS"]);
+        var q2 = Quiz.Create(_creator.Id, "Q2", null, null, "⚓", "primary", Difficulty.Beginner, ["go", "AWS"]);
         q2.AddQuestion(Question.Create("Q?", ["A", "B", "C", "D"], 0, "because"));
         q2.Publish();
-        var q3 = Quiz.Create(_creator.Id, "Q3", null, "⚓", "g", Difficulty.Beginner, ["SecretTag"]);
+        var q3 = Quiz.Create(_creator.Id, "Q3", null, null, "⚓", "primary", Difficulty.Beginner, ["SecretTag"]);
         var quizzes = new List<Quiz> { q1, q2, q3 };
         _readRepository.Query<Quiz>().Returns(quizzes.AsQueryable());
 

@@ -24,7 +24,7 @@ public class ListCommentsByQuizIdQueryHandlerTests
         _quizRepository = Substitute.For<IQuizRepository>();
         _sut = new ListCommentsByQuizIdQueryHandler(_commentQueryService, _quizRepository);
 
-        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, "⚓", "g", Difficulty.Beginner, []);
+        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
         _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
     }
 

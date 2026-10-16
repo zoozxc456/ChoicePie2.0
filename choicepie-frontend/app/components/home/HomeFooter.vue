@@ -1,5 +1,5 @@
 <template>
-  <div class="relative overflow-hidden bg-[linear-gradient(135deg,#1a1a2e_0%,#2d3748_100%)]">
+  <div class="relative overflow-hidden bg-cp-secondary">
     <!-- 裝飾層：柔和光暈，增加視覺層次 -->
     <div
       class="pointer-events-none absolute inset-0"
@@ -24,7 +24,7 @@
           class="mx-auto mt-6 block w-fit rounded-2xl border-2 border-white/30 px-7 py-4 text-lg font-bold text-white transition-colors hover:border-white hover:bg-white/10"
           @click="primaryAction"
         >
-          {{ auth.isLoggedIn ? '✨ 建立遊戲' : '🎉 加入遊戲' }}
+          {{ auth.isLoggedIn ? '建立遊戲' : '加入遊戲' }}
         </UButton>
       </div>
     </div>

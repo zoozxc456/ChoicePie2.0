@@ -31,6 +31,7 @@ public sealed class GameSessionConfiguration : AuditableEntityConfiguration<Game
 
         builder.Property(s => s.RoomCode).IsRequired().HasMaxLength(6);
         builder.Property(s => s.QuizTitle).IsRequired();
+        builder.Property(s => s.CoverImageUrl).HasMaxLength(2048);
         builder.Property(s => s.CoverEmoji).IsRequired();
         builder.Property(s => s.CoverGradient).IsRequired();
 

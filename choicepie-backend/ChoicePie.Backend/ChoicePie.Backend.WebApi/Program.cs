@@ -1,5 +1,11 @@
+using ChoicePie.Backend.Application.Quizzes.Contracts;
+using ChoicePie.Backend.Infrastructure.ExternalServices.Quizzes.Providers;
+using ChoicePie.Backend.Infrastructure.ExternalServices.WebPages;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Hosting.Extensions;
+using ChoicePie.Backend.Shared.Hosting.HealthChecks;
+using ChoicePie.Backend.Shared.Hosting.Monitoring;
+using ChoicePie.Backend.Shared.Hosting.RateLimiting;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Email;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Abstractions;
@@ -12,6 +18,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 未設定 Sentry:Dsn 時完全不註冊。
+builder.AddChoicePieSentry();
+
 builder.Services.AddControllers();
 builder.Services.Configure<AdminBootstrapSettings>(
     builder.Configuration.GetSection(AdminBootstrapSettings.SectionName));
@@ -19,6 +28,10 @@ builder.Services.Configure<SmtpSettings>(
     builder.Configuration.GetSection(SmtpSettings.SectionName));
 builder.Services.Configure<GoogleSettings>(
     builder.Configuration.GetSection(GoogleSettings.SectionName));
+builder.Services.Configure<AiQuizGenerationSettings>(
+    builder.Configuration.GetSection(AiQuizGenerationSettings.SectionName));
+builder.Services.Configure<CloudflareR2Settings>(
+    builder.Configuration.GetSection(CloudflareR2Settings.SectionName));
 
 builder.Services
     .AddEndpointsApiExplorer()
@@ -29,9 +42,17 @@ builder.Services
     .AddJwtAuthentication(builder.Configuration)
     .AddChoicePieAuthorization()
     .AddChoicePieCors(builder.Configuration)
+    .AddChoicePieForwardedHeaders(builder.Configuration)
+    .AddChoicePieRateLimiting(builder.Configuration)
     .AddChoicePieCaching(builder.Configuration)
     .AddSharedDbContextPool<ChoicePieDbContext>(builder.Configuration)
     .AddSharedPersistence<ChoicePieDbContext>()
+    .AddHttpClient<AnthropicQuizGenerationProvider>()
+    .Services
+    // 刻意不實作 DI marker interface：Scrutor 的掃描註冊會蓋掉 typed client，導致 SSRF handler 被繞過。
+    .AddHttpClient<IWebPageContentFetcher, WebPageContentFetcher>()
+    .ConfigurePrimaryHttpMessageHandler(() => SsrfSafeConnector.CreateHandler())
+    .Services
     .AddDomain(typeof(ChoicePie.Backend.Domain.AssemblyReference).Assembly)
     .AddApplication(typeof(ChoicePie.Backend.Application.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Infrastructure.AssemblyReference).Assembly)
@@ -39,6 +60,9 @@ builder.Services
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Infrastructure.Email.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Hosting.AssemblyReference).Assembly)
     .AddSingleton<DomainExceptionHubFilter>();
+
+builder.Services.AddChoicePieHealthChecks()
+    .AddDbContextCheck<ChoicePieDbContext>("postgres", tags: [HealthCheckExtensions.ReadyTag]);
 
 builder.Services.AddSignalR(options =>
 {
@@ -89,9 +113,15 @@ if (app.Environment.IsDevelopment())
     app.AddScalarApplicationConfiguration();
 }
 
+// 必須最先執行：先依信任清單還原真實客戶端 IP，後面的速率限制才分得出誰是誰。
+app.UseForwardedHeaders();
+
 app.UseExceptionHandler();
 
-app.UseHttpsRedirection();
+// 健康檢查探針通常走容器內的純 HTTP，不能被導向 HTTPS。
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments("/health"),
+    branch => branch.UseHttpsRedirection());
 app.UseRouting();
 
 app.UseCors(CorsExtensions.PolicyName);
@@ -99,7 +129,11 @@ app.UseCors(CorsExtensions.PolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
 
+// 放在認證之後，才能用 sub claim 當分區 key。
+app.UseRateLimiter();
+
 app.MapControllers();
+app.MapChoicePieHealthChecks();
 app.MapHub<GameHub>("/api/gamehub");
 
 app.Run();

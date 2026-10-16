@@ -12,6 +12,8 @@ public sealed class CreateQuizCommand : IRequest<QuizDto>
 
     public string? Description { get; init; }
 
+    public string? CoverImageUrl { get; init; }
+
     [Required] public required string CoverEmoji { get; init; }
 
     [Required] public required string CoverGradient { get; init; }

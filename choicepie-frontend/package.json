@@ -2,12 +2,15 @@
   "name": "choicepie-frontend",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@10.13.1",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -21,6 +24,7 @@
     "@nuxtjs/i18n": "^10.4.0",
     "@nuxtjs/sitemap": "^8.2.1",
     "@pinia/nuxt": "^0.11.3",
+    "@sentry/nuxt": "^11.8.0",
     "@vueuse/motion": "^3.0.3",
     "@vueuse/nuxt": "^14.3.0",
     "chart.js": "^4.5.1",

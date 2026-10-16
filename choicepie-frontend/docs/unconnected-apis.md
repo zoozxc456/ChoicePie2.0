@@ -13,11 +13,15 @@ interface ApiEnvelope<T> {
 }
 ```
 
-`useApi()`（[app/composables/useApi.ts](../app/composables/useApi.ts)）已自動解開信封，store 方法拿到的就是 `T`。
+`useApi()`（[app/composables/useApi.ts](../app/composables/useApi.ts)）已自動解開信封，store 方法拿到的就是 `T`。REST 請求經由 Nuxt server BFF（`server/api/v1/**`）轉發給後端。
 
 ---
 
 ## 目前狀態：清單已清空
+
+2026-10-16 逐一比對後端所有 controller 的 endpoint 與前端 `app/services/**` 的呼叫，**沒有任何後端 REST endpoint 缺少前端呼叫者**
+（含 `AccountController`、`MeController`、`CreatorsController`、各 `Admin*Controller`、`UploadsController`）。
+`DELETE /api/v1/account` 因 `useApi.del` 不支援 request body，由前端透過 BFF 的 `POST /api/v1/account/delete` 轉成後端 DELETE 呼叫。
 
 以下功能原本列於本文件，現已全部接上 UI：
 
@@ -33,5 +37,6 @@ interface ApiEnvelope<T> {
 
 ## 刻意排除（非本清單範圍）
 
-- **Admin Auth**（`AdminAuthController`，3 個 endpoint）：依先前決議暫不接。
-- **SignalR `GameHub`**：已於另一輪工作接上（`useGameRoom.ts`），不屬於「未接 REST API」範圍。
+- **Admin Auth**（`AdminAuthController`）：原先暫不接，現已接上（`app/services/admin/auth.ts`、`app/stores/adminAuth.ts`、`/admin/login`），不再屬於排除項目。
+- **SignalR `GameHub`**：已接上（`useGameRoom.ts`），不屬於「未接 REST API」範圍。
+- **健康檢查**（`/health/live`、`/health/ready`）：供部署探針使用，不在 `/api/v1` 之下，不需要前端呼叫。

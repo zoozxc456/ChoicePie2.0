@@ -49,7 +49,7 @@
                 </div>
               </div>
               <div class="flex flex-col gap-3 p-6">
-                <span class="text-xs font-semibold text-primary-500">✨ AI 自動生成</span>
+                <span class="text-xs font-semibold text-primary-500">AI 自動生成</span>
                 <p class="text-base font-bold text-neutral-900">
                   派對甜點該怎麼配才對味？
                 </p>
@@ -65,10 +65,11 @@
                       :class="opt.correct ? 'bg-success-500' : 'bg-neutral-300'"
                     >{{ opt.letter }}</span>
                     {{ opt.text }}
-                    <span
+                    <UIcon
                       v-if="opt.correct"
+                      name="i-lucide-check"
                       class="ml-auto text-success-500"
-                    >✓</span>
+                    />
                   </div>
                 </div>
               </div>
@@ -131,7 +132,7 @@ const features = [
     eyebrow: 'AI 出題引擎',
     title: '別再自己想題目了',
     desc: '貼上一篇文章、簡報重點，或直接丟一個網址連結，ChoicePie 就能自動整理成一組 4 選 1 問答題，連詳解都幫你寫好。',
-    bgClass: 'bg-[linear-gradient(135deg,#1a1a2e_0%,#2d3748_100%)]',
+    bgClass: 'bg-cp-secondary',
     textClass: 'text-white'
   },
   {

@@ -123,6 +123,14 @@ describe('useQuizClientApi', () => {
     expect(apiMock.post).toHaveBeenCalledWith('/api/v1/quizzes', payload)
   })
 
+  it('fetchMyFavorites 呼叫 me/favorites 並帶分頁參數', () => {
+    const client = useQuizClientApi()
+
+    client.fetchMyFavorites(2, 6)
+
+    expect(apiMock.get).toHaveBeenCalledWith('/api/v1/me/favorites', { page: 2, pageSize: 6 })
+  })
+
   it('fetchFavoriteStatus 呼叫正確路徑', () => {
     const client = useQuizClientApi()
 

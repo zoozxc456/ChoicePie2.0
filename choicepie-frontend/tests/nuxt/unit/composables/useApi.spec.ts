@@ -108,6 +108,31 @@ describe('useApi', () => {
       expect(useAuthStoreMock).not.toHaveBeenCalled()
     })
 
+    it('429 帶有 envelope 時沿用後端訊息', async () => {
+      fetchMock.mockRejectedValue(fetchError(429, '請求過於頻繁，請稍後再試', 'TooManyRequests'))
+      const { useApi } = await importUseApi()
+      const api = useApi()
+
+      await expect(api.post('/api/v1/auth/login')).rejects.toMatchObject({
+        message: '請求過於頻繁，請稍後再試',
+        status: 429
+      })
+      expect(useAuthStoreMock).not.toHaveBeenCalled()
+    })
+
+    it('429 沒有 envelope（例如被反向代理擋下）時顯示預設的頻繁請求訊息', async () => {
+      const err = new Error('Too Many Requests') as Error & { status: number }
+      err.status = 429
+      fetchMock.mockRejectedValue(err)
+      const { useApi } = await importUseApi()
+      const api = useApi()
+
+      await expect(api.get('/api/v1/quizzes')).rejects.toMatchObject({
+        message: '請求過於頻繁，請稍後再試',
+        status: 429
+      })
+    })
+
     it('沒有 data.message 時退回 error.message，沒有時退回預設訊息', async () => {
       const err = new Error('network down') as Error & { status: number }
       err.status = 0

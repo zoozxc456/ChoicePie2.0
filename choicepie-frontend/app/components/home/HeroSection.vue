@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-screen min-h-dvh overflow-hidden bg-[linear-gradient(135deg,#1a1a2e_0%,#2d3748_100%)]">
+  <div class="relative w-screen min-h-dvh overflow-hidden bg-cp-secondary">
     <div class="mx-auto flex min-h-dvh max-w-7xl flex-col items-center justify-center gap-14 px-6 py-24 lg:flex-row lg:justify-between lg:gap-10 lg:px-16">
       <!-- 左：文字與 CTA -->
       <div class="flex max-w-lg flex-col gap-6 text-center lg:text-left">
@@ -70,10 +70,11 @@
                 :class="opt.correct ? 'bg-success-500' : 'bg-neutral-300'"
               >{{ opt.letter }}</span>
               <span :class="opt.correct ? 'text-success-800' : 'text-neutral-700'">{{ opt.text }}</span>
-              <span
+              <UIcon
                 v-if="opt.correct"
+                name="i-lucide-check"
                 class="ml-auto text-success-500"
-              >✓</span>
+              />
             </div>
           </div>
         </div>

@@ -33,7 +33,7 @@
       <div
         v-for="quiz in quizzes"
         :key="quiz.id"
-        class="relative grid grid-cols-[1fr_112px] rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden transition-colors hover:border-primary-300"
+        class="relative grid grid-cols-[1fr_112px] rounded-2xl bg-white border border-neutral-200 overflow-hidden transition-all hover:border-primary-300 hover:shadow-cp-md"
       >
         <NuxtLink
           :to="`/admin/quizzes/${quiz.id}`"
