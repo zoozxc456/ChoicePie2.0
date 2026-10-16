@@ -1,15 +1,9 @@
 <template>
   <div class="max-w-2xl mx-auto px-4 py-8">
     <!-- Loading -->
-    <div
+    <LoadingSpinner
       v-if="isChecking || (isLoading && !quiz)"
-      class="flex justify-center py-20"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-primary-500"
-      />
-    </div>
+    />
 
     <template v-else-if="quiz && currentQuestion">
       <!-- Progress -->
@@ -94,6 +88,7 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import QuizOption from '~/components/gameRoom/QuizOption.vue'
 import AttemptResult from '~/components/attempt/AttemptResult.vue'
 

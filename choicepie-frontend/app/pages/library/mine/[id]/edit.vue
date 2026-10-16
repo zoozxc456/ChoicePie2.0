@@ -3,12 +3,11 @@
     v-if="quiz"
     class="max-w-3xl mx-auto px-6 py-8"
   >
-    <NuxtLink
+    <BackLink
       to="/library?tab=mine"
-      class="text-[13px] text-cp-text-secondary mb-4 inline-block"
-    >
-      ← {{ t('myQuizzesEdit.backToList') }}
-    </NuxtLink>
+      :label="t('myQuizzesEdit.backToList')"
+      class="mb-4"
+    />
 
     <h1 class="text-2xl font-extrabold mb-6 text-cp-text-primary">
       {{ t('myQuizzesEdit.title') }}
@@ -122,18 +121,14 @@
   </div>
 
   <!-- Loading -->
-  <div
+  <LoadingSpinner
     v-else
-    class="flex justify-center py-20"
-  >
-    <UIcon
-      name="i-lucide-loader-2"
-      class="animate-spin text-4xl text-cp-primary"
-    />
-  </div>
+  />
 </template>
 
 <script setup lang="ts">
+import BackLink from '~/components/common/BackLink.vue'
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import HostQuestionEditor from '~/components/host/QuestionEditor.vue'
 import CoverImagePicker from '~/components/library/CoverImagePicker.vue'
 import { useQuizStore } from '~/stores/quiz'

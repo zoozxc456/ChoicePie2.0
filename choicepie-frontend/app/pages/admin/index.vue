@@ -1,14 +1,9 @@
 <template>
   <div v-if="adminAuth.adminUser">
-    <div
+    <LoadingSpinner
       v-if="adminDashboardStore.isLoading && !summary"
-      class="flex justify-center py-16"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-3xl text-primary-500"
-      />
-    </div>
+      size="md"
+    />
 
     <template v-else-if="summary">
       <NuxtLink
@@ -154,6 +149,7 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
 
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })

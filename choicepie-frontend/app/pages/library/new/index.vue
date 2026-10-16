@@ -1,11 +1,10 @@
 <template>
   <div class="min-h-[calc(100vh-56px)] flex flex-col items-center gap-8 px-6 py-16">
-    <NuxtLink
+    <BackLink
       to="/library"
-      class="self-start max-w-190 w-full mx-auto text-[13px] text-cp-text-secondary"
-    >
-      ← {{ t('libraryDetail.backToLibrary') }}
-    </NuxtLink>
+      :label="t('libraryDetail.backToLibrary')"
+      class="self-start max-w-190 w-full mx-auto"
+    />
 
     <div class="text-center">
       <h1 class="text-2xl font-extrabold text-cp-text-primary">
@@ -69,6 +68,7 @@
 </template>
 
 <script setup lang="ts">
+import BackLink from '~/components/common/BackLink.vue'
 import { useQuizStore } from '~/stores/quiz'
 
 definePageMeta({

@@ -44,25 +44,10 @@
         />
       </UFormField>
       <UFormField name="password">
-        <UInput
+        <PasswordInput
           v-model="loginState.password"
-          :type="showPassword ? 'text' : 'password'"
           :placeholder="t('login.passwordPlaceholder')"
-          size="lg"
-          class="w-full"
-          :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-        >
-          <template #trailing>
-            <UButton
-              color="neutral"
-              variant="link"
-              size="sm"
-              :padded="false"
-              :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-              @click="onToggleShowPassword"
-            />
-          </template>
-        </UInput>
+        />
       </UFormField>
       <NuxtLink
         to="/forgot-password"
@@ -118,6 +103,7 @@
 </template>
 
 <script setup lang="ts">
+import PasswordInput from '~/components/common/PasswordInput.vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { ApiError } from '~/composables/useApi'
 import { useLoginSchema, type LoginSchema } from '~/types/auth'
@@ -130,7 +116,6 @@ const auth = useAuthStore()
 const route = useRoute()
 
 const error = ref('')
-const showPassword = ref(false)
 
 const redirect = computed(() => sanitizeRedirect(route.query.redirect))
 
@@ -158,10 +143,6 @@ const handleEmailLogin = async (event: FormSubmitEvent<LoginSchema>) => {
       error.value = e instanceof ApiError ? e.message : t('login.loginError')
     }
   }
-}
-
-const onToggleShowPassword = () => {
-  showPassword.value = !showPassword.value
 }
 
 const handleGoogleLogin = async () => {

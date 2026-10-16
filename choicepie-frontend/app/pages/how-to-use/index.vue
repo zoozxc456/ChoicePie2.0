@@ -12,19 +12,10 @@
 
     <!-- Role Toggle -->
     <div class="flex justify-center mb-14">
-      <div class="flex rounded-xl p-1 gap-1 bg-cp-surface-muted border border-cp-border">
-        <button
-          v-for="role in roles"
-          :key="role.key"
-          class="px-6 py-2 rounded-lg text-sm font-semibold transition-all"
-          :class="activeRole === role.key
-            ? 'bg-white text-cp-primary shadow-cp-sm'
-            : 'text-cp-text-secondary'"
-          @click="activeRole = role.key"
-        >
-          {{ role.label }}
-        </button>
-      </div>
+      <SegmentedControl
+        v-model="activeRole"
+        :options="roles"
+      />
     </div>
 
     <!-- Steps timeline -->
@@ -166,6 +157,8 @@
 </template>
 
 <script setup lang="ts">
+import SegmentedControl from '~/components/common/SegmentedControl.vue'
+
 definePageMeta({ layout: 'content' })
 
 const { t, tm, rt } = useI18n()
@@ -174,8 +167,8 @@ type RoleKey = 'host' | 'player'
 const activeRole = ref<RoleKey>('host')
 
 const roles = computed(() => [
-  { key: 'host' as RoleKey, label: t('howToUse.roles.host') },
-  { key: 'player' as RoleKey, label: t('howToUse.roles.player') }
+  { value: 'host' as RoleKey, label: t('howToUse.roles.host') },
+  { value: 'player' as RoleKey, label: t('howToUse.roles.player') }
 ])
 
 const roleAccentClass = computed(() => (activeRole.value === 'host' ? 'bg-cp-primary' : 'bg-cp-secondary'))

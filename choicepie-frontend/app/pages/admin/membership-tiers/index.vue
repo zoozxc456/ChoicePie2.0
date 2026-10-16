@@ -14,15 +14,10 @@
       </UButton>
     </div>
 
-    <div
+    <LoadingSpinner
       v-if="adminMembershipTierStore.isLoading"
-      class="flex justify-center py-16"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-3xl text-primary-500"
-      />
-    </div>
+      size="md"
+    />
 
     <p
       v-else-if="!tiers.length"
@@ -82,6 +77,7 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import type { MembershipTierDto } from '~/types/api'
 
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })

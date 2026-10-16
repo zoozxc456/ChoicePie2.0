@@ -1,11 +1,10 @@
 <template>
   <div class="max-w-3xl mx-auto px-6 py-8">
-    <NuxtLink
+    <BackLink
       to="/library/new"
-      class="text-[13px] text-neutral-600 mb-4 inline-block"
-    >
-      ← {{ t('hostNew.backToChoice') }}
-    </NuxtLink>
+      :label="t('hostNew.backToChoice')"
+      class="mb-4"
+    />
 
     <h1 class="text-2xl font-extrabold mb-6">
       {{ t('hostNew.ai.title') }}
@@ -169,6 +168,7 @@
 </template>
 
 <script setup lang="ts">
+import BackLink from '~/components/common/BackLink.vue'
 import HostQuestionEditor from '~/components/host/QuestionEditor.vue'
 import HostPreviewQuizModal from '~/components/host/PreviewQuizModal.vue'
 import CoverImagePicker from '~/components/library/CoverImagePicker.vue'

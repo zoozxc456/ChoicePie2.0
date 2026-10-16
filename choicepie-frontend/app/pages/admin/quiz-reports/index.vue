@@ -20,15 +20,10 @@
       </option>
     </select>
 
-    <div
+    <LoadingSpinner
       v-if="adminQuizReportStore.isLoading"
-      class="flex justify-center py-16"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-3xl text-primary-500"
-      />
-    </div>
+      size="md"
+    />
 
     <p
       v-else-if="!reports.length"
@@ -64,12 +59,12 @@
               {{ report.description }}
             </p>
           </div>
-          <span
-            class="text-[11px] px-2 py-1 rounded-full font-semibold whitespace-nowrap shrink-0"
-            :class="statusBadgeClass(report.status)"
+          <StatusBadge
+            :tone="quizReportStatusTone(report.status)"
+            class="shrink-0"
           >
             {{ t(`adminQuizReports.status.${report.status.toLowerCase()}`) }}
-          </span>
+          </StatusBadge>
         </div>
 
         <div
@@ -113,6 +108,9 @@
 </template>
 
 <script setup lang="ts">
+import StatusBadge from '~/components/common/StatusBadge.vue'
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
+
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
 
 const { t } = useI18n()
@@ -137,12 +135,6 @@ const handleStatusChange = () => {
 const handlePageChange = (page: number) => {
   adminQuizReportStore.fetchReports({ status: statusFilter.value, pageNumber: page })
 }
-
-const statusBadgeClass = (status: string) => ({
-  Pending: 'bg-warning-100 text-warning-800',
-  Resolved: 'bg-error-100 text-error-800',
-  Dismissed: 'bg-neutral-100 text-neutral-600'
-}[status] ?? 'bg-neutral-100 text-neutral-600')
 
 const openModal = (reportId: string, action: 'resolve' | 'dismiss') => {
   targetReportId.value = reportId

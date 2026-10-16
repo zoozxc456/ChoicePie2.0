@@ -9,15 +9,10 @@
       :placeholder="t('adminMembers.searchPlaceholder')"
     />
 
-    <div
+    <LoadingSpinner
       v-if="adminMemberStore.isLoading"
-      class="flex justify-center py-16"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-3xl text-primary-500"
-      />
-    </div>
+      size="md"
+    />
 
     <p
       v-else-if="!members.length"
@@ -121,6 +116,8 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
+
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
 
 const { t, locale } = useI18n()
@@ -138,7 +135,7 @@ const totalPages = computed(() => adminMemberStore.members?.totalPages
 
 await adminMemberStore.fetchMembers()
 
-const formatDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value)
+const formatDate = (iso: string) => formatLocaleDate(iso, locale.value)
 
 watch(search, () => {
   if (searchDebounce) clearTimeout(searchDebounce)

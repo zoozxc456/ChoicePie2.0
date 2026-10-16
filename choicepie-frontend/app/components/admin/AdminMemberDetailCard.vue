@@ -120,7 +120,7 @@ const emit = defineEmits<{
 
 const { t, locale } = useI18n()
 
-const formatDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value)
+const formatDate = (iso: string) => formatLocaleDate(iso, locale.value)
 </script>
 
 <script lang="ts">

@@ -3,15 +3,10 @@
     <p class="text-lg font-bold mb-3">
       {{ title }}
     </p>
-    <div
+    <LoadingSpinner
       v-if="isLoading"
-      class="flex justify-center py-8"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-2xl text-primary-500"
-      />
-    </div>
+      size="sm"
+    />
     <p
       v-else-if="!sessions.length"
       class="text-base text-neutral-400 text-center py-8"
@@ -44,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import type { GameSessionSummaryDto } from '~/types/api'
 
 interface Props {
@@ -58,7 +54,7 @@ defineProps<Props>()
 
 const { locale } = useI18n()
 
-const formatDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value)
+const formatDate = (iso: string) => formatLocaleDate(iso, locale.value)
 </script>
 
 <script lang="ts">

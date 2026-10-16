@@ -23,34 +23,18 @@
         @submit="handleSubmit"
       >
         <UFormField name="password">
-          <UInput
+          <PasswordInput
             v-model="formState.password"
-            :type="showPassword ? 'text' : 'password'"
+            v-model:visible="showPassword"
             :placeholder="t('resetPassword.passwordPlaceholder')"
-            size="lg"
-            class="w-full"
-            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-          >
-            <template #trailing>
-              <UButton
-                color="neutral"
-                variant="link"
-                size="sm"
-                :padded="false"
-                :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-                @click="showPassword = !showPassword"
-              />
-            </template>
-          </UInput>
+          />
         </UFormField>
         <UFormField name="confirmPassword">
-          <UInput
+          <PasswordInput
             v-model="formState.confirmPassword"
-            :type="showPassword ? 'text' : 'password'"
+            v-model:visible="showPassword"
+            :show-toggle="false"
             :placeholder="t('resetPassword.confirmPasswordPlaceholder')"
-            size="lg"
-            class="w-full"
-            :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
           />
         </UFormField>
         <p
@@ -91,6 +75,7 @@
 </template>
 
 <script setup lang="ts">
+import PasswordInput from '~/components/common/PasswordInput.vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useResetPasswordSchema, type ResetPasswordSchema } from '~/types/auth'
 
