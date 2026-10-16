@@ -58,3 +58,6 @@ nunit-*.xml
 
 # MacOS
 .DS_Store
+
+# JetBrains Rider per-user settings
+*.DotSettings.user
