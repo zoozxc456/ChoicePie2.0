@@ -2,10 +2,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
+using ChoicePie.Backend.Application.Quizzes;
 
 namespace ChoicePie.Backend.Infrastructure.ExternalServices.WebPages;
 
-public sealed record ExtractedPageText(string? Title, string Text);
+public sealed record ExtractedPageText(string? Title, string Text, bool LooksLikeAppShell = false);
 
 /// <summary>
 /// 以 AngleSharp 把 HTML 轉成純文字：移除非內容元素、優先取 article / main、解碼 entity、整理空白。
@@ -13,6 +14,13 @@ public sealed record ExtractedPageText(string? Title, string Text);
 public static partial class WebPageHtmlTextExtractor
 {
     private const int PreferredRootMinLength = 200;
+
+    /// <summary>主要內文低於此長度（與 QuizContentInput.MinContentLength 一致）時改用結構化資料後備。</summary>
+    private const int MinMainTextLength = QuizContentInput.MinContentLength;
+
+    public const int MaxFallbackLength = WebPageStructuredDataExtractor.MaxTotalLength;
+
+    private static readonly string[] AppRootSelectors = ["#__next", "#__nuxt", "#app", "#root"];
 
     private const string NonContentSelector =
         "script,style,noscript,template,svg,nav,header,footer,aside,form,iframe,object,embed,canvas,[hidden]";
@@ -30,6 +38,12 @@ public static partial class WebPageHtmlTextExtractor
 
         var title = Normalize(document.Title ?? string.Empty);
 
+        // 結構化資料與 app shell 判斷必須在移除 script / noscript 之前取得。
+        var structuredText = WebPageStructuredDataExtractor.Extract(document);
+        var noscriptAsksForJs = document.QuerySelectorAll("noscript")
+            .Any(n => JavaScriptNotice().IsMatch(n.TextContent));
+        var appRoots = AppRootSelectors.Select(selector => document.QuerySelector(selector)).OfType<IElement>().ToList();
+
         foreach (var element in document.QuerySelectorAll(NonContentSelector).ToList())
         {
             element.Remove();
@@ -44,7 +58,15 @@ public static partial class WebPageHtmlTextExtractor
             ? preferred
             : bodyText;
 
-        return Compose(title, text);
+        if (text.Length < MinMainTextLength && structuredText.Length > 0)
+        {
+            text = text.Length == 0 ? structuredText : $"{text}\n{structuredText}";
+        }
+
+        var looksLikeAppShell = noscriptAsksForJs
+                                || appRoots.Any(root => Normalize(root.TextContent).Length < MinMainTextLength);
+
+        return Compose(title, text) with { LooksLikeAppShell = looksLikeAppShell };
     }
 
     public static ExtractedPageText ExtractFromPlainText(string text) => new(null, Normalize(text));
@@ -100,6 +122,9 @@ public static partial class WebPageHtmlTextExtractor
 
         return string.Join('\n', lines);
     }
+
+    [GeneratedRegex(@"enable\s+javascript|javascript\s+(is\s+)?(required|disabled|must)|requires?\s+javascript|啟用\s*javascript|開啟\s*javascript|需要\s*javascript|JavaScript\s*(已停用|被停用)", RegexOptions.IgnoreCase)]
+    private static partial Regex JavaScriptNotice();
 
     [GeneratedRegex(@"[\s\u200B\uFEFF]+")]
     private static partial Regex InlineWhitespace();

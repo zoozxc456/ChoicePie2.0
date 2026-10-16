@@ -245,6 +245,17 @@ public class GenerateQuizQuestionsCommandHandlerTests
     }
 
     [Test]
+    public void Handle_GivenFetcherReportsJavaScriptRequired_WhenCalled_ThenPropagatesAndConsumesNoQuota()
+    {
+        _webPageContentFetcher.FetchAsync(Arg.Any<Uri>(), Arg.Any<CancellationToken>())
+            .Returns<WebPageContent>(_ => throw new WebPageRequiresJavaScriptException(0));
+
+        Assert.ThrowsAsync<WebPageRequiresJavaScriptException>(() => _sut.Handle(UrlCommand(), CancellationToken.None));
+
+        AssertNoQuotaConsumed();
+    }
+
+    [Test]
     public void Handle_GivenFetchFails_WhenCalled_ThenPropagatesErrorAndConsumesNoQuota()
     {
         _webPageContentFetcher.FetchAsync(Arg.Any<Uri>(), Arg.Any<CancellationToken>())

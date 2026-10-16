@@ -196,7 +196,7 @@ public class WebPageContentFetcherTests
     [TestCase("http://127.0.0.1/admin")]
     [TestCase("http://169.254.169.254/latest/meta-data/")]
     [TestCase("http://localhost/")]
-    [TestCase("https://example.com:8443/")]
+    [TestCase("https://example.com:8000/")]
     [TestCase("https://user:pw@example.com/")]
     [TestCase("http://[::ffff:10.0.0.1]/")]
     public void FetchAsync_GivenRedirectToBlockedTarget_WhenCalled_ThenThrowsAccessDeniedWithoutFollowing(string target)
@@ -241,7 +241,7 @@ public class WebPageContentFetcherTests
     [TestCase("http://127.0.0.1/")]
     [TestCase("http://10.1.2.3/")]
     [TestCase("http://169.254.169.254/")]
-    [TestCase("https://example.com:8443/")]
+    [TestCase("https://example.com:8000/")]
     [TestCase("https://user:pw@example.com/")]
     public void FetchAsync_GivenBlockedInitialUrl_WhenCalled_ThenThrowsAccessDeniedWithoutRequest(string url)
     {
@@ -325,6 +325,36 @@ public class WebPageContentFetcherTests
             TotalBytesRead += read;
             return read;
         }
+    }
+
+    [Test]
+    public void FetchAsync_GivenEmptyAppShell_WhenCalled_ThenThrowsRequiresJavaScript()
+    {
+        var sut = CreateSut(_ => Html("<html><head><title>App</title></head><body><div id=\"root\"></div><script src=\"/a.js\"></script></body></html>"), out _);
+
+        Assert.ThrowsAsync<WebPageRequiresJavaScriptException>(() => sut.FetchAsync(PageUrl, CancellationToken.None));
+    }
+
+    [Test]
+    public async Task FetchAsync_GivenAppShellWithStructuredData_WhenCalled_ThenReturnsFallbackText()
+    {
+        const string body = "這是從 JSON-LD 取得的文章內容，長度足夠通過最小字數限制，不需要執行 JavaScript。";
+        var html = $$$"""<html><head><title>App</title><script type="application/ld+json">{"articleBody":"{{{body}}}"}</script></head><body><div id="root"></div></body></html>""";
+        var sut = CreateSut(_ => Html(html), out _);
+
+        var result = await sut.FetchAsync(PageUrl, CancellationToken.None);
+
+        Assert.That(result.Text, Does.Contain(body));
+    }
+
+    [Test]
+    public async Task FetchAsync_GivenShortOrdinaryPage_WhenCalled_ThenDoesNotThrowRequiresJavaScript()
+    {
+        var sut = CreateSut(_ => Html("<body><p>tiny</p></body>"), out _);
+
+        var result = await sut.FetchAsync(PageUrl, CancellationToken.None);
+
+        Assert.That(result.Text, Is.EqualTo("tiny"));
     }
 }
 

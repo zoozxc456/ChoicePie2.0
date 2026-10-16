@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
+using ChoicePie.Backend.Application.Quizzes;
 using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 
@@ -118,6 +119,12 @@ public sealed partial class WebPageContentFetcher : IWebPageContentFetcher
         var extracted = mediaType == "text/plain"
             ? WebPageHtmlTextExtractor.ExtractFromPlainText(html)
             : WebPageHtmlTextExtractor.ExtractFromHtml(html);
+
+        // 後備擷取後仍不足、且頁面是需要 JS 才會渲染的 app shell 時，給出更明確的錯誤。
+        if (extracted.LooksLikeAppShell && extracted.Text.Trim().Length < QuizContentInput.MinContentLength)
+        {
+            throw new WebPageRequiresJavaScriptException(extracted.Text.Trim().Length);
+        }
 
         return new WebPageContent(finalUrl, extracted.Title, extracted.Text);
     }
