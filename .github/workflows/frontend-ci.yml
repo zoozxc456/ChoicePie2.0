@@ -1,0 +1,57 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [master, 'feat-**']
+    paths:
+      - 'choicepie-frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'choicepie-frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-typecheck-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: choicepie-frontend
+    env:
+      # nuxt prepare (postinstall) and the tests never contact real services; values only need to be well-formed.
+      NUXT_PUBLIC_API_BASE_URL: https://api.example.test
+      NUXT_BACKEND_API_URL: https://api.example.test
+      NUXT_PUBLIC_GOOGLE_CLIENT_ID: ci-dummy
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: choicepie-frontend/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: choicepie-frontend/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
