@@ -1,3 +1,5 @@
+using ChoicePie.Backend.Shared.Hosting.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning;
 using ChoicePie.Backend.Application.QuizAttempts.Commands;
 using ChoicePie.Backend.Application.QuizAttempts.Dtos;
@@ -17,6 +19,7 @@ namespace ChoicePie.Backend.WebApi.Controllers;
 public class QuizAttemptsController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     public async Task<ActionResult<ApiResponse<StartAttemptResultDto>>> StartAsync([FromBody] StartQuizAttemptRequest request)
     {
         var result = await mediator.Send(request.ToCommand());

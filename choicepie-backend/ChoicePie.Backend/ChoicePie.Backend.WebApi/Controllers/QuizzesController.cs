@@ -1,3 +1,5 @@
+using ChoicePie.Backend.Shared.Hosting.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning;
 using ChoicePie.Backend.Application.Comments.Commands;
 using ChoicePie.Backend.Application.Comments.Dtos;
@@ -111,6 +113,7 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpPost("generate-questions")]
+    [EnableRateLimiting(RateLimitPolicyNames.Ai)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse<GenerateQuestionsResultDto>>> GenerateQuestionsAsync([FromBody] GenerateQuizQuestionsRequest request)
     {
@@ -149,6 +152,7 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpPost("{id:guid}/share")]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     public async Task<ActionResult<ApiResponse<int>>> RecordShareAsync(Guid id)
     {
         var result = await mediator.Send(new RecordQuizShareCommand(id));
@@ -170,6 +174,7 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpPut("{id:guid}/favorite")]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse>> AddFavoriteAsync(Guid id)
     {
@@ -178,6 +183,7 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpDelete("{id:guid}/favorite")]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse>> RemoveFavoriteAsync(Guid id)
     {
@@ -194,6 +200,7 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpPost("{id:guid}/comments")]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse<CommentDto>>> AddCommentAsync(Guid id, [FromBody] AddCommentRequest request)
     {
@@ -202,6 +209,7 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpPut("{id:guid}/comments/{commentId:guid}")]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse<CommentDto>>> UpdateCommentAsync(Guid id, Guid commentId, [FromBody] UpdateCommentRequest request)
     {
@@ -210,6 +218,7 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpDelete("{id:guid}/comments/{commentId:guid}")]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse>> DeleteCommentAsync(Guid id, Guid commentId)
     {
@@ -218,6 +227,7 @@ public class QuizzesController(IMediator mediator, ICurrentUserService currentUs
     }
 
     [HttpPost("{id:guid}/report")]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse>> ReportAsync(Guid id, [FromBody] CreateQuizReportRequest request)
     {

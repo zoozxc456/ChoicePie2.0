@@ -1,3 +1,5 @@
+using ChoicePie.Backend.Shared.Hosting.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning;
 using ChoicePie.Backend.Application.CreatorFollows.Commands;
 using ChoicePie.Backend.Application.CreatorFollows.Dtos;
@@ -22,6 +24,7 @@ public class CreatorsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:guid}/follow")]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse>> FollowAsync(Guid id)
     {
@@ -30,6 +33,7 @@ public class CreatorsController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:guid}/follow")]
+    [EnableRateLimiting(RateLimitPolicyNames.Write)]
     [Authorize(Policy = "MemberOnly")]
     public async Task<ActionResult<ApiResponse>> UnfollowAsync(Guid id)
     {

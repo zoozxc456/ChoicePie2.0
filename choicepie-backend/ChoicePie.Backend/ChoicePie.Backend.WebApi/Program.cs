@@ -1,6 +1,7 @@
 using ChoicePie.Backend.Infrastructure.ExternalServices.Quizzes.Providers;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Hosting.Extensions;
+using ChoicePie.Backend.Shared.Hosting.RateLimiting;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Email;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Abstractions;
@@ -34,6 +35,8 @@ builder.Services
     .AddJwtAuthentication(builder.Configuration)
     .AddChoicePieAuthorization()
     .AddChoicePieCors(builder.Configuration)
+    .AddChoicePieForwardedHeaders(builder.Configuration)
+    .AddChoicePieRateLimiting(builder.Configuration)
     .AddChoicePieCaching(builder.Configuration)
     .AddSharedDbContextPool<ChoicePieDbContext>(builder.Configuration)
     .AddSharedPersistence<ChoicePieDbContext>()
@@ -96,6 +99,9 @@ if (app.Environment.IsDevelopment())
     app.AddScalarApplicationConfiguration();
 }
 
+// 必須最先執行：先依信任清單還原真實客戶端 IP，後面的速率限制才分得出誰是誰。
+app.UseForwardedHeaders();
+
 app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
@@ -105,6 +111,9 @@ app.UseCors(CorsExtensions.PolicyName);
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// 放在認證之後，才能用 sub claim 當分區 key。
+app.UseRateLimiter();
 
 app.MapControllers();
 app.MapHub<GameHub>("/api/gamehub");
