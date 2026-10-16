@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { GameRoom, GamePhase, Player } from '~/types/gameRoom'
-import type { PauseStatePayload, QuestionPayload, RankEntry, AnswerResultPayload, QuestionEndPayload, RoomStateSyncPayload, AnswerProgressPayload, BackendGamePhase } from '~/types/other'
+import type { HostConnectionPayload, PauseStatePayload, QuestionPayload, RankEntry, AnswerResultPayload, QuestionEndPayload, RoomStateSyncPayload, AnswerProgressPayload, BackendGamePhase } from '~/types/other'
 
 export const useGameStore = defineStore('game', () => {
   // ── 房間狀態 ──
@@ -20,6 +20,8 @@ export const useGameStore = defineStore('game', () => {
   const timeLimitTotal = ref(20)
   /** Host 暫停中：所有倒數停止，直到收到伺服器的繼續事件（含剩餘毫秒數）才恢復 */
   const isPaused = ref(false)
+  /** 主持人是否在線；離線時玩家與大螢幕顯示等待提示（任何階段） */
+  const isHostOnline = ref(true)
   let _timerInterval: ReturnType<typeof setInterval> | null = null
 
   /** 公布答案畫面停留秒數，時間到由 Host 端自動呼叫 SkipQuestion 推進下一題 */
@@ -129,6 +131,7 @@ export const useGameStore = defineStore('game', () => {
     room.value = payload.room
     phase.value = mappedPhase
     isPaused.value = false
+    isHostOnline.value = payload.isHostOnline ?? true
 
     if (mappedPhase === 'question' && payload.currentQuestion) {
       currentQuestion.value = payload.currentQuestion
@@ -196,6 +199,10 @@ export const useGameStore = defineStore('game', () => {
     } else {
       room.value.players.push({ ...reconnected, isConnected: true })
     }
+  }
+
+  const setHostConnection = (payload: HostConnectionPayload) => {
+    isHostOnline.value = payload.connected
   }
 
   const setPauseState = (payload: PauseStatePayload) => {
@@ -288,6 +295,7 @@ export const useGameStore = defineStore('game', () => {
     room.value = null
     phase.value = 'idle'
     isPaused.value = false
+    isHostOnline.value = true
     currentQuestion.value = null
     selectedAnswerIndex.value = null
     isCorrect.value = null
@@ -307,7 +315,7 @@ export const useGameStore = defineStore('game', () => {
     // state
     room, phase, currentQuestion, selectedAnswerIndex,
     isCorrect, correctAnswerIndex, currentExplanation, pointsEarned,
-    timeLeft, timeLimitTotal, isPaused, rankings,
+    timeLeft, timeLimitTotal, isPaused, isHostOnline, rankings,
     myNickname, myScore, myRank,
     answeredCount, totalCount,
     // computed
@@ -315,7 +323,7 @@ export const useGameStore = defineStore('game', () => {
     isAllAnsweredEarly,
     // actions
     setRoom, setRoomState, addPlayer, removePlayer, markPlayerDisconnected, markPlayerReconnected,
-    setPauseState, clearSelectedAnswer,
+    setPauseState, setHostConnection, clearSelectedAnswer,
     setQuestion, selectAnswer,
     setAnswerResult, setAnswerProgress,
     setQuestionEnd, endGame,

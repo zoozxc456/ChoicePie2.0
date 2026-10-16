@@ -113,6 +113,13 @@ export interface RoomStateSyncPayload {
   isPaused?: boolean
   remainingMs?: number | null
   self?: PlayerSelfPayload | null
+  /** Host 是否在線；未帶時視為在線（相容舊後端） */
+  isHostOnline?: boolean
+}
+
+/** Server → Client: Host 連線狀態變化（connected=false 表示主持人離線） */
+export interface HostConnectionPayload {
+  connected: boolean
 }
 
 // ─────────────────────────────────────────────

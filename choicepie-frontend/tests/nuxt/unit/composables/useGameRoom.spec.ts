@@ -30,6 +30,7 @@ const makeGameStore = () => ({
   markPlayerDisconnected: vi.fn(),
   markPlayerReconnected: vi.fn(),
   setPauseState: vi.fn(),
+  setHostConnection: vi.fn(),
   roomCode: 'ABCD',
   reset: vi.fn()
 })
@@ -373,6 +374,103 @@ describe('useGameRoom', () => {
       const gameRoom = useGameRoom()
 
       expect(gameRoom.isConnected.value).toBe(false)
+    })
+  })
+
+  describe('Host 重連與連線狀態', () => {
+    it('HostConnectionChanged 呼叫 setHostConnection', async () => {
+      const gameStore = makeGameStore()
+      useGameStoreMock.mockReturnValue(gameStore)
+      const { useGameRoom } = await importUseGameRoom()
+      await useGameRoom().connect()
+
+      hubConnectionMock.handlers.get('HostConnectionChanged')?.({ connected: false })
+
+      expect(gameStore.setHostConnection).toHaveBeenCalledWith({ connected: false })
+    })
+
+    it('Host 自動重連後重新呼叫 RejoinRoom', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+      await gameRoom.rejoinAsHost('ABCD')
+      hubConnectionMock.invoke.mockClear()
+
+      const onReconnected = hubConnectionMock.onreconnected.mock.calls[0]![0] as () => Promise<void>
+      await onReconnected()
+
+      expect(hubConnectionMock.invoke).toHaveBeenCalledWith('RejoinRoom', 'ABCD')
+    })
+
+    it('建立房間後（RoomCreated）自動重連也會 RejoinRoom', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      await useGameRoom().connect()
+      hubConnectionMock.handlers.get('RoomCreated')?.('WXYZ')
+      hubConnectionMock.invoke.mockClear()
+
+      const onReconnected = hubConnectionMock.onreconnected.mock.calls[0]![0] as () => Promise<void>
+      await onReconnected()
+
+      expect(hubConnectionMock.invoke).toHaveBeenCalledWith('RejoinRoom', 'WXYZ')
+    })
+
+    it('disconnect 後不再 RejoinRoom', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+      await gameRoom.rejoinAsHost('ABCD')
+      const onReconnected = hubConnectionMock.onreconnected.mock.calls[0]![0] as () => Promise<void>
+      await gameRoom.disconnect()
+      hubConnectionMock.invoke.mockClear()
+
+      await onReconnected()
+
+      expect(hubConnectionMock.invoke).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('大螢幕 WatchRoom', () => {
+    it('watchRoom 連線後 invoke WatchRoom', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+
+      await useGameRoom().watchRoom('ABCD')
+
+      expect(hubConnectionMock.start).toHaveBeenCalledTimes(1)
+      expect(hubConnectionMock.invoke).toHaveBeenCalledWith('WatchRoom', 'ABCD')
+    })
+
+    it('自動重連後重新 WatchRoom，且不會呼叫玩家/Host 的重連方法', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      await useGameRoom().watchRoom('ABCD')
+      hubConnectionMock.invoke.mockClear()
+
+      const onReconnected = hubConnectionMock.onreconnected.mock.calls[0]![0] as () => Promise<void>
+      await onReconnected()
+
+      expect(hubConnectionMock.invoke).toHaveBeenCalledTimes(1)
+      expect(hubConnectionMock.invoke).toHaveBeenCalledWith('WatchRoom', 'ABCD')
+    })
+
+    it('WatchRoom 失敗會往外拋出，且重連時不再重試', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      hubConnectionMock.invoke.mockRejectedValueOnce(new Error('[GAME_ROOM_NOT_FOUND] x'))
+
+      await expect(useGameRoom().watchRoom('ZZZZ')).rejects.toThrow()
+      hubConnectionMock.invoke.mockClear()
+      const onReconnected = hubConnectionMock.onreconnected.mock.calls[0]![0] as () => Promise<void>
+      await onReconnected()
+
+      expect(hubConnectionMock.invoke).not.toHaveBeenCalled()
+    })
+
+    it('RoomStateSync 會套用到 store（旁觀者快照）', async () => {
+      const gameStore = makeGameStore()
+      useGameStoreMock.mockReturnValue(gameStore)
+      const { useGameRoom } = await importUseGameRoom()
+      await useGameRoom().watchRoom('ABCD')
+
+      const payload = { phase: 'lobby', room: { roomCode: 'ABCD', players: [] }, isHostOnline: true }
+      hubConnectionMock.handlers.get('RoomStateSync')?.(payload)
+
+      expect(gameStore.setRoomState).toHaveBeenCalledWith(payload)
     })
   })
 })

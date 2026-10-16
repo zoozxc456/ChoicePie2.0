@@ -555,4 +555,86 @@ describe('useGameStore', () => {
       expect(store.totalCount).toBe(0)
     })
   })
+
+  describe('主持人連線狀態 (isHostOnline)', () => {
+    it('預設為在線', () => {
+      expect(useGameStore().isHostOnline).toBe(true)
+    })
+
+    it('setHostConnection 依 connected 切換', () => {
+      const store = useGameStore()
+
+      store.setHostConnection({ connected: false })
+      expect(store.isHostOnline).toBe(false)
+
+      store.setHostConnection({ connected: true })
+      expect(store.isHostOnline).toBe(true)
+    })
+
+    it('setRoomState 套用快照中的 isHostOnline，未帶時視為在線', () => {
+      const store = useGameStore()
+
+      store.setRoomState({ phase: 'lobby', room: makeRoom(), isHostOnline: false })
+      expect(store.isHostOnline).toBe(false)
+
+      store.setRoomState({ phase: 'lobby', room: makeRoom() })
+      expect(store.isHostOnline).toBe(true)
+    })
+
+    it('主持人離線自動暫停：快照帶 isPaused 與離線，不會自動繼續', () => {
+      const store = useGameStore()
+
+      store.setRoomState({
+        phase: 'question',
+        room: makeRoom(),
+        currentQuestion: makeQuestion({ timeLimit: 20 }),
+        isPaused: true,
+        remainingMs: 16000,
+        isHostOnline: false
+      })
+      store.setHostConnection({ connected: true })
+
+      expect(store.isPaused).toBe(true)
+      expect(store.timeLeft).toBe(16)
+    })
+
+    it('reset 還原為在線', () => {
+      const store = useGameStore()
+      store.setHostConnection({ connected: false })
+
+      store.reset()
+
+      expect(store.isHostOnline).toBe(true)
+    })
+  })
+
+  describe('旁觀者（大螢幕）套用快照', () => {
+    it('沒有 self 的 reveal 快照顯示排名與正確答案', () => {
+      const store = useGameStore()
+
+      store.setRoomState({
+        phase: 'reveal',
+        room: makeRoom(),
+        questionEnd: { answerIndex: 2, explanation: '解析', rankings: [{ rank: 1, nickname: 'Alice', score: 900 }] }
+      })
+
+      expect(store.phase).toBe('result')
+      expect(store.correctAnswerIndex).toBe(2)
+      expect(store.rankings[0]?.rank).toBe(1)
+      expect(store.myNickname).toBe('')
+    })
+
+    it('沒有 self 的 ended 快照顯示最終排名', () => {
+      const store = useGameStore()
+
+      store.setRoomState({
+        phase: 'ended',
+        room: makeRoom({ status: 'ended' }),
+        rankings: [{ rank: 1, nickname: 'Alice', score: 900 }]
+      })
+
+      expect(store.phase).toBe('ended')
+      expect(store.rankings).toHaveLength(1)
+    })
+  })
 })

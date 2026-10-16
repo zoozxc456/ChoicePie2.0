@@ -1,7 +1,7 @@
 import * as signalR from '@microsoft/signalr'
 import { useGameStore } from '~/stores/game'
 import type { Player } from '~/types/gameRoom'
-import type { JoinRoomResponse, PauseStatePayload, AnswerProgressPayload, QuestionPayload, AnswerResultPayload, QuestionEndPayload, RankEntry, RoomStateSyncPayload } from '~/types/other'
+import type { HostConnectionPayload, JoinRoomResponse, PauseStatePayload, AnswerProgressPayload, QuestionPayload, AnswerResultPayload, QuestionEndPayload, RankEntry, RoomStateSyncPayload } from '~/types/other'
 
 let _connection: signalR.HubConnection | null = null
 let _reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -9,6 +9,10 @@ let _tokenRefreshTimer: ReturnType<typeof setInterval> | null = null
 let _manuallyDisconnected = false
 // 目前這條連線所代表的玩家；SignalR 重連後 connectionId 會變，需用它重新呼叫 RejoinAsPlayer 才能回到房間群組
 let _activePlayerSession: { roomCode: string, reconnectToken: string } | null = null
+// 目前這條連線所代表的 Host 房間；重連後 connectionId 會變，需重新呼叫 RejoinRoom 才會回到 room/host 群組
+let _activeHostRoom: string | null = null
+// 目前這條連線（大螢幕）旁觀的房間；重連後需重新呼叫 WatchRoom 才會回到 room 群組
+let _activeWatchRoom: string | null = null
 
 /** 從 HubException 訊息取出後端的 ErrorCode（格式："[CODE] message"） */
 export const extractHubErrorCode = (e: unknown): string | null => {
@@ -60,6 +64,36 @@ const _rejoinActivePlayer = async () => {
   }
 }
 
+/** 連線（重新）建立後，若這條連線是 Host，重新呼叫 RejoinRoom 回到群組並套用伺服器回傳的 RoomStateSync */
+const _rejoinActiveHost = async () => {
+  const roomCode = _activeHostRoom
+  if (!roomCode || !_connection) return
+  try {
+    await _connection.invoke('RejoinRoom', roomCode)
+  } catch (e) {
+    console.error('[SignalR] Host 重連房間失敗', e)
+    _activeHostRoom = null
+  }
+}
+
+/** 連線（重新）建立後，若這條連線是大螢幕，重新 WatchRoom 回到房間群組 */
+const _rewatchActiveRoom = async () => {
+  const roomCode = _activeWatchRoom
+  if (!roomCode || !_connection) return
+  try {
+    await _connection.invoke('WatchRoom', roomCode)
+  } catch (e) {
+    console.error('[SignalR] 大螢幕重新旁觀房間失敗', e)
+    _activeWatchRoom = null
+  }
+}
+
+const _restoreRoomMembership = async () => {
+  await _rejoinActivePlayer()
+  await _rejoinActiveHost()
+  await _rewatchActiveRoom()
+}
+
 const scheduleReconnect = (attempt = 0) => {
   if (_manuallyDisconnected) return
   if (_reconnectTimer) return
@@ -107,7 +141,7 @@ export const useGameRoom = () => {
 
     _connection.onreconnected(async () => {
       console.warn('[SignalR] 已重新連線')
-      await _rejoinActivePlayer()
+      await _restoreRoomMembership()
     })
 
     _connection.onclose((err) => {
@@ -119,7 +153,8 @@ export const useGameRoom = () => {
 
     // ── Host Events ──
     _connection.on('RoomCreated', (roomCode: string) => {
-      // Host 建立房間後，導向等待室
+      // Host 建立房間後，導向等待室；之後重連需憑此房間代碼 RejoinRoom
+      _activeHostRoom = roomCode
       navigateTo(`/host/room/${roomCode}`)
     })
 
@@ -141,6 +176,10 @@ export const useGameRoom = () => {
 
     _connection.on('PauseStateChanged', (payload: PauseStatePayload) => {
       gameStore.setPauseState(payload)
+    })
+
+    _connection.on('HostConnectionChanged', (payload: HostConnectionPayload) => {
+      gameStore.setHostConnection(payload)
     })
 
     _connection.on('AnswerProgress', (payload: AnswerProgressPayload) => {
@@ -185,7 +224,7 @@ export const useGameRoom = () => {
       await _connection!.start()
       startTokenRefreshLoop()
       // 完整重建連線（非 withAutomaticReconnect）後同樣需要回到房間
-      await _rejoinActivePlayer()
+      await _restoreRoomMembership()
     } catch (e) {
       const isUnauthorized = e instanceof signalR.HttpError && e.statusCode === 401
       if (isUnauthorized && !isRetry) {
@@ -203,6 +242,8 @@ export const useGameRoom = () => {
   const disconnect = async () => {
     _manuallyDisconnected = true
     _activePlayerSession = null
+    _activeHostRoom = null
+    _activeWatchRoom = null
     stopTokenRefreshLoop()
     if (_reconnectTimer) {
       clearTimeout(_reconnectTimer)
@@ -238,6 +279,16 @@ export const useGameRoom = () => {
   const rejoinAsHost = async (roomCode: string) => {
     await connect()
     await _connection!.invoke('RejoinRoom', roomCode)
+    _activeHostRoom = roomCode
+  }
+
+  // ── Bigscreen Actions ──
+
+  /** 大螢幕（匿名旁觀者）加入房間廣播群組；收到的 RoomStateSync 會還原目前階段，失敗（房間不存在/過期）會丟例外 */
+  const watchRoom = async (roomCode: string) => {
+    await connect()
+    await _connection!.invoke('WatchRoom', roomCode)
+    _activeWatchRoom = roomCode
   }
 
   // ── Player Actions ──
@@ -276,6 +327,7 @@ export const useGameRoom = () => {
     skipQuestion,
     pauseGame,
     rejoinAsHost,
+    watchRoom,
     joinRoom,
     rejoinAsPlayer,
     submitAnswer
