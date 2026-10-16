@@ -48,8 +48,10 @@ export const useApi = () => {
 
   const toApiError = (e: unknown) => {
     const fetchError = e as { data?: ApiEnvelope<unknown>, status?: number, message?: string }
+    // 429 可能不是後端 envelope（例如被反向代理直接擋下），此時改用固定的友善訊息而非 "Too Many Requests"。
+    const rateLimitedMessage = fetchError.status === 429 ? '請求過於頻繁，請稍後再試' : undefined
     return new ApiError(
-      fetchError.data?.message ?? fetchError.message ?? '發生未知錯誤',
+      fetchError.data?.message ?? rateLimitedMessage ?? fetchError.message ?? '發生未知錯誤',
       fetchError.data?.code ?? 'UNKNOWN',
       fetchError.status ?? 0
     )
