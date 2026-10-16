@@ -30,40 +30,12 @@
       v-else
       class="flex flex-col gap-3"
     >
-      <div
+      <AdminMembershipTierRow
         v-for="tier in tiers"
         :key="tier.id"
-        class="rounded-2xl bg-white border border-neutral-200 p-4 flex items-center justify-between gap-3"
-      >
-        <div class="min-w-0">
-          <div class="flex items-center gap-2">
-            <p class="text-lg font-bold truncate">
-              {{ tier.name }}
-            </p>
-            <span
-              v-if="tier.isDefault"
-              class="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 border border-primary-200"
-            >
-              {{ t('adminMembershipTiers.defaultBadge') }}
-            </span>
-          </div>
-          <p class="text-base text-neutral-400 mt-0.5">
-            {{ t('adminMembershipTiers.limitsLine', {
-              count: tier.dailyGenerationLimit,
-              tokens: tier.dailyTokenBudget
-            }) }}
-          </p>
-        </div>
-
-        <UButton
-          size="sm"
-          color="neutral"
-          variant="soft"
-          @click="openEditModal(tier)"
-        >
-          {{ t('adminMembershipTiers.editAction') }}
-        </UButton>
-      </div>
+        :tier="tier"
+        @edit="openEditModal(tier)"
+      />
     </div>
 
     <MembershipTierFormModal
@@ -77,6 +49,7 @@
 </template>
 
 <script setup lang="ts">
+import AdminMembershipTierRow from '~/components/admin/AdminMembershipTierRow.vue'
 import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import type { MembershipTierDto } from '~/types/api'
 

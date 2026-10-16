@@ -5,26 +5,13 @@
     </h1>
 
     <!-- Google Login -->
-    <UButton
-      block
-      size="lg"
-      color="neutral"
-      variant="outline"
-      class="font-bold h-12 rounded-2xl"
+    <GoogleAuthButton
+      :label="t('login.googleLogin')"
       :loading="auth.isLoading"
       @click="handleGoogleLogin"
-    >
-      <template #leading>
-        <span class="font-extrabold text-[#4285F4]">G</span>
-      </template>
-      {{ t('login.googleLogin') }}
-    </UButton>
+    />
 
-    <div class="flex items-center gap-3 text-xs text-neutral-400">
-      <hr class="flex-1 border-neutral-200">
-      {{ t('login.orDivider') }}
-      <hr class="flex-1 border-neutral-200">
-    </div>
+    <OrDivider :label="t('login.orDivider')" />
 
     <!-- Email Login -->
     <UForm
@@ -103,6 +90,8 @@
 </template>
 
 <script setup lang="ts">
+import GoogleAuthButton from '~/components/common/GoogleAuthButton.vue'
+import OrDivider from '~/components/common/OrDivider.vue'
 import PasswordInput from '~/components/common/PasswordInput.vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { ApiError } from '~/composables/useApi'
