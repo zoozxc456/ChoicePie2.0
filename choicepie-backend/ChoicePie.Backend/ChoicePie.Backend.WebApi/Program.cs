@@ -1,6 +1,8 @@
 using ChoicePie.Backend.Infrastructure.ExternalServices.Quizzes.Providers;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Hosting.Extensions;
+using ChoicePie.Backend.Shared.Hosting.HealthChecks;
+using ChoicePie.Backend.Shared.Hosting.Monitoring;
 using ChoicePie.Backend.Shared.Hosting.RateLimiting;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Email;
@@ -13,6 +15,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 未設定 Sentry:Dsn 時完全不註冊。
+builder.AddChoicePieSentry();
 
 builder.Services.AddControllers();
 builder.Services.Configure<AdminBootstrapSettings>(
@@ -49,6 +54,9 @@ builder.Services
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Infrastructure.Email.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Hosting.AssemblyReference).Assembly)
     .AddSingleton<DomainExceptionHubFilter>();
+
+builder.Services.AddChoicePieHealthChecks()
+    .AddDbContextCheck<ChoicePieDbContext>("postgres", tags: [HealthCheckExtensions.ReadyTag]);
 
 builder.Services.AddSignalR(options =>
 {
@@ -104,7 +112,10 @@ app.UseForwardedHeaders();
 
 app.UseExceptionHandler();
 
-app.UseHttpsRedirection();
+// 健康檢查探針通常走容器內的純 HTTP，不能被導向 HTTPS。
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments("/health"),
+    branch => branch.UseHttpsRedirection());
 app.UseRouting();
 
 app.UseCors(CorsExtensions.PolicyName);
@@ -116,6 +127,7 @@ app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();
+app.MapChoicePieHealthChecks();
 app.MapHub<GameHub>("/api/gamehub");
 
 app.Run();
