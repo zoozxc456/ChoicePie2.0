@@ -10,4 +10,5 @@ public sealed class CreateRoomCommand : IRequest<CreateRoomResultDto>
     public required Guid QuizId { get; init; }
     public IReadOnlyList<Guid> QuestionIds { get; init; } = [];
     public int TimeLimitSeconds { get; init; } = 20;
+    public string? HostConnectionId { get; init; }
 }

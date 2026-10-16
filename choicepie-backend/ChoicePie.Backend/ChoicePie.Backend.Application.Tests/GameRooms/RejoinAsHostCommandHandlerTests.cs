@@ -1,4 +1,5 @@
-using ChoicePie.Backend.Application.GameRooms.Queries;
+using ChoicePie.Backend.Application.GameRooms;
+using ChoicePie.Backend.Application.GameRooms.Commands;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.ValueObjects;
@@ -7,10 +8,10 @@ using NSubstitute;
 namespace ChoicePie.Backend.Application.Tests.GameRooms;
 
 [TestFixture]
-public class RejoinRoomQueryHandlerTests
+public class RejoinAsHostCommandHandlerTests
 {
     private IGameRoomRepository _gameRoomRepository = null!;
-    private RejoinRoomQueryHandler _sut = null!;
+    private RejoinAsHostCommandHandler _sut = null!;
     private readonly Guid _hostUserId = Guid.NewGuid();
     private static readonly DateTime CreatedAtUtc = new(2026, 7, 11, 12, 0, 0, DateTimeKind.Utc);
 
@@ -20,7 +21,7 @@ public class RejoinRoomQueryHandlerTests
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
         var timeProvider = Substitute.For<TimeProvider>();
         timeProvider.GetUtcNow().Returns(new DateTimeOffset(CreatedAtUtc.AddMinutes(1).AddSeconds(5)));
-        _sut = new RejoinRoomQueryHandler(_gameRoomRepository, timeProvider);
+        _sut = new RejoinAsHostCommandHandler(_gameRoomRepository, new GameRoomLock(), timeProvider);
     }
 
     private Domain.Aggregates.GameRoom.GameRoom CreateRoom(int questionCount = 1)
@@ -39,7 +40,7 @@ public class RejoinRoomQueryHandlerTests
         var room = CreateRoom();
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinAsHostCommand("ABC123", _hostUserId, "host-conn"), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
@@ -59,7 +60,7 @@ public class RejoinRoomQueryHandlerTests
         room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinAsHostCommand("ABC123", _hostUserId, "host-conn"), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
@@ -80,7 +81,7 @@ public class RejoinRoomQueryHandlerTests
         room.EndCurrentQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(5));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinAsHostCommand("ABC123", _hostUserId, "host-conn"), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
@@ -100,7 +101,7 @@ public class RejoinRoomQueryHandlerTests
         room.AdvanceToNextQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(6));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinAsHostCommand("ABC123", _hostUserId, "host-conn"), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
@@ -116,7 +117,7 @@ public class RejoinRoomQueryHandlerTests
         _gameRoomRepository.GetByRoomCodeAsync("ZZZZZZ", Arg.Any<CancellationToken>())
             .Returns((Domain.Aggregates.GameRoom.GameRoom?)null);
 
-        var query = new RejoinRoomQuery("ZZZZZZ", _hostUserId);
+        var query = new RejoinAsHostCommand("ZZZZZZ", _hostUserId, "host-conn");
 
         Assert.ThrowsAsync<RoomNotFoundException>(() => _sut.Handle(query, CancellationToken.None));
     }
@@ -127,7 +128,7 @@ public class RejoinRoomQueryHandlerTests
         var room = CreateRoom();
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var query = new RejoinRoomQuery("ABC123", Guid.NewGuid());
+        var query = new RejoinAsHostCommand("ABC123", Guid.NewGuid(), "host-conn");
 
         Assert.ThrowsAsync<RoomAccessDeniedException>(() => _sut.Handle(query, CancellationToken.None));
     }
@@ -140,7 +141,7 @@ public class RejoinRoomQueryHandlerTests
         room.TogglePause(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(4));
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinAsHostCommand("ABC123", _hostUserId, "host-conn"), CancellationToken.None);
 
         Assert.Multiple(() =>
         {
@@ -158,8 +159,40 @@ public class RejoinRoomQueryHandlerTests
         room.DisconnectPlayer(player.Id, "conn-1");
         _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
 
-        var result = await _sut.Handle(new RejoinRoomQuery("ABC123", _hostUserId), CancellationToken.None);
+        var result = await _sut.Handle(new RejoinAsHostCommand("ABC123", _hostUserId, "host-conn"), CancellationToken.None);
 
         Assert.That(result.Room.Players.Single().IsConnected, Is.False);
+    }
+
+    [Test]
+    public async Task Handle_GivenOfflineHostInPausedQuestion_WhenRejoined_ThenMarksOnlineRecordsConnectionSavesAndStaysPaused()
+    {
+        var room = CreateRoom();
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
+        room.AttachHostConnection(_hostUserId, "old-conn");
+        room.DisconnectHost("old-conn", CreatedAtUtc.AddMinutes(1).AddSeconds(4));
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+
+        var result = await _sut.Handle(new RejoinAsHostCommand("ABC123", _hostUserId, "new-conn"), CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsHostOnline, Is.True);
+            Assert.That(result.IsPaused, Is.True);
+            Assert.That(room.HostConnectionId, Is.EqualTo("new-conn"));
+            Assert.That(room.IsPaused, Is.True);
+        });
+        await _gameRoomRepository.Received(1).SaveAsync(room, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public void Handle_GivenCallerIsNotHost_WhenCalled_ThenDoesNotSave()
+    {
+        var room = CreateRoom();
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+
+        Assert.ThrowsAsync<RoomAccessDeniedException>(() =>
+            _sut.Handle(new RejoinAsHostCommand("ABC123", Guid.NewGuid(), "x"), CancellationToken.None));
+        _gameRoomRepository.DidNotReceive().SaveAsync(Arg.Any<Domain.Aggregates.GameRoom.GameRoom>(), Arg.Any<CancellationToken>());
     }
 }

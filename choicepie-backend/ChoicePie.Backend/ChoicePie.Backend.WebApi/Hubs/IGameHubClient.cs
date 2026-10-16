@@ -15,6 +15,8 @@ public interface IGameHubClient
     Task PlayerReconnected(PlayerDto player);
     /// <summary>Host 切換暫停/繼續；整個房間（Host、玩家、大螢幕）都會收到。</summary>
     Task PauseStateChanged(PauseStateDto payload);
+    /// <summary>Host 連線狀態變化（Connected=false 表示離線）；整個房間都會收到。</summary>
+    Task HostConnectionChanged(HostConnectionStateDto payload);
     Task AnswerProgress(AnswerProgressDto payload);
     Task GameStarted();
     Task QuestionStart(QuestionPayloadDto payload);

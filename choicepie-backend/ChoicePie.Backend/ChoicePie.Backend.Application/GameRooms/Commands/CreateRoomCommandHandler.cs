@@ -31,6 +31,11 @@ public sealed class CreateRoomCommandHandler(
             request.HostUserId, roomCode, quiz.Id, quiz.Title, quiz.Cover.ImageUrl, quiz.Cover.Emoji,
             quiz.Cover.Gradient, questions, request.TimeLimitSeconds, timeProvider.GetUtcNow().UtcDateTime);
 
+        if (request.HostConnectionId is not null)
+        {
+            room.AttachHostConnection(request.HostUserId, request.HostConnectionId);
+        }
+
         await gameRoomRepository.SaveAsync(room, cancellationToken);
 
         return new CreateRoomResultDto(roomCode);

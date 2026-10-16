@@ -84,4 +84,22 @@ public class CreateRoomCommandHandlerTests
 
         Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }
+
+    [Test]
+    public async Task Handle_GivenHostConnectionId_WhenCalled_ThenSavedRoomTracksHostConnectionAsOnline()
+    {
+        _quizRepository.GetByIdAsync(_quizId, Arg.Any<CancellationToken>()).Returns(CreateQuizWithQuestions(1));
+        var command = new CreateRoomCommand
+        {
+            HostUserId = _hostUserId,
+            QuizId = _quizId,
+            HostConnectionId = "host-conn"
+        };
+
+        await _sut.Handle(command, CancellationToken.None);
+
+        await _gameRoomRepository.Received(1).SaveAsync(
+            Arg.Is<Domain.Aggregates.GameRoom.GameRoom>(r => r.HostConnectionId == "host-conn" && r.IsHostOnline),
+            Arg.Any<CancellationToken>());
+    }
 }

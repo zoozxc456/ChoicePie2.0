@@ -1,4 +1,5 @@
 using ChoicePie.Backend.Application.GameRooms.Commands;
+using ChoicePie.Backend.Application.GameRooms.Dtos;
 using ChoicePie.Backend.Application.GameRooms.Queries;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.Enums;
 using ChoicePie.Backend.Shared.Kernel.Auth;
@@ -17,6 +18,7 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
     private const string RoomCodeItemKey = "RoomCode";
     private const string PlayerIdItemKey = "PlayerId";
     private const string IsHostItemKey = "IsHost";
+    private const string IsSpectatorItemKey = "IsSpectator";
 
     [Authorize(Policy = "MemberOnly")]
     public async Task CreateRoom(CreateRoomRequest request)
@@ -28,7 +30,8 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
             HostUserId = hostUserId,
             QuizId = request.QuizId,
             QuestionIds = request.QuestionIds ?? [],
-            TimeLimitSeconds = request.TimeLimit ?? 20
+            TimeLimitSeconds = request.TimeLimit ?? 20,
+            HostConnectionId = Context.ConnectionId
         });
 
         await JoinHostGroupsAsync(result.RoomCode);
@@ -75,10 +78,25 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
     [Authorize(Policy = "MemberOnly")]
     public async Task RejoinRoom(string roomCode)
     {
-        var sync = await mediator.Send(new RejoinRoomQuery(roomCode, GetHostUserId()));
+        var sync = await mediator.Send(new RejoinAsHostCommand(roomCode, GetHostUserId(), Context.ConnectionId));
 
         await JoinHostGroupsAsync(roomCode);
 
+        await Clients.Caller.RoomStateSync(sync);
+        await Clients.Group(RoomGroup(roomCode)).HostConnectionChanged(new HostConnectionStateDto(true));
+    }
+
+    /// <summary>
+    /// 大螢幕（匿名旁觀者）加入房間廣播群組：只進 room 群組，不進 host 群組（收不到 AnswerProgress），
+    /// 不算玩家、不佔 30 人名額，斷線時也不觸發任何玩家/Host 處理。
+    /// </summary>
+    public async Task WatchRoom(string roomCode)
+    {
+        var sync = await mediator.Send(new WatchRoomQuery(roomCode));
+
+        Context.Items[IsSpectatorItemKey] = true;
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, RoomGroup(roomCode));
         await Clients.Caller.RoomStateSync(sync);
     }
 
@@ -134,8 +152,13 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
         }
 
         var isHost = Context.Items.TryGetValue(IsHostItemKey, out var isHostValue) && isHostValue is true;
+        var isSpectator = Context.Items.TryGetValue(IsSpectatorItemKey, out var spectatorValue) && spectatorValue is true;
 
-        if (!isHost &&
+        if (isHost && Context.Items.TryGetValue(RoomCodeItemKey, out var hostRoomValue) && hostRoomValue is string hostRoomCode)
+        {
+            await HandleHostDisconnectedAsync(hostRoomCode);
+        }
+        else if (!isHost && !isSpectator &&
             Context.Items.TryGetValue(RoomCodeItemKey, out var roomCodeValue) && roomCodeValue is string roomCode &&
             Context.Items.TryGetValue(PlayerIdItemKey, out var playerIdValue) && playerIdValue is Guid playerId)
         {
@@ -143,6 +166,30 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
         }
 
         await base.OnDisconnectedAsync(exception);
+    }
+
+    private async Task HandleHostDisconnectedAsync(string roomCode)
+    {
+        try
+        {
+            var result = await mediator.Send(new DisconnectHostCommand(roomCode, Context.ConnectionId));
+
+            if (result.Outcome == HostDisconnectOutcome.Ignored)
+            {
+                return;
+            }
+
+            if (result.Pause is not null)
+            {
+                await Clients.Group(RoomGroup(roomCode)).PauseStateChanged(result.Pause);
+            }
+
+            await Clients.Group(RoomGroup(roomCode)).HostConnectionChanged(new HostConnectionStateDto(false));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "處理 Host 斷線失敗，Room={RoomCode}", roomCode);
+        }
     }
 
     private async Task HandlePlayerDisconnectedAsync(string roomCode, Guid playerId)

@@ -9,7 +9,10 @@ namespace ChoicePie.Backend.Application.GameRooms;
 /// <summary>由 GameRoom 組出 <see cref="RoomStateSyncDto"/>，Host / Player 重連與 JoinRoom 共用。</summary>
 internal static class GameRoomStateFactory
 {
-    public static RoomStateSyncDto Build(GameRoomAggregate room, DateTime utcNow, bool forHost, Player? self = null)
+    public static RoomStateSyncDto Build(GameRoomAggregate room, DateTime utcNow, bool forHost, Player? self = null) =>
+        BuildCore(room, utcNow, forHost, self) with { IsHostOnline = room.IsHostOnline };
+
+    private static RoomStateSyncDto BuildCore(GameRoomAggregate room, DateTime utcNow, bool forHost, Player? self)
     {
         var players = room.Players
             .OrderByDescending(p => p.Score)

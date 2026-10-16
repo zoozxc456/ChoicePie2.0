@@ -17,6 +17,7 @@ public sealed class GameRoom : AggregateRoot<Guid>
 
     private const int MaxPlayers = 30;
     private static readonly TimeSpan PlayableWindow = TimeSpan.FromHours(24);
+    private static readonly TimeSpan ViewableWindow = TimeSpan.FromHours(48);
 
     public Guid HostUserId { get; private set; }
     public string RoomCode { get; private set; } = null!;
@@ -32,6 +33,11 @@ public sealed class GameRoom : AggregateRoot<Guid>
     public DateTime? CurrentQuestionStartedAtUtc { get; private set; }
     public TimeSpan PausedAccumulated { get; private set; } = TimeSpan.Zero;
     public DateTime? PausedAtUtc { get; private set; }
+
+    /// <summary>Host 目前使用中的 SignalR 連線 Id；用來辨識過期（舊分頁）連線的斷線通知。</summary>
+    public string? HostConnectionId { get; private set; }
+
+    public bool IsHostOnline { get; private set; } = true;
 
     public IReadOnlyList<Player> Players => _players.AsReadOnly();
     public IReadOnlyList<GameQuestionSnapshot> Questions => _questions.AsReadOnly();
@@ -207,6 +213,37 @@ public sealed class GameRoom : AggregateRoot<Guid>
 
     public bool IsPaused => PausedAtUtc is not null;
 
+    /// <summary>Host 建立房間或重連：記下目前連線並標記上線。不會自動繼續遊戲，需由 Host 手動按繼續。</summary>
+    public void AttachHostConnection(Guid callerUserId, string connectionId)
+    {
+        EnsureHost(callerUserId);
+
+        HostConnectionId = connectionId;
+        IsHostOnline = true;
+    }
+
+    /// <summary>
+    /// Host 的連線中斷。只有「目前」的 Host 連線才處理（舊分頁的斷線通知忽略）。
+    /// 題目進行中且尚未暫停時，沿用手動暫停的同一套邏輯自動暫停，讓計分排除離線時間。
+    /// </summary>
+    public HostDisconnectOutcome DisconnectHost(string connectionId, DateTime utcNow)
+    {
+        if (!IsHostOnline || HostConnectionId != connectionId)
+        {
+            return HostDisconnectOutcome.Ignored;
+        }
+
+        IsHostOnline = false;
+
+        if (Phase == GamePhase.Question && !IsPaused)
+        {
+            PausedAtUtc = utcNow;
+            return HostDisconnectOutcome.MarkedOfflineAndPaused;
+        }
+
+        return HostDisconnectOutcome.MarkedOffline;
+    }
+
     /// <summary>目前題目的剩餘毫秒數（伺服器計算，暫停期間凍結、排除暫停累計時間）。</summary>
     public long GetRemainingMs(DateTime utcNow)
     {
@@ -255,6 +292,15 @@ public sealed class GameRoom : AggregateRoot<Guid>
         return player;
     }
 
+    /// <summary>旁觀（大螢幕）用：房間過了保存期限（48h，與快取清除時間一致）就不能再看。</summary>
+    public void EnsureViewable(DateTime utcNow)
+    {
+        if (utcNow >= CreatedAtUtc + ViewableWindow)
+        {
+            throw new RoomNotJoinableException(RoomCode);
+        }
+    }
+
     public IReadOnlyList<RankEntrySnapshot> GetRankings() => BuildRankings();
 
     public void EnsureHost(Guid callerUserId)
@@ -297,7 +343,9 @@ public sealed class GameRoom : AggregateRoot<Guid>
             PausedAccumulated,
             PausedAtUtc,
             _questions,
-            _players.Select(p => p.ToMemento()).ToList());
+            _players.Select(p => p.ToMemento()).ToList(),
+            HostConnectionId,
+            IsHostOnline);
 
     public static GameRoom Restore(GameRoomMemento memento)
     {
@@ -317,7 +365,9 @@ public sealed class GameRoom : AggregateRoot<Guid>
             CreatedAtUtc = memento.CreatedAtUtc,
             CurrentQuestionStartedAtUtc = memento.CurrentQuestionStartedAtUtc,
             PausedAccumulated = memento.PausedAccumulated,
-            PausedAtUtc = memento.PausedAtUtc
+            PausedAtUtc = memento.PausedAtUtc,
+            HostConnectionId = memento.HostConnectionId,
+            IsHostOnline = memento.IsHostOnline
         };
 
         room._questions.AddRange(memento.Questions);
@@ -347,4 +397,6 @@ public sealed record GameRoomMemento(
     TimeSpan PausedAccumulated,
     DateTime? PausedAtUtc,
     IReadOnlyList<GameQuestionSnapshot> Questions,
-    IReadOnlyList<PlayerMemento> Players);
+    IReadOnlyList<PlayerMemento> Players,
+    string? HostConnectionId = null,
+    bool IsHostOnline = true);

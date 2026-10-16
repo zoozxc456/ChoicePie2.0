@@ -11,4 +11,5 @@ public sealed record RoomStateSyncDto(
     IReadOnlyList<RankEntryDto>? Rankings,
     bool IsPaused = false,
     long? RemainingMs = null,
-    PlayerSelfDto? Self = null);
+    PlayerSelfDto? Self = null,
+    bool IsHostOnline = true);
