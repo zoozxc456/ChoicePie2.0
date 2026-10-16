@@ -109,6 +109,7 @@
 </template>
 
 <script setup lang="ts">
+import AuthCardLayout from '~/components/common/AuthCardLayout.vue'
 import GoogleAuthButton from '~/components/common/GoogleAuthButton.vue'
 import OrDivider from '~/components/common/OrDivider.vue'
 import PasswordInput from '~/components/common/PasswordInput.vue'

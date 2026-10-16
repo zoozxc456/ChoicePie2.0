@@ -79,7 +79,11 @@ const emit = defineEmits<{ browse: [] }>()
 const { t } = useI18n()
 const favoritesStore = useFavoritesStore()
 
-await useAsyncData('library-favorites', () => favoritesStore.fetchFavorites(), {
+await useAsyncData('library-favorites', async () => {
+  await favoritesStore.fetchFavorites()
+  // 回傳非 undefined，hydration 時 getCachedData 才拿得到 SSR 結果
+  return true
+}, {
   // 切換分頁時重新載入，僅在 hydration 時沿用 SSR 資料
   getCachedData: (k, nuxtApp) => (nuxtApp.isHydrating ? nuxtApp.payload.data[k] : undefined)
 })

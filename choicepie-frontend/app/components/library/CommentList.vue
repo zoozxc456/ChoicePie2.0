@@ -67,6 +67,8 @@
 </template>
 
 <script lang="ts" setup>
+import CommentItem from '~/components/library/CommentItem.vue'
+
 interface Props {
   quizId: string
 }

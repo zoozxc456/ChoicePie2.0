@@ -110,7 +110,11 @@ const { data: fetchedTags } = await useAsyncData('library-tags', () => quizStore
 })
 const tags = computed(() => ['全部', ...(fetchedTags.value ?? [])])
 
-const { pending: isLoading } = await useAsyncData('library-all-quizzes', () => quizStore.fetchQuizzes())
+// handler 必須回傳非 undefined，否則 client hydration 時會重新請求，pending 與 SSR 不一致造成 hydration mismatch
+const { pending: isLoading } = await useAsyncData('library-all-quizzes', async () => {
+  await quizStore.fetchQuizzes()
+  return true
+})
 
 const filteredQuizzes = computed(() => {
   let list = quizStore.quizzes
