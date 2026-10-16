@@ -6,7 +6,7 @@
     >
       <UIcon
         name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-primary-500"
+        class="animate-spin text-4xl text-cp-primary"
       />
     </div>
 
@@ -14,13 +14,14 @@
       v-else-if="!followingStore.creators.length"
       class="text-center py-20"
     >
-      <div class="text-6xl mb-4">
-        👥
-      </div>
-      <p class="font-bold text-base mb-1.5">
+      <UIcon
+        name="i-lucide-users"
+        class="text-5xl mb-4 text-cp-text-muted"
+      />
+      <p class="font-bold text-base mb-1.5 text-cp-text-primary">
         {{ t('library.following.empty') }}
       </p>
-      <p class="text-sm text-neutral-600 mb-6">
+      <p class="text-sm text-cp-text-secondary mb-6">
         {{ t('library.following.emptyDesc') }}
       </p>
       <UButton
@@ -36,7 +37,7 @@
     <template v-else>
       <!-- Followed creators -->
       <section class="mb-10">
-        <h2 class="text-lg font-bold mb-4">
+        <h2 class="text-lg font-bold mb-4 text-cp-text-primary">
           {{ t('library.following.creators') }}
         </h2>
         <div class="flex gap-4 overflow-x-auto pb-2">
@@ -44,15 +45,15 @@
             v-for="creator in followingStore.creators"
             :key="creator.id"
             :to="`/creators/${creator.id}`"
-            class="shrink-0 w-28 flex flex-col items-center gap-2 text-center"
+            class="shrink-0 w-28 flex flex-col items-center gap-2 text-center rounded-xl"
           >
             <CreatorAvatar
               :name="creator.name"
               :avatar="creator.avatar"
               size="lg"
             />
-            <span class="text-sm font-semibold w-full truncate">{{ creator.name }}</span>
-            <span class="text-xs text-neutral-400">
+            <span class="text-sm font-semibold w-full truncate text-cp-text-primary">{{ creator.name }}</span>
+            <span class="text-xs text-cp-text-muted">
               {{ t('libraryDetail.creator.quizCount', { count: creator.quizCount }) }}
             </span>
           </NuxtLink>
@@ -71,12 +72,12 @@
 
       <!-- Feed -->
       <section>
-        <h2 class="text-lg font-bold mb-4">
+        <h2 class="text-lg font-bold mb-4 text-cp-text-primary">
           {{ t('library.following.feed') }}
         </h2>
         <p
           v-if="!followingStore.feed.length"
-          class="text-sm text-neutral-400 py-8 text-center"
+          class="text-sm text-cp-text-muted py-8 text-center"
         >
           {{ t('library.following.feedEmpty') }}
         </p>

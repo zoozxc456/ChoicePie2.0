@@ -6,7 +6,7 @@
     >
       <UIcon
         name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-primary-500"
+        class="animate-spin text-4xl text-cp-primary"
       />
     </div>
 
@@ -14,13 +14,14 @@
       v-else-if="!favoritesStore.quizzes.length"
       class="text-center py-20"
     >
-      <div class="text-6xl mb-4">
-        ♡
-      </div>
-      <p class="font-bold text-base mb-1.5">
+      <UIcon
+        name="i-lucide-heart"
+        class="text-5xl mb-4 text-cp-text-muted"
+      />
+      <p class="font-bold text-base mb-1.5 text-cp-text-primary">
         {{ t('library.favorites.empty') }}
       </p>
-      <p class="text-sm text-neutral-600 mb-6">
+      <p class="text-sm text-cp-text-secondary mb-6">
         {{ t('library.favorites.emptyDesc') }}
       </p>
       <UButton
@@ -36,7 +37,7 @@
     <template v-else>
       <p
         v-if="favoritesStore.removeError"
-        class="text-sm text-error-600 mb-3"
+        class="text-sm text-cp-danger mb-3"
       >
         {{ t('library.favorites.removeError') }}
       </p>
@@ -48,13 +49,17 @@
         >
           <QuizCard :quiz="quiz" />
           <button
-            class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 text-error-500 flex items-center justify-center shadow cursor-pointer disabled:opacity-60"
+            class="absolute top-2 right-2 w-8 h-8 rounded-full bg-cp-surface text-cp-danger flex items-center justify-center shadow-cp-sm cursor-pointer transition-colors hover:bg-cp-danger-bg focus-visible:outline-2 focus-visible:outline-cp-primary disabled:opacity-60"
             :title="t('library.favorites.remove')"
             :aria-label="t('library.favorites.remove')"
             :disabled="favoritesStore.removingId === quiz.id"
             @click="favoritesStore.unfavorite(quiz.id)"
           >
-            ♥
+            <UIcon
+              name="i-lucide-heart"
+              class="fill-current"
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>

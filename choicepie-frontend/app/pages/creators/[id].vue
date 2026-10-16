@@ -4,17 +4,17 @@
       v-if="creatorStore.profile"
       class="mb-10"
     >
-      <div class="bg-white border border-neutral-200 rounded-2xl p-6 flex items-center gap-5 flex-wrap">
+      <div class="bg-cp-surface border border-cp-border rounded-2xl p-6 flex items-center gap-5 flex-wrap">
         <CreatorAvatar
           :name="creatorStore.profile.name"
           :avatar="creatorStore.profile.avatar"
           size="xl"
         />
         <div class="flex-1 min-w-48">
-          <h1 class="text-2xl font-black">
+          <h1 class="text-2xl font-black text-cp-text-primary">
             {{ creatorStore.profile.name }}
           </h1>
-          <p class="text-sm text-neutral-500 mt-1">
+          <p class="text-sm text-cp-text-secondary mt-1">
             {{ t('libraryDetail.creator.quizCount', { count: creatorStore.profile.quizCount }) }} ·
             {{ t('libraryDetail.creator.challengeCount', { count: creatorStore.profile.challengeCount }) }}
           </p>
@@ -22,7 +22,7 @@
         <NuxtLink
           v-if="!auth.isLoggedIn"
           :to="`/login?redirect=${encodeURIComponent(route.fullPath)}`"
-          class="h-9 px-5 rounded-full text-sm font-semibold bg-primary-500 text-white flex items-center whitespace-nowrap"
+          class="h-9 px-5 rounded-full text-sm font-semibold bg-cp-primary text-white flex items-center whitespace-nowrap"
         >
           {{ t('creatorPage.followToLogin') }}
         </NuxtLink>
@@ -30,8 +30,8 @@
           v-else-if="!isSelf"
           class="h-9 px-5 rounded-full text-sm font-semibold border whitespace-nowrap cursor-pointer disabled:opacity-60"
           :class="creatorStore.profile.isFollowing
-            ? 'border-neutral-200 bg-white'
-            : 'border-transparent bg-primary-500 text-white'"
+            ? 'border-cp-border bg-cp-surface text-cp-text-primary'
+            : 'border-transparent bg-cp-primary text-white'"
           :disabled="creatorStore.isTogglingFollow"
           @click="handleToggleFollow"
         >
@@ -41,20 +41,20 @@
     </div>
 
     <section v-if="creatorStore.profile">
-      <h2 class="text-lg font-bold mb-4">
+      <h2 class="text-lg font-bold mb-4 text-cp-text-primary">
         {{ t('creatorPage.quizzes') }}
       </h2>
 
       <p
         v-if="creatorStore.quizzesHasError"
-        class="text-sm text-error-600 mb-3"
+        class="text-sm text-cp-danger mb-3"
       >
         {{ t('creatorPage.loadError') }}
       </p>
 
       <p
         v-if="!creatorStore.quizzes.length && !creatorStore.isLoadingQuizzes"
-        class="text-sm text-neutral-400 py-12 text-center"
+        class="text-sm text-cp-text-muted py-12 text-center"
       >
         {{ t('creatorPage.noQuizzes') }}
       </p>

@@ -8,7 +8,7 @@
   >
   <div
     v-else
-    class="rounded-full flex items-center justify-center font-bold text-white bg-secondary-800 shrink-0"
+    class="rounded-full flex items-center justify-center font-bold text-white bg-cp-secondary shrink-0"
     :class="sizeClass"
   >
     {{ name.charAt(0) }}
