@@ -14,13 +14,14 @@ solo-attempt quizzes). Backend is a separate .NET project at `../choicepie-backe
 - **@nuxt/ui** for components (`UButton`, `UIcon`, etc.), Tailwind CSS v4
 - **Pinia** (setup-store syntax only — `defineStore(name, () => {...})`, not options API)
 - **@microsoft/signalr** for the real-time game hub (no socket.io)
+- **@sentry/nuxt** error monitoring (DSN-gated, see Environment)
 - **@nuxtjs/i18n** — default locale `zh-TW`, `strategy: 'no_prefix'`
 - **pnpm** package manager (`pnpm-lock.yaml`)
 - **Vitest** (`@nuxt/test-utils`) — unit tests under `tests/nuxt/unit/**/*.spec.ts`, see Commands
 
 ## Commands
 
-`pnpm lint`, `pnpm typecheck` and `pnpm test` are the same checks CI runs. For quick iteration use these directly:
+`pnpm lint`, `pnpm typecheck` and `pnpm test` are the same checks CI runs (`.github/workflows/frontend-ci.yml`). For quick iteration use these directly:
 
 ```bash
 npx eslint <files>          # lint specific files (fast, preferred over linting the whole repo)
@@ -36,17 +37,27 @@ npx vitest run              # run unit tests (tests/nuxt/unit/**/*.spec.ts)
 
 - `pages/` — file-based routing (see Routing below)
 - `components/` — feature-scoped subfolders, not flat: `gameRoom/` (+ `gameRoom/host/`,
-  `gameRoom/result/`), `library/`, `home/`, `host/`, `attempt/`, `common/`
-- `stores/` — 6 Pinia stores: `auth.ts`, `game.ts`, `gameSession.ts`, `quiz.ts`, `quizAttempt.ts`,
-  `creator.ts`
-- `composables/` — only `useApi.ts` (REST) and `useGameRoom.ts` (SignalR)
+  `gameRoom/result/`), `library/`, `home/`, `host/`, `attempt/`, `admin/`, `settings/`, `creator/`,
+  `common/`
+- `stores/` — 15 Pinia stores: `auth`, `account`, `game`, `gameSession`, `quiz`, `quizAttempt`,
+  `creator`, `favorites`, `following`, plus admin-side `adminAuth`, `adminDashboard`, `adminMember`,
+  `adminMembershipTier`, `adminQuiz`, `adminQuizReport`
+- `composables/` — `useApi.ts` (REST), `useGameRoom.ts` (SignalR), `useGoogleIdentity.ts` (Google
+  Identity Services ID-token flow), `usePlayerSession.ts` (localStorage reconnect credential per room)
 - `services/{domain}/client.ts` — typed API-client layer between stores and `useApi()`
-  (e.g. `services/quiz/client.ts`). Non-standard Nuxt convention but consistently used.
+  (e.g. `services/quiz/client.ts`; domains: `account`, `creator`, `gameSession`, `quiz`,
+  `quizAttempt`, `admin/*`; `services/auth.ts` is the flat auth client). Non-standard Nuxt
+  convention but consistently used.
 - `types/` — `api.ts` (backend DTOs, `ApiEnvelope<T>`), `gameRoom.ts`, `other.ts` (SignalR
-  payload types), `quiz.ts`, `user.ts`, `auth.ts`
-- `middleware/auth.ts`, `plugins/auth.client.ts`
+  payload types), `quiz.ts`, `user.ts`, `auth.ts`, `account.ts`, `adminAuth.ts`, `adminUser.ts`
+- `utils/` — `safeRedirect.ts` (`sanitizeRedirect`, same-site paths only), `absoluteUrl.ts`,
+  `apiErrorMessage.ts`, `createPagedList.ts` (paged-list state helper used by list stores)
+- `layouts/` — `default`, `content`, `admin`, `bigScreen`
+- `middleware/auth.ts` (member), `middleware/admin-auth.ts`, `plugins/auth.client.ts`
 - `assets/css/design-tokens.css`, `assets/css/main.css`
 - `app.config.ts` — Nuxt UI theme wiring to `cp-*` semantic colors
+
+`server/` (Nitro, repo root of the frontend, not under `app/`) is the BFF — see API section.
 
 `i18n/locales/{zh-TW,en}.json` lives at the **repo root**, not under `app/` (Nuxt i18n module
 convention). Keys are namespaced roughly one-per-page/feature (`room`, `host`, `library`, etc).
@@ -54,32 +65,60 @@ convention). Keys are namespaced roughly one-per-page/feature (`room`, `host`, `
 ## Routing
 
 Key flows: `join/index.vue` → `join/[code].vue` (player joins by code), `host/room/[code].vue`
-(host's live room, `middleware: ['auth']`), `bigscreen/[code].vue` (projector view),
-`library/*` (browse/create/edit quizzes, `mine/` = user's own), `attempt/[id].vue` (solo
-quiz attempt — separate scoring system from the multiplayer SignalR ranking, do not conflate).
-Two auth entry points exist: `login.vue` and `sign-in/index.vue` — check both before assuming
-one is the canonical entry point when touching auth pages.
+(host's live room, `middleware: ['auth']`), `bigscreen/[code].vue` (projector view, spectator only),
+`library/*` (`index` has tabs all / mine / favorites / following; `[id]` quiz detail is public;
+`new/{index,manual,ai}` and `mine/[id]/edit` need auth), `creators/[id].vue` (creator profile +
+their quizzes, follow toggle), `attempt/[id].vue` (solo quiz attempt — separate scoring system from
+the multiplayer SignalR ranking, do not conflate), `history/*` (hosted/played sessions),
+`settings.vue` (profile, avatar, password, Google link/unlink, delete account; `auth` middleware),
+`forgot-password` / `reset-password` / `verify-email`, and `admin/*` (`login`, dashboard, `members`,
+`quizzes`, `quiz-reports`, `membership-tiers`; layout `admin`, `middleware: ['admin-auth']`).
+Two member auth entry points exist: `login.vue` and `sign-in/index.vue` — check both before assuming
+one is the canonical entry point when touching auth pages. Post-login `redirect` query values must go
+through `sanitizeRedirect`.
 
 ## API / backend integration
 
-**REST** — `useApi()` (`app/composables/useApi.ts`): raw `$fetch` wrapper, `credentials:
-'include'` (cookie-based auth), unwraps `ApiEnvelope<T>` so callers get `T` directly, handles
-401 by deduping a single in-flight refresh + retry via `useAuthStore().fetchMe()`. Store code
-should go through `app/services/{domain}/client.ts` wrappers, not call `useApi()` directly.
+**REST** — goes through the **Nuxt server BFF**, not directly to the backend. `useApi()`
+(`app/composables/useApi.ts`) calls same-origin `/api/v1/**` with `useRequestFetch()` (so SSR
+forwards the incoming cookies), unwraps `ApiEnvelope<T>` so callers get `T` directly, maps 429 to a
+friendly message, and on 401 dedupes a single in-flight refresh (`useAuthStore().fetchMe()` for
+members, `useAdminAuthStore().fetchMe()` for `/api/v1/admin/*`) and retries once, passing the fresh
+token via the `x-fresh-access-token` header. Store code should go through
+`app/services/{domain}/client.ts` wrappers, not call `useApi()` directly.
 
-Requests go **directly cross-origin** to `runtimeConfig.public.apiBaseUrl`
-(`NUXT_PUBLIC_API_BASE_URL` env var). The comment in `.env.example` about a `nitro.devProxy` is
-stale — no such proxy exists in `nuxt.config.ts`.
+BFF (`server/`): `server/api/v1/[...path].ts` is a catch-all proxy that reads the httpOnly session
+cookie and forwards it to the .NET backend as `Authorization: Bearer` (admin paths use the admin
+cookies). Explicit routes handle auth (`auth/{login,register,google,refresh,logout}`,
+`admin/auth/{login,refresh,logout}`, which set/rotate/clear the session cookies), `account/{avatar,
+password,delete}` and `uploads/quiz-covers`. Helpers: `server/utils/backendFetch.ts` (calls
+`runtimeConfig.backendApiUrl`, forwards the real client IP as `X-Forwarded-For`, logs redacted
+request/response only in dev or when `debugBackendFetch` is on), `session.ts` (`cp_access_token` /
+`cp_refresh_token` and `cp_admin_*` cookies), `refreshDedupe.ts`. Add new REST endpoints that need
+a body/cookie handling beyond plain proxying as explicit routes; plain ones are covered by the
+catch-all.
 
 **WebSocket (game)** — `useGameRoom()` (`app/composables/useGameRoom.ts`) wraps a SignalR
-`HubConnection` to `${apiBaseUrl}/api/gamehub`. Server→client events (`RoomCreated`,
-`PlayerJoined`, `QuestionStart`, `AnswerResult`, `GameEnd`, `RoomStateSync`, etc.) are routed
-into `useGameStore()` mutators; client→server calls include `CreateRoom`, `StartGame`,
-`SkipQuestion`, `SubmitAnswer`.
+`HubConnection` to `${apiBaseUrl}/api/gamehub` — SignalR still connects **directly** to the
+backend (browser WebSocket, `withCredentials`, authenticated by the backend's own auth cookie,
+which the BFF forwards from auth responses via `forwardSetCookie`); `NUXT_PUBLIC_API_BASE_URL` is
+only used for this. Server→client events (`RoomCreated`, `PlayerJoined`, `PlayerDisconnected`,
+`PlayerReconnected`, `PauseStateChanged`, `HostConnectionChanged`, `QuestionStart`, `AnswerResult`,
+`GameEnd`, `RoomStateSync`, etc.) are routed into `useGameStore()` mutators; client→server calls
+include `CreateRoom`, `StartGame`, `SkipQuestion`, `PauseGame`, `RejoinRoom` (host),
+`WatchRoom` (bigscreen), `JoinRoom`, `RejoinAsPlayer`, `SubmitAnswer`. After an automatic
+reconnect, `useGameRoom` restores membership by role (player → `RejoinAsPlayer` with the saved
+reconnect token, host → `RejoinRoom`, bigscreen → `WatchRoom`).
 
-Before assuming a backend feature is wired to UI, check `docs/unconnected-apis.md` (endpoints
-implemented but not yet used by any page — quiz management actions, the entire solo
-quiz-attempt flow) and `docs/todo.md` (mock-data removal tracking).
+Before assuming a backend feature is wired to UI, check `docs/unconnected-apis.md` (backend
+endpoints with no frontend caller — currently none) and `docs/todo.md` (feature history and open
+items).
+
+**Environment** (`.env.example`): `NUXT_PUBLIC_API_BASE_URL` (SignalR only), `NUXT_BACKEND_API_URL`
+(BFF → backend), `NUXT_PUBLIC_GOOGLE_CLIENT_ID`, `NUXT_PUBLIC_SENTRY_DSN` (empty = Sentry fully
+disabled; `sentry.client.config.ts` / `sentry.server.config.ts`), `NUXT_TRUST_PROXY_HEADERS` (only
+when Nuxt sits behind a trusted load balancer), `NUXT_DEBUG_BACKEND_FETCH`. Source-map upload is
+disabled in `nuxt.config.ts`.
 
 ## State management
 
@@ -88,11 +127,19 @@ object) — follow this pattern for new stores, not the options API.
 
 - `game.ts` — real-time multiplayer state; phase machine `idle → waiting → question → result →
   ended`; **the backend does not auto-advance phases** — the host client drives
-  `skipQuestion()` via timers/watchers (see `host/room/[code].vue`). Not persisted.
-- `auth.ts`, `quiz.ts` — persisted via `pinia-plugin-persistedstate` (selective `pick`, not the
-  whole store)
-- `creator.ts` — creator profile page state (profile data + follow/unfollow toggle). Not
-  persisted.
+  `skipQuestion()` via timers/watchers (see `host/room/[code].vue`). Also tracks `isPaused`
+  (`PauseStateChanged` / `RoomStateSync`; the timer is frozen from `remainingMs`), `isHostOnline`
+  (`HostConnectionChanged`, drives `HostOfflineBanner`), and per-player `isConnected`
+  (`PlayerDisconnected` / `PlayerReconnected`). `setRoomState()` applies a full `RoomStateSync`
+  snapshot after (re)join. Not persisted. Player reconnect credentials live in
+  `usePlayerSession()` (localStorage), not in the store.
+- `auth.ts` — persisted (`user` only, via cookie storage so SSR sees it); `quiz.ts` — persisted
+  (`aiUsedDate`/`aiUsedCount` only); `adminAuth.ts` — persisted (`adminUser` only). All via
+  `pinia-plugin-persistedstate` with selective `pick`, not the whole store.
+- `account.ts` (`/settings` actions), `favorites.ts` / `following.ts` (library tabs, built on
+  `createPagedList`), `creator.ts` (creator profile page: profile + quizzes + follow/unfollow
+  toggle), `gameSession.ts` (hosted/played history), `quizAttempt.ts` (solo attempts), `admin*.ts`
+  (admin pages). None of these are persisted.
 - Ranking data: the backend sends an explicit `rank` field per player
   (`GameRoom.cs: BuildRankings()`). **Always render/derive rank from `entry.rank`, never from
   `v-for` array index** — array order and rank can diverge under tied scores. This has caused

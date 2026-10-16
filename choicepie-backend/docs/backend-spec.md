@@ -449,10 +449,10 @@ interface ApiResponse<T> {
 
 整理過程中發現幾個前端尚未定案、建議在後端開發前先與前端/PM 對齊的問題：
 
-1. **Auth token 儲存方式**：登入回應含 `token`，但前端目前沒有存放或使用它（見 3.1 附註）。需確認是 Bearer token 還是 cookie-based session。
-2. **AI 出題每日額度**：目前完全靠前端 localStorage 計數，容易被繞過，正式上線前必須改成伺服器端強制限流（依登入使用者 ID + UTC 或當地日期）。
-3. **Player 歷史紀錄的身分識別**：Player 不需帳號即可遊玩，但 `/history` 的 Player 分頁預期能看到「我玩過的場次」——需要決定用什麼機制跨裝置/跨 session 識別同一位匿名玩家（例如：允許但非強制登入、或用長效 cookie/device id）。
-4. **收藏 / 追蹤 / 留言目前無持久化**：UI 已經存在（`library/[id].vue`），但都是純前端 local state，重新整理就消失，需要後端補上對應資料表與 API（3.6、3.7）。
-5. **Tag 清單目前寫死在前端**：`全部/Kubernetes/React/AWS/SQL/TypeScript/Go/System Design` 是寫死陣列，建議改為後端動態提供（依實際題庫使用到的 tag 聚合）。
-6. **`ApiResponse<T>` 包裝格式是否要全站採用**：型別已定義但目前實際呼叫並未使用，需要跟前端確認最終格式。
-7. **房間 24h/48h 生命週期與 30 人上限**：這些規則目前只寫在行銷頁 FAQ 文案裡，並非強制邏輯，需要後端排程/驗證機制真正落實。
+1. **Auth token 儲存方式**：（已解決）後端以 HttpOnly cookie 簽發 access/refresh token，並同時接受 `Authorization: Bearer` header；前端經 Nuxt server BFF 將 token 存於 `cp_*` session cookie，呼叫後端時改以 Bearer header 轉發。
+2. **AI 出題每日額度**：（已解決）後端 `GenerateQuizQuestionsCommandHandler` 依會員等級（`MembershipTier`）與 `AiUsageLog` 的當日用量於伺服器端強制額度，超過丟 `AiGenerationQuotaExceededException`；前端 localStorage 計數僅作顯示用。
+3. **Player 歷史紀錄的身分識別**：Player 不需帳號即可遊玩，但 `/history` 的 Player 分頁預期能看到「我玩過的場次」——需要決定用什麼機制跨裝置/跨 session 識別同一位匿名玩家（例如：允許但非強制登入、或用長效 cookie/device id）。（部分解決：已登入會員加入房間時會記錄 `MemberId`，可由 `GET /api/v1/game-sessions/played` 查詢；匿名玩家仍無跨裝置識別機制。）
+4. **收藏 / 追蹤 / 留言目前無持久化**：（已解決）後端已有 `QuizFavorite`、`CreatorFollow`、`Comment` aggregate 與對應 API，前端已接上。
+5. **Tag 清單目前寫死在前端**：（已解決）改由 `GET /api/v1/quizzes/tags` 動態提供，前端 `AllQuizzesTab.vue` 呼叫此 API。
+6. **`ApiResponse<T>` 包裝格式是否要全站採用**：（已解決）後端所有 REST 回應皆採 `ApiResponse<T>` 信封，前端 `useApi()` 統一解開。
+7. **房間 24h/48h 生命週期與 30 人上限**：（已解決）`GameRoom` 內建 30 人上限（`MaxPlayers`）與 24 小時可遊玩視窗（`PlayableWindow`），房間狀態在 Redis 快取的 TTL 為 48 小時。
