@@ -764,7 +764,7 @@
         "switchToManual": "Switch to manual"
       },
       "contentPlaceholder": "Paste text, presentation notes, or a URL...",
-      "urlHint": "We will read the text of this public web page (no login required; some sites may not be readable)",
+      "urlHint": "We will read the text of this public web page (no login required; pages that only render with JavaScript are not supported — paste the text instead if it cannot be read)",
       "charCount": "{count} / 5000 chars",
       "minCharsHint": "Please enter at least 30 characters",
       "questionCountLabel": "Questions",
