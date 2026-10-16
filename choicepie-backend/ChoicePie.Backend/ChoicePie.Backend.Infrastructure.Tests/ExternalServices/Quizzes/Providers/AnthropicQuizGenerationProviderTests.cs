@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using ChoicePie.Backend.Infrastructure.ExternalServices.Quizzes.Providers;
@@ -87,6 +88,39 @@ public class AnthropicQuizGenerationProviderTests
             Assert.That(root.GetProperty("tools")[0].GetProperty("name").GetString(), Is.EqualTo("submit_quiz_questions"));
             Assert.That(root.GetProperty("messages")[0].GetProperty("content").GetString(), Does.Contain("some content"));
         });
+    }
+
+    [Test]
+    public async Task GenerateAsync_GivenWebPageSource_WhenCalled_ThenPromptStatesContentIsWebPageTextWithUrlAndTitle()
+    {
+        var sut = CreateSut(_ => SuccessResponse(questionCount: 3), out var handler);
+
+        await sut.GenerateAsync("page text", 3, Difficulty.Beginner, CancellationToken.None,
+            new WebPageSource(new Uri("https://example.com/post"), "範例標題"));
+
+        using var payload = JsonDocument.Parse(handler.LastRequestBody!);
+        var root = payload.RootElement;
+        var userMessage = root.GetProperty("messages")[0].GetProperty("content").GetString();
+        var system = root.GetProperty("system").GetString();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(userMessage, Does.Contain("網頁").And.Contain("https://example.com/post").And.Contain("範例標題").And.Contain("page text"));
+            Assert.That(system, Does.Contain("僅根據提供的內容出題"));
+        });
+    }
+
+    [Test]
+    public async Task GenerateAsync_GivenNoWebPageSource_WhenCalled_ThenPromptDoesNotMentionWebPage()
+    {
+        var sut = CreateSut(_ => SuccessResponse(questionCount: 3), out var handler);
+
+        await sut.GenerateAsync("plain text", 3, Difficulty.Beginner, CancellationToken.None);
+
+        using var payload = JsonDocument.Parse(handler.LastRequestBody!);
+        var userMessage = payload.RootElement.GetProperty("messages")[0].GetProperty("content").GetString();
+
+        Assert.That(userMessage, Does.Not.Contain("網頁"));
     }
 
     [Test]

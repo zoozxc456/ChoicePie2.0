@@ -1,4 +1,6 @@
+using ChoicePie.Backend.Application.Quizzes.Contracts;
 using ChoicePie.Backend.Infrastructure.ExternalServices.Quizzes.Providers;
+using ChoicePie.Backend.Infrastructure.ExternalServices.WebPages;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Hosting.Extensions;
 using ChoicePie.Backend.Shared.Hosting.HealthChecks;
@@ -46,6 +48,10 @@ builder.Services
     .AddSharedDbContextPool<ChoicePieDbContext>(builder.Configuration)
     .AddSharedPersistence<ChoicePieDbContext>()
     .AddHttpClient<AnthropicQuizGenerationProvider>()
+    .Services
+    // 刻意不實作 DI marker interface：Scrutor 的掃描註冊會蓋掉 typed client，導致 SSRF handler 被繞過。
+    .AddHttpClient<IWebPageContentFetcher, WebPageContentFetcher>()
+    .ConfigurePrimaryHttpMessageHandler(() => SsrfSafeConnector.CreateHandler())
     .Services
     .AddDomain(typeof(ChoicePie.Backend.Domain.AssemblyReference).Assembly)
     .AddApplication(typeof(ChoicePie.Backend.Application.AssemblyReference).Assembly)

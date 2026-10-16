@@ -28,7 +28,8 @@ public sealed class QuizGenerationService : IQuizGenerationService, IScopedDepen
     }
 
     public async Task<GeneratedQuestionsResult> GenerateAsync(
-        string content, int questionCount, Difficulty difficulty, CancellationToken cancellationToken)
+        string content, int questionCount, Difficulty difficulty, CancellationToken cancellationToken,
+        WebPageSource? source = null)
     {
         if (!providersByName.TryGetValue(settings.Provider, out var provider))
         {
@@ -37,7 +38,7 @@ public sealed class QuizGenerationService : IQuizGenerationService, IScopedDepen
 
         try
         {
-            return await CallWithTimeoutAsync(provider, content, questionCount, difficulty, cancellationToken);
+            return await CallWithTimeoutAsync(provider, content, questionCount, difficulty, source, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -46,7 +47,7 @@ public sealed class QuizGenerationService : IQuizGenerationService, IScopedDepen
 
         try
         {
-            return await CallWithTimeoutAsync(provider, content, questionCount, difficulty, cancellationToken);
+            return await CallWithTimeoutAsync(provider, content, questionCount, difficulty, source, cancellationToken);
         }
         catch (QuizGenerationFailedException)
         {
@@ -60,14 +61,14 @@ public sealed class QuizGenerationService : IQuizGenerationService, IScopedDepen
 
     private static async Task<GeneratedQuestionsResult> CallWithTimeoutAsync(
         IQuizGenerationProvider provider, string content, int questionCount, Difficulty difficulty,
-        CancellationToken cancellationToken)
+        WebPageSource? source, CancellationToken cancellationToken)
     {
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(CallTimeout);
 
         try
         {
-            return await provider.GenerateAsync(content, questionCount, difficulty, timeoutCts.Token);
+            return await provider.GenerateAsync(content, questionCount, difficulty, timeoutCts.Token, source);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {

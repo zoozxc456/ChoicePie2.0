@@ -24,6 +24,7 @@ public sealed class GenerateQuizQuestionsCommandHandler(
     IAiUsageLogQueryService aiUsageLogQueryService,
     ICurrentUserService currentUserService,
     IQuizGenerationService generationService,
+    IWebPageContentFetcher webPageContentFetcher,
     IOptions<AiQuizGenerationSettings> aiSettings,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
@@ -68,8 +69,11 @@ public sealed class GenerateQuizQuestionsCommandHandler(
             }
         }
 
+        // 先抓取網頁，失敗就直接丟出例外：此時尚未記錄任何用量，不會消耗額度。
+        var (content, source) = await ResolveContentAsync(request.Content, cancellationToken);
+
         var result = await generationService.GenerateAsync(
-            request.Content, request.QuestionCount, difficulty, cancellationToken);
+            content, request.QuestionCount, difficulty, cancellationToken, source);
 
         member.RecordAiGeneration(now);
         await memberRepository.UpdateAsync(member, cancellationToken);
@@ -84,5 +88,33 @@ public sealed class GenerateQuizQuestionsCommandHandler(
             .ToList();
 
         return new GenerateQuestionsResultDto(questions, result.TokensUsed);
+    }
+
+    /// <summary>
+    /// 輸入為單一 http/https 網址時抓取網頁文字（截斷至上限並重新檢查最小長度）；純文字原樣使用。
+    /// </summary>
+    private async Task<(string Content, WebPageSource? Source)> ResolveContentAsync(
+        string input, CancellationToken cancellationToken)
+    {
+        var url = QuizContentInput.ParseUrlOrNull(input);
+        if (url is null)
+        {
+            return (input, null);
+        }
+
+        var page = await webPageContentFetcher.FetchAsync(url, cancellationToken);
+
+        var text = page.Text.Trim();
+        if (text.Length > QuizContentInput.MaxContentLength)
+        {
+            text = text[..QuizContentInput.MaxContentLength];
+        }
+
+        if (text.Length < QuizContentInput.MinContentLength)
+        {
+            throw new WebPageContentInsufficientException(text.Length);
+        }
+
+        return (text, new WebPageSource(page.Url, page.Title));
     }
 }

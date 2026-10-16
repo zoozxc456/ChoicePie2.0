@@ -8,5 +8,6 @@ public interface IQuizGenerationProvider
     string ProviderName { get; }
 
     Task<GeneratedQuestionsResult> GenerateAsync(
-        string content, int questionCount, Difficulty difficulty, CancellationToken cancellationToken);
+        string content, int questionCount, Difficulty difficulty, CancellationToken cancellationToken,
+        WebPageSource? source = null);
 }
