@@ -10,7 +10,7 @@ public enum WebPageUrlCheck
     /// <summary>不是絕對的 http/https 網址。</summary>
     Unsupported,
 
-    /// <summary>帶有帳密、非預設連接埠、或主機為內網 / 本機位址等不允許存取的目標。</summary>
+    /// <summary>帶有帳密、不在允許清單的連接埠（僅 80 / 443 / 8080 / 8443）、或主機為內網 / 本機位址等不允許存取的目標。</summary>
     Denied
 }
 
@@ -26,7 +26,7 @@ public static class WebPageUrlGuard
         if (string.IsNullOrWhiteSpace(url.Host)) return WebPageUrlCheck.Unsupported;
 
         if (!string.IsNullOrEmpty(url.UserInfo)) return WebPageUrlCheck.Denied;
-        if (!url.IsDefaultPort) return WebPageUrlCheck.Denied;
+        if (!IsAllowedPort(url)) return WebPageUrlCheck.Denied;
 
         var host = url.Host.TrimEnd('.');
         if (host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
@@ -42,6 +42,9 @@ public static class WebPageUrlGuard
 
         return WebPageUrlCheck.Allowed;
     }
+
+    /// <summary>預設連接埠（80 / 443）以及常見的 8080 / 8443；真正的 SSRF 防線仍是 IP 位址檢查。</summary>
+    private static bool IsAllowedPort(Uri url) => url.IsDefaultPort || url.Port is 8080 or 8443;
 
     public static bool IsAllowedAddress(IPAddress address)
     {

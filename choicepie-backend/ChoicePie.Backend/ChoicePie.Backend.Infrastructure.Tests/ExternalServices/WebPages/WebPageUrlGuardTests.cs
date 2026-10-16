@@ -39,12 +39,35 @@ public class WebPageUrlGuardTests
 
     [TestCase("https://user:pass@example.com/")]
     [TestCase("https://user@example.com/")]
-    [TestCase("http://example.com:8080/")]
-    [TestCase("https://example.com:8443/")]
     [TestCase("http://example.com:22/")]
+    [TestCase("http://example.com:8000/")]
+    [TestCase("https://example.com:8081/")]
+    [TestCase("http://example.com:3000/")]
+    [TestCase("http://example.com:65535/")]
     [TestCase("http://example.com:443/")]
     [TestCase("https://example.com:80/")]
     public void CheckUrl_GivenUserInfoOrNonDefaultPort_WhenChecked_ThenDenied(string url)
+    {
+        Assert.That(WebPageUrlGuard.CheckUrl(new Uri(url)), Is.EqualTo(WebPageUrlCheck.Denied));
+    }
+
+    [TestCase("http://example.com/")]
+    [TestCase("https://example.com/")]
+    [TestCase("http://example.com:80/")]
+    [TestCase("https://example.com:443/")]
+    [TestCase("http://example.com:8080/")]
+    [TestCase("https://example.com:8080/")]
+    [TestCase("http://example.com:8443/")]
+    [TestCase("https://example.com:8443/")]
+    public void CheckUrl_GivenAllowedPorts_WhenChecked_ThenAllowed(string url)
+    {
+        Assert.That(WebPageUrlGuard.CheckUrl(new Uri(url)), Is.EqualTo(WebPageUrlCheck.Allowed));
+    }
+
+    [TestCase("http://127.0.0.1:8080/")]
+    [TestCase("https://10.0.0.1:8443/")]
+    [TestCase("http://localhost:8080/")]
+    public void CheckUrl_GivenAllowedPortButInternalHost_WhenChecked_ThenStillDenied(string url)
     {
         Assert.That(WebPageUrlGuard.CheckUrl(new Uri(url)), Is.EqualTo(WebPageUrlCheck.Denied));
     }
