@@ -96,7 +96,11 @@ const quizStore = useQuizStore()
 const pendingId = ref<string | null>(null)
 const confirmDeleteId = ref<string | null>(null)
 
-const { pending: isLoading } = await useAsyncData('library-mine-quizzes', () => quizStore.fetchQuizzes({ mine: true }))
+// handler 必須回傳非 undefined，否則 client hydration 時會重新請求（見 AllQuizzesTab）
+const { pending: isLoading } = await useAsyncData('library-mine-quizzes', async () => {
+  await quizStore.fetchQuizzes({ mine: true })
+  return true
+})
 
 const handlePublish = async (id: string) => {
   pendingId.value = id

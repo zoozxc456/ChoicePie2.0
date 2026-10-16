@@ -1,11 +1,15 @@
 <template>
   <div class="min-h-screen bg-cp-bg">
     <ChoicePieHeader />
-    <EmailVerificationBanner class="fixed top-16 inset-x-0 z-40" />
 
-    <main class="pt-16">
-      <slot />
-    </main>
+    <div class="pt-16">
+      <!-- 放在一般流內並 sticky，避免 fixed 時蓋住頁面頂端內容 -->
+      <EmailVerificationBanner class="sticky top-16 z-40" />
+
+      <main>
+        <slot />
+      </main>
+    </div>
   </div>
 </template>
 
