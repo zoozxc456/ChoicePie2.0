@@ -383,4 +383,225 @@ public class GameRoomTests
             Assert.That(restored.Players[0].Answers, Is.EqualTo(player.Answers));
         });
     }
+
+    // ---- 暫停 ----
+
+    private static (Domain.Aggregates.GameRoom.GameRoom Room, Domain.Aggregates.GameRoom.Entities.Player Player, DateTime StartedAt) StartedRoomWithPlayer()
+    {
+        var room = CreateRoom();
+        var startedAt = CreatedAtUtc.AddMinutes(1);
+        var player = room.Join("小明", "connection-1", CreatedAtUtc.AddSeconds(30));
+        room.StartGame(HostUserId, startedAt);
+        return (room, player, startedAt);
+    }
+
+    [Test]
+    public void SubmitAnswer_GivenRoomIsPaused_WhenCalled_ThenThrowsGamePausedException()
+    {
+        var (room, player, startedAt) = StartedRoomWithPlayer();
+        room.TogglePause(HostUserId, startedAt.AddSeconds(2));
+
+        Assert.Throws<GamePausedException>(() => room.SubmitAnswer(player.Id, 1, startedAt.AddSeconds(3)));
+    }
+
+    [Test]
+    public void GetRemainingMs_GivenRunningQuestion_WhenCalled_ThenReturnsTimeLimitMinusElapsed()
+    {
+        var (room, _, startedAt) = StartedRoomWithPlayer();
+
+        Assert.That(room.GetRemainingMs(startedAt.AddSeconds(5)), Is.EqualTo(15_000));
+    }
+
+    [Test]
+    public void GetRemainingMs_GivenPausedQuestion_WhenCalledLater_ThenRemainingIsFrozenAtPauseMoment()
+    {
+        var (room, _, startedAt) = StartedRoomWithPlayer();
+        room.TogglePause(HostUserId, startedAt.AddSeconds(5));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(room.IsPaused, Is.True);
+            Assert.That(room.GetRemainingMs(startedAt.AddSeconds(60)), Is.EqualTo(15_000));
+        });
+    }
+
+    [Test]
+    public void GetRemainingMs_GivenResumedAfterPause_WhenCalled_ThenPausedTimeIsExcluded()
+    {
+        var (room, _, startedAt) = StartedRoomWithPlayer();
+        room.TogglePause(HostUserId, startedAt.AddSeconds(5));
+        room.TogglePause(HostUserId, startedAt.AddSeconds(25));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(room.IsPaused, Is.False);
+            Assert.That(room.GetRemainingMs(startedAt.AddSeconds(30)), Is.EqualTo(10_000));
+        });
+    }
+
+    [Test]
+    public void GetRemainingMs_GivenTimeLimitExceeded_WhenCalled_ThenClampsToZero()
+    {
+        var (room, _, startedAt) = StartedRoomWithPlayer();
+
+        Assert.That(room.GetRemainingMs(startedAt.AddSeconds(100)), Is.EqualTo(0));
+    }
+
+    [Test]
+    public void EndCurrentQuestion_GivenRoomIsPaused_WhenCalled_ThenClearsPausedState()
+    {
+        var (room, _, startedAt) = StartedRoomWithPlayer();
+        room.TogglePause(HostUserId, startedAt.AddSeconds(2));
+
+        room.EndCurrentQuestion(HostUserId, startedAt.AddSeconds(4));
+
+        Assert.That(room.IsPaused, Is.False);
+    }
+
+    // ---- 暱稱重複 ----
+
+    [TestCase("小明", "小明")]
+    [TestCase("小明", "  小明  ")]
+    [TestCase("alice", "Alice")]
+    [TestCase("alice", "ALICE ")]
+    public void Join_GivenDuplicateNicknameIgnoringCaseAndWhitespace_WhenCalled_ThenThrowsDuplicateNicknameException(string existing, string duplicate)
+    {
+        var room = CreateRoom();
+        room.Join(existing, "connection-1", CreatedAtUtc.AddMinutes(1));
+
+        Assert.Throws<DuplicateNicknameException>(() => room.Join(duplicate, "connection-2", CreatedAtUtc.AddMinutes(1)));
+    }
+
+    // ---- 斷線 / 重連 ----
+
+    [Test]
+    public void Join_GivenNewPlayer_WhenCalled_ThenPlayerHasReconnectTokenAndIsConnected()
+    {
+        var room = CreateRoom();
+
+        var player = room.Join("小明", "connection-1", CreatedAtUtc.AddMinutes(1));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(player.ReconnectToken, Is.Not.Null.And.Not.Empty);
+            Assert.That(player.IsConnected, Is.True);
+        });
+    }
+
+    [Test]
+    public void Join_GivenTwoPlayers_WhenCalled_ThenReconnectTokensDiffer()
+    {
+        var room = CreateRoom();
+
+        var a = room.Join("A", "c1", CreatedAtUtc.AddMinutes(1));
+        var b = room.Join("B", "c2", CreatedAtUtc.AddMinutes(1));
+
+        Assert.That(a.ReconnectToken, Is.Not.EqualTo(b.ReconnectToken));
+    }
+
+    [Test]
+    public void DisconnectPlayer_GivenLobbyPhase_WhenCalled_ThenRemovesPlayerAndFreesSlot()
+    {
+        var room = CreateRoom();
+        var player = room.Join("小明", "connection-1", CreatedAtUtc.AddMinutes(1));
+
+        var outcome = room.DisconnectPlayer(player.Id, "connection-1");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(outcome, Is.EqualTo(PlayerDisconnectOutcome.Removed));
+            Assert.That(room.Players, Is.Empty);
+        });
+    }
+
+    [Test]
+    public void DisconnectPlayer_GivenGameStarted_WhenCalled_ThenKeepsPlayerMarkedDisconnected()
+    {
+        var (room, player, _) = StartedRoomWithPlayer();
+
+        var outcome = room.DisconnectPlayer(player.Id, "connection-1");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(outcome, Is.EqualTo(PlayerDisconnectOutcome.MarkedDisconnected));
+            Assert.That(room.Players, Has.Count.EqualTo(1));
+            Assert.That(room.Players[0].IsConnected, Is.False);
+        });
+    }
+
+    [Test]
+    public void DisconnectPlayer_GivenStaleConnectionId_WhenCalled_ThenIgnoredAndPlayerStaysConnected()
+    {
+        var (room, player, _) = StartedRoomWithPlayer();
+        room.ReconnectPlayer(player.ReconnectToken, "connection-2");
+
+        var outcome = room.DisconnectPlayer(player.Id, "connection-1");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(outcome, Is.EqualTo(PlayerDisconnectOutcome.Ignored));
+            Assert.That(room.Players[0].IsConnected, Is.True);
+        });
+    }
+
+    [Test]
+    public void DisconnectPlayer_GivenUnknownPlayer_WhenCalled_ThenIgnored()
+    {
+        var room = CreateRoom();
+
+        Assert.That(room.DisconnectPlayer(Guid.NewGuid(), "x"), Is.EqualTo(PlayerDisconnectOutcome.Ignored));
+    }
+
+    [Test]
+    public void ReconnectPlayer_GivenValidTokenAfterDisconnect_WhenCalled_ThenRestoresConnectionKeepingScoreAndAnswers()
+    {
+        var (room, player, startedAt) = StartedRoomWithPlayer();
+        room.SubmitAnswer(player.Id, 1, startedAt.AddSeconds(1));
+        var score = player.Score;
+        room.DisconnectPlayer(player.Id, "connection-1");
+
+        var reconnected = room.ReconnectPlayer(player.ReconnectToken, "connection-9");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reconnected, Is.SameAs(player));
+            Assert.That(reconnected.IsConnected, Is.True);
+            Assert.That(reconnected.ConnectionId, Is.EqualTo("connection-9"));
+            Assert.That(reconnected.Score, Is.EqualTo(score));
+            Assert.That(reconnected.HasAnsweredQuestion(0), Is.True);
+        });
+    }
+
+    [Test]
+    public void ReconnectPlayer_GivenUnknownToken_WhenCalled_ThenThrowsInvalidReconnectTokenException()
+    {
+        var room = CreateRoom();
+        room.Join("小明", "connection-1", CreatedAtUtc.AddMinutes(1));
+
+        Assert.Throws<InvalidReconnectTokenException>(() => room.ReconnectPlayer("nope", "connection-2"));
+    }
+
+    [Test]
+    public void ReconnectPlayer_GivenEmptyToken_WhenCalled_ThenThrowsInvalidReconnectTokenException()
+    {
+        var room = CreateRoom();
+        room.Join("小明", "connection-1", CreatedAtUtc.AddMinutes(1));
+
+        Assert.Throws<InvalidReconnectTokenException>(() => room.ReconnectPlayer("", "connection-2"));
+    }
+
+    [Test]
+    public void ToMementoAndRestore_GivenDisconnectedPlayer_WhenRoundTripped_ThenTokenAndConnectionStatePreserved()
+    {
+        var (room, player, _) = StartedRoomWithPlayer();
+        room.DisconnectPlayer(player.Id, "connection-1");
+
+        var restored = Domain.Aggregates.GameRoom.GameRoom.Restore(room.ToMemento());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored.Players[0].ReconnectToken, Is.EqualTo(player.ReconnectToken));
+            Assert.That(restored.Players[0].IsConnected, Is.False);
+        });
+    }
 }

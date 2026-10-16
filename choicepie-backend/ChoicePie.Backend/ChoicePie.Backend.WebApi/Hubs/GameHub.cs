@@ -1,5 +1,6 @@
 using ChoicePie.Backend.Application.GameRooms.Commands;
 using ChoicePie.Backend.Application.GameRooms.Queries;
+using ChoicePie.Backend.Domain.Aggregates.GameRoom.Enums;
 using ChoicePie.Backend.Shared.Kernel.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -64,7 +65,12 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
     }
 
     [Authorize(Policy = "MemberOnly")]
-    public Task PauseGame(string roomCode) => mediator.Send(new PauseGameCommand(roomCode, GetHostUserId()));
+    public async Task PauseGame(string roomCode)
+    {
+        var state = await mediator.Send(new PauseGameCommand(roomCode, GetHostUserId()));
+
+        await Clients.Group(RoomGroup(roomCode)).PauseStateChanged(state);
+    }
 
     [Authorize(Policy = "MemberOnly")]
     public async Task RejoinRoom(string roomCode)
@@ -76,7 +82,7 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
         await Clients.Caller.RoomStateSync(sync);
     }
 
-    public async Task JoinRoom(string roomCode, string nickname)
+    public async Task<JoinRoomResponse> JoinRoom(string roomCode, string nickname)
     {
         var result = await mediator.Send(new JoinRoomCommand(roomCode, nickname, Context.ConnectionId, GetOptionalMemberId()));
 
@@ -86,6 +92,24 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
         await Groups.AddToGroupAsync(Context.ConnectionId, RoomGroup(roomCode));
         await Clients.Caller.RoomStateSync(result.RoomState);
         await Clients.Group(RoomGroup(roomCode)).PlayerJoined(result.Player);
+
+        return new JoinRoomResponse(result.Player.Id, result.ReconnectToken);
+    }
+
+    /// <summary>
+    /// 玩家用 JoinRoom 取得的重連憑證回到房間（重新整理頁面、螢幕鎖定後斷線、SignalR 自動重連）。
+    /// 憑證不對/房間不存在會丟 HubException，前端應清除本機憑證並改走 JoinRoom。
+    /// </summary>
+    public async Task RejoinAsPlayer(string roomCode, string reconnectToken)
+    {
+        var result = await mediator.Send(new RejoinAsPlayerCommand(roomCode, reconnectToken, Context.ConnectionId));
+
+        Context.Items[RoomCodeItemKey] = roomCode;
+        Context.Items[PlayerIdItemKey] = result.Player.Id;
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, RoomGroup(roomCode));
+        await Clients.Caller.RoomStateSync(result.RoomState);
+        await Clients.Group(RoomGroup(roomCode)).PlayerReconnected(result.Player);
     }
 
     public async Task SubmitAnswer(string roomCode, int answerIndex)
@@ -111,17 +135,37 @@ public sealed class GameHub(IMediator mediator, ILogger<GameHub> logger) : Hub<I
 
         var isHost = Context.Items.TryGetValue(IsHostItemKey, out var isHostValue) && isHostValue is true;
 
-        if (!isHost && Context.Items.TryGetValue(RoomCodeItemKey, out var roomCodeValue) &&
-            roomCodeValue is string roomCode)
+        if (!isHost &&
+            Context.Items.TryGetValue(RoomCodeItemKey, out var roomCodeValue) && roomCodeValue is string roomCode &&
+            Context.Items.TryGetValue(PlayerIdItemKey, out var playerIdValue) && playerIdValue is Guid playerId)
         {
-            var playerId = Context.Items.TryGetValue(PlayerIdItemKey, out var playerIdValue) && playerIdValue is Guid id
-                ? id.ToString()
-                : Context.ConnectionId;
-
-            await Clients.Group(RoomGroup(roomCode)).PlayerLeft(playerId);
+            await HandlePlayerDisconnectedAsync(roomCode, playerId);
         }
 
         await base.OnDisconnectedAsync(exception);
+    }
+
+    private async Task HandlePlayerDisconnectedAsync(string roomCode, Guid playerId)
+    {
+        try
+        {
+            var outcome = await mediator.Send(new DisconnectPlayerCommand(roomCode, playerId, Context.ConnectionId));
+
+            switch (outcome)
+            {
+                case PlayerDisconnectOutcome.Removed:
+                    await Clients.Group(RoomGroup(roomCode)).PlayerLeft(playerId.ToString());
+                    break;
+                case PlayerDisconnectOutcome.MarkedDisconnected:
+                    await Clients.Group(RoomGroup(roomCode)).PlayerDisconnected(playerId);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            // 斷線處理失敗不可讓 OnDisconnectedAsync 中斷，只記錄。
+            logger.LogError(ex, "處理玩家斷線失敗，Room={RoomCode} Player={PlayerId}", roomCode, playerId);
+        }
     }
 
     private async Task JoinHostGroupsAsync(string roomCode)

@@ -99,7 +99,13 @@ public sealed class GameRoom : AggregateRoot<Guid>
             throw new RoomFullException(RoomCode);
         }
 
-        var player = Player.Create(nickname, connectionId, memberId);
+        var trimmed = nickname.Trim();
+        if (_players.Any(p => string.Equals(p.Nickname.Trim(), trimmed, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new DuplicateNicknameException(RoomCode, trimmed);
+        }
+
+        var player = Player.Create(trimmed, connectionId, memberId);
         _players.Add(player);
 
         return player;
@@ -118,6 +124,11 @@ public sealed class GameRoom : AggregateRoot<Guid>
     public AnswerOutcome SubmitAnswer(Guid playerId, int answerIndex, DateTime answeredAtUtc)
     {
         EnsurePhase(GamePhase.Question);
+
+        if (IsPaused)
+        {
+            throw new GamePausedException(RoomCode);
+        }
 
         var player = _players.SingleOrDefault(p => p.Id == playerId)
                      ?? throw new PlayerNotFoundException(playerId, RoomCode);
@@ -141,6 +152,12 @@ public sealed class GameRoom : AggregateRoot<Guid>
     {
         EnsureHost(callerUserId);
         EnsurePhase(GamePhase.Question);
+
+        if (PausedAtUtc is not null)
+        {
+            PausedAccumulated += utcNow - PausedAtUtc.Value;
+            PausedAtUtc = null;
+        }
 
         Phase = GamePhase.Reveal;
 
@@ -186,6 +203,56 @@ public sealed class GameRoom : AggregateRoot<Guid>
 
         PausedAccumulated += utcNow - PausedAtUtc.Value;
         PausedAtUtc = null;
+    }
+
+    public bool IsPaused => PausedAtUtc is not null;
+
+    /// <summary>目前題目的剩餘毫秒數（伺服器計算，暫停期間凍結、排除暫停累計時間）。</summary>
+    public long GetRemainingMs(DateTime utcNow)
+    {
+        if (CurrentQuestionStartedAtUtc is null)
+        {
+            return 0;
+        }
+
+        var reference = PausedAtUtc ?? utcNow;
+        var elapsed = reference - CurrentQuestionStartedAtUtc.Value - PausedAccumulated;
+        var remaining = TimeSpan.FromSeconds(TimeLimitSeconds) - elapsed;
+
+        return Math.Clamp((long)remaining.TotalMilliseconds, 0, (long)TimeSpan.FromSeconds(TimeLimitSeconds).TotalMilliseconds);
+    }
+
+    /// <summary>
+    /// 玩家連線中斷：大廳階段直接移除以釋出名額；遊戲開始後只標記離線（保留分數與作答、仍列入排名與 GameSession）。
+    /// 只有當傳入的 connectionId 仍是該玩家目前的連線時才處理，避免「快速重連後舊連線的斷線通知」把新連線誤判為離線。
+    /// </summary>
+    public PlayerDisconnectOutcome DisconnectPlayer(Guid playerId, string connectionId)
+    {
+        var player = _players.SingleOrDefault(p => p.Id == playerId);
+        if (player is null || player.ConnectionId != connectionId)
+        {
+            return PlayerDisconnectOutcome.Ignored;
+        }
+
+        if (Phase == GamePhase.Lobby)
+        {
+            _players.Remove(player);
+            return PlayerDisconnectOutcome.Removed;
+        }
+
+        player.MarkDisconnected();
+        return PlayerDisconnectOutcome.MarkedDisconnected;
+    }
+
+    /// <summary>以重連憑證找回玩家並換上新的連線 Id。</summary>
+    public Player ReconnectPlayer(string? reconnectToken, string newConnectionId)
+    {
+        var player = _players.FirstOrDefault(p => p.MatchesReconnectToken(reconnectToken))
+                     ?? throw new InvalidReconnectTokenException(RoomCode);
+
+        player.Reconnect(newConnectionId);
+
+        return player;
     }
 
     public IReadOnlyList<RankEntrySnapshot> GetRankings() => BuildRankings();
