@@ -46,15 +46,9 @@
     </div>
 
     <!-- Loading -->
-    <div
+    <LoadingSpinner
       v-if="isLoading"
-      class="flex justify-center py-20"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-cp-primary"
-      />
-    </div>
+    />
 
     <template v-else>
       <!-- Featured -->
@@ -101,6 +95,7 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import QuizCard from '~/components/library/QuizCard.vue'
 import { useQuizStore } from '~/stores/quiz'
 

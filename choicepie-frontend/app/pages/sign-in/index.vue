@@ -5,26 +5,13 @@
     </h1>
 
     <!-- Google Register -->
-    <UButton
-      block
-      size="lg"
-      color="neutral"
-      variant="outline"
-      class="font-bold h-12 rounded-2xl"
+    <GoogleAuthButton
+      :label="t('signIn.googleRegister')"
       :loading="auth.isLoading"
       @click="handleGoogleLogin"
-    >
-      <template #leading>
-        <span class="font-extrabold text-[#4285F4]">G</span>
-      </template>
-      {{ t('signIn.googleRegister') }}
-    </UButton>
+    />
 
-    <div class="flex items-center gap-3 text-xs text-neutral-400">
-      <hr class="flex-1 border-neutral-200">
-      {{ t('signIn.orDivider') }}
-      <hr class="flex-1 border-neutral-200">
-    </div>
+    <OrDivider :label="t('signIn.orDivider')" />
 
     <!-- Form -->
     <UForm
@@ -56,25 +43,10 @@
       </UFormField>
 
       <UFormField name="password">
-        <UInput
+        <PasswordInput
           v-model="registerState.password"
-          :type="showPassword ? 'text' : 'password'"
           :placeholder="t('signIn.passwordPlaceholder')"
-          size="lg"
-          class="w-full"
-          :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-        >
-          <template #trailing>
-            <UButton
-              color="neutral"
-              variant="link"
-              size="sm"
-              :padded="false"
-              :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-              @click="onToggleShowPassword"
-            />
-          </template>
-        </UInput>
+        />
         <div
           v-if="passwordStrength"
           class="flex items-center gap-2 mt-1.5"
@@ -99,25 +71,10 @@
       </UFormField>
 
       <UFormField name="confirmPassword">
-        <UInput
+        <PasswordInput
           v-model="registerState.confirmPassword"
-          :type="showConfirmPassword ? 'text' : 'password'"
           :placeholder="t('signIn.confirmPasswordPlaceholder')"
-          size="lg"
-          class="w-full"
-          :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-        >
-          <template #trailing>
-            <UButton
-              color="neutral"
-              variant="link"
-              size="sm"
-              :padded="false"
-              :icon="showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-              @click="onToggleShowConfirmPassword"
-            />
-          </template>
-        </UInput>
+        />
       </UFormField>
 
       <p
@@ -152,6 +109,9 @@
 </template>
 
 <script setup lang="ts">
+import GoogleAuthButton from '~/components/common/GoogleAuthButton.vue'
+import OrDivider from '~/components/common/OrDivider.vue'
+import PasswordInput from '~/components/common/PasswordInput.vue'
 import { ApiError } from '~/composables/useApi'
 import { useRegisterSchema, type RegisterSchema } from '~/types/auth'
 
@@ -164,8 +124,6 @@ const route = useRoute()
 
 const error = ref('')
 const isLoading = ref(false)
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
 
 const redirect = computed(() => sanitizeRedirect(route.query.redirect))
 
@@ -216,14 +174,6 @@ const handleRegister = async () => {
   } finally {
     isLoading.value = false
   }
-}
-
-const onToggleShowPassword = () => {
-  showPassword.value = !showPassword.value
-}
-
-const onToggleShowConfirmPassword = () => {
-  showConfirmPassword.value = !showConfirmPassword.value
 }
 
 const handleGoogleLogin = async () => {

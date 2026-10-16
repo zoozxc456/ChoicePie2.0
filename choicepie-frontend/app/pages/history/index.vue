@@ -9,49 +9,23 @@
       </p>
     </div>
 
-    <!-- Role Toggle -->
     <div class="flex justify-center mb-10">
-      <div class="flex rounded-xl p-1 gap-1 bg-cp-surface-muted border border-cp-border">
-        <button
-          v-for="role in roles"
-          :key="role.key"
-          class="px-6 py-2 rounded-lg text-sm font-bold transition-all"
-          :class="activeRole === role.key
-            ? 'bg-white text-cp-primary shadow-cp-sm'
-            : 'text-cp-text-secondary'"
-          @click="activeRole = role.key"
-        >
-          {{ role.label }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Loading -->
-    <div
-      v-if="gameSessionStore.isLoading"
-      class="flex justify-center py-20"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-primary-500"
+      <SegmentedControl
+        v-model="activeRole"
+        :options="roles"
       />
     </div>
 
+    <LoadingSpinner v-if="gameSessionStore.isLoading" />
+
     <!-- Host history -->
     <template v-else-if="activeRole === 'host'">
-      <div
-        v-if="!hostedGames.length"
-        class="empty-state text-center py-20"
+      <EmptyState
+        v-if="!gameSessionStore.hostedSessions.length"
+        emoji="🥧"
+        :title="t('history.host.empty')"
+        :description="t('history.host.emptyDesc')"
       >
-        <div class="text-6xl mb-4 wobble-pie">
-          🥧
-        </div>
-        <p class="font-bold text-base mb-1.5">
-          {{ t('history.host.empty') }}
-        </p>
-        <p class="text-sm text-cp-text-secondary mb-6">
-          {{ t('history.host.emptyDesc') }}
-        </p>
         <NuxtLink to="/library/new">
           <UButton
             color="primary"
@@ -61,58 +35,27 @@
             {{ t('history.host.emptyCta') }}
           </UButton>
         </NuxtLink>
-      </div>
-
+      </EmptyState>
       <div
         v-else
         class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
-        <NuxtLink
-          v-for="game in hostedGames"
-          :key="game.id"
-          :to="`/history/${game.id}`"
-          class="history-card bg-white rounded-2xl border border-cp-border overflow-hidden flex gap-4 p-4"
-        >
-          <QuizCoverThumbnail
-            :cover-image-url="game.coverImageUrl"
-            :cover-emoji="game.coverEmoji"
-            :cover-gradient="game.coverGradient"
-            size="md"
-          />
-          <div class="min-w-0 flex-1">
-            <p class="text-sm font-bold truncate">
-              {{ game.quizTitle }}
-            </p>
-            <p class="text-xs text-cp-text-muted mt-1">
-              {{ formatDate(game.playedAt) }}
-            </p>
-            <div class="flex items-center gap-3 mt-2 text-xs text-cp-text-secondary">
-              <span>{{ t('history.host.card.players', { count: game.playerCount }) }}</span>
-              <span>{{ t('history.host.card.questions', { count: game.questionCount }) }}</span>
-            </div>
-            <p class="text-xs font-bold text-primary-500 mt-2 truncate">
-              {{ t('history.host.card.topPlayer', { name: game.topPlayerName, score: game.topPlayerScore }) }}
-            </p>
-          </div>
-        </NuxtLink>
+        <HostedGameCard
+          v-for="session in gameSessionStore.hostedSessions"
+          :key="session.id"
+          :session="session"
+        />
       </div>
     </template>
 
     <!-- Player history -->
     <template v-else>
-      <div
-        v-if="!playedGames.length"
-        class="empty-state text-center py-20"
+      <EmptyState
+        v-if="!gameSessionStore.playedSessions.length"
+        emoji="🥧"
+        :title="t('history.player.empty')"
+        :description="t('history.player.emptyDesc')"
       >
-        <div class="text-6xl mb-4 wobble-pie">
-          🥧
-        </div>
-        <p class="font-bold text-base mb-1.5">
-          {{ t('history.player.empty') }}
-        </p>
-        <p class="text-sm text-cp-text-secondary mb-6">
-          {{ t('history.player.emptyDesc') }}
-        </p>
         <NuxtLink to="/join">
           <UButton
             color="primary"
@@ -122,122 +65,47 @@
             {{ t('history.player.emptyCta') }}
           </UButton>
         </NuxtLink>
-      </div>
-
+      </EmptyState>
       <div
         v-else
         class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
       >
-        <NuxtLink
-          v-for="game in playedGames"
-          :key="game.id"
-          :to="`/history/${game.id}`"
-          class="history-card relative bg-white rounded-2xl border border-cp-border overflow-hidden flex gap-4 p-4"
-        >
-          <span
-            class="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
-            :class="[rankBadgeClass(game.myRank), rankGlowClass(game.myRank)]"
-          >
-            <UIcon
-              v-if="game.myRank <= 3"
-              name="i-lucide-medal"
-              class="text-base"
-            />
-            <template v-else>#{{ game.myRank }}</template>
-          </span>
-          <QuizCoverThumbnail
-            :cover-image-url="game.coverImageUrl"
-            :cover-emoji="game.coverEmoji"
-            :cover-gradient="game.coverGradient"
-            size="md"
-          />
-          <div class="min-w-0 flex-1 pr-8">
-            <p class="text-sm font-bold truncate">
-              {{ game.quizTitle }}
-            </p>
-            <p class="text-xs text-cp-text-muted mt-1">
-              {{ formatDate(game.playedAt) }}
-            </p>
-            <div class="flex items-center gap-3 mt-2 text-xs text-cp-text-secondary">
-              <span>{{ t('history.player.card.players', { count: game.playerCount }) }}</span>
-              <span>{{ t('history.player.card.questions', { count: game.questionCount }) }}</span>
-            </div>
-            <p class="text-xs font-bold text-primary-500 mt-2">
-              {{ t('history.player.card.myRank', { rank: game.myRank }) }} · {{ t('history.player.card.myScore', { score: game.myScore }) }}
-            </p>
-          </div>
-        </NuxtLink>
+        <PlayedGameCard
+          v-for="session in gameSessionStore.playedSessions"
+          :key="session.id"
+          :session="session"
+        />
       </div>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
+import EmptyState from '~/components/common/EmptyState.vue'
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
+import SegmentedControl from '~/components/common/SegmentedControl.vue'
+import HostedGameCard from '~/components/history/HostedGameCard.vue'
+import PlayedGameCard from '~/components/history/PlayedGameCard.vue'
 import { useGameSessionStore } from '~/stores/gameSession'
 
 definePageMeta({ layout: 'content', middleware: ['auth'] })
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const gameSessionStore = useGameSessionStore()
 
 type RoleKey = 'host' | 'player'
+
 const activeRole = ref<RoleKey>('host')
 
 const roles = computed(() => [
-  { key: 'host' as RoleKey, label: t('history.roles.host') },
-  { key: 'player' as RoleKey, label: t('history.roles.player') }
+  { value: 'host' as RoleKey, label: t('history.roles.host') },
+  { value: 'player' as RoleKey, label: t('history.roles.player') }
 ])
-
-const hostedGames = computed(() => gameSessionStore.hostedSessions.map(s => ({
-  id: s.id,
-  quizTitle: s.quizTitle,
-  coverImageUrl: s.coverImageUrl,
-  coverEmoji: s.coverEmoji,
-  coverGradient: s.coverGradient,
-  playerCount: s.playerCount,
-  questionCount: s.questionCount,
-  topPlayerName: s.topPlayerName,
-  topPlayerScore: s.topPlayerScore,
-  playedAt: s.playedAtUtc
-})))
-
-const playedGames = computed(() => gameSessionStore.playedSessions.map(s => ({
-  id: s.id,
-  quizTitle: s.quizTitle,
-  coverImageUrl: s.coverImageUrl,
-  coverEmoji: s.coverEmoji,
-  coverGradient: s.coverGradient,
-  playerCount: s.playerCount,
-  questionCount: s.questionCount,
-  myRank: s.myRank ?? 0,
-  myScore: s.myScore ?? 0,
-  playedAt: s.playedAtUtc
-})))
 
 onMounted(() => {
   gameSessionStore.fetchHostedSessions()
   gameSessionStore.fetchPlayedSessions()
 })
-
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(locale.value === 'en' ? 'en-US' : 'zh-TW', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-
-const rankBadgeClass = (rank: number) => ({
-  1: 'bg-cp-primary',
-  2: 'bg-cp-info',
-  3: 'bg-cp-warning'
-}[rank] ?? 'bg-neutral-400')
-
-const rankGlowClass = (rank: number) => ({
-  1: 'rank-1',
-  2: 'rank-2',
-  3: 'rank-3'
-}[rank] ?? '')
 </script>
 
 <script lang="ts">
@@ -246,28 +114,4 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-.history-card {
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-.history-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--cp-shadow-lg);
-}
-
-@keyframes wobble {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-8deg); }
-  75% { transform: rotate(8deg); }
-}
-.wobble-pie {
-  display: inline-block;
-  animation: wobble 1.8s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wobble-pie {
-    animation: none;
-  }
-}
-</style>
+<style scoped lang="scss"></style>

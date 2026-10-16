@@ -3,15 +3,10 @@
     <p class="text-lg font-bold mb-3">
       {{ t('adminMemberDetail.quizzesTitle') }}
     </p>
-    <div
+    <LoadingSpinner
       v-if="isLoading"
-      class="flex justify-center py-8"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-2xl text-primary-500"
-      />
-    </div>
+      size="sm"
+    />
     <p
       v-else-if="!quizzes.length"
       class="text-base text-neutral-400 text-center py-8"
@@ -33,12 +28,12 @@
           <span class="text-base font-medium truncate group-hover:text-primary-500 group-hover:underline">
             {{ quiz.title }}
           </span>
-          <span
-            class="text-[11px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap shrink-0"
-            :class="statusBadgeClass(quiz.status)"
+          <StatusBadge
+            :tone="quizStatusTone(quiz.status)"
+            class="shrink-0"
           >
             {{ statusLabel(quiz.status) }}
-          </span>
+          </StatusBadge>
         </NuxtLink>
       </li>
     </ul>
@@ -46,6 +41,8 @@
 </template>
 
 <script setup lang="ts">
+import StatusBadge from '~/components/common/StatusBadge.vue'
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import type { QuizSummaryDto } from '~/types/api'
 
 interface Props {
@@ -64,14 +61,6 @@ const statusLabel = (status: string) => ({
   deleted: t('adminQuizzes.status.deleted'),
   takendown: t('adminQuizzes.status.takendown')
 }[status] ?? status)
-
-const statusBadgeClass = (status: string) => ({
-  draft: 'bg-neutral-100 text-neutral-600',
-  published: 'bg-success-100 text-success-800',
-  archived: 'bg-warning-100 text-warning-800',
-  deleted: 'bg-neutral-100 text-neutral-600',
-  takendown: 'bg-error-100 text-error-800'
-}[status] ?? 'bg-neutral-100 text-neutral-600')
 </script>
 
 <script lang="ts">

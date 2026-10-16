@@ -1,47 +1,26 @@
 <template>
-  <div class="max-w-3xl mx-auto px-6 py-12">
-    <div class="text-center mb-12">
-      <h1 class="text-3xl font-black mb-3">
-        {{ t('terms.title') }}
-      </h1>
-      <p class="text-sm text-cp-text-muted">
-        {{ t('terms.updatedAt', { date: lastUpdated }) }}
-      </p>
-    </div>
-
-    <div class="rounded-2xl p-8 bg-white border border-cp-border flex flex-col gap-8">
-      <section
-        v-for="section in sections"
-        :key="section.key"
-      >
-        <h2 class="text-lg font-bold mb-3">
-          {{ t(`terms.sections.${section.key}.title`) }}
-        </h2>
-        <p class="text-sm leading-loose text-cp-text-secondary whitespace-pre-line">
-          {{ t(`terms.sections.${section.key}.body`) }}
-        </p>
-      </section>
-    </div>
-  </div>
+  <LegalDocument
+    namespace="terms"
+    :section-keys="SECTION_KEYS"
+    last-updated="2026-07-07"
+  />
 </template>
 
 <script setup lang="ts">
+import LegalDocument from '~/components/common/LegalDocument.vue'
+
 definePageMeta({ layout: 'content' })
 
-const { t } = useI18n()
-
-const lastUpdated = '2026-07-07'
-
-const sections = [
-  { key: 'acceptance' },
-  { key: 'accounts' },
-  { key: 'content' },
-  { key: 'conduct' },
-  { key: 'termination' },
-  { key: 'disclaimer' },
-  { key: 'changes' },
-  { key: 'contact' }
-]
+const SECTION_KEYS = [
+  'acceptance',
+  'accounts',
+  'content',
+  'conduct',
+  'termination',
+  'disclaimer',
+  'changes',
+  'contact'
+] as const
 </script>
 
 <script lang="ts">
@@ -50,5 +29,4 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-</style>
+<style scoped lang="scss"></style>

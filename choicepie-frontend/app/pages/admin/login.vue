@@ -25,25 +25,11 @@
         />
       </UFormField>
       <UFormField name="password">
-        <UInput
+        <PasswordInput
           v-model="loginState.password"
-          :type="showPassword ? 'text' : 'password'"
           :placeholder="t('adminLogin.passwordPlaceholder')"
-          size="lg"
-          class="w-full"
-          :ui="{ base: 'bg-neutral-100 h-12 text-base px-4' }"
-        >
-          <template #trailing>
-            <UButton
-              color="neutral"
-              variant="link"
-              size="sm"
-              :padded="false"
-              :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-              @click="onToggleShowPassword"
-            />
-          </template>
-        </UInput>
+          input-class="bg-neutral-100 h-12 text-base px-4"
+        />
       </UFormField>
       <p
         v-if="error"
@@ -66,6 +52,7 @@
 </template>
 
 <script setup lang="ts">
+import PasswordInput from '~/components/common/PasswordInput.vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { ApiError } from '~/composables/useApi'
 import { useAdminLoginSchema, type AdminLoginSchema } from '~/types/adminAuth'
@@ -78,7 +65,6 @@ const adminAuth = useAdminAuthStore()
 const route = useRoute()
 
 const error = ref('')
-const showPassword = ref(false)
 
 const redirect = computed(() => (route.query.redirect as string) || '/admin')
 
@@ -106,10 +92,6 @@ const handleLogin = async (event: FormSubmitEvent<AdminLoginSchema>) => {
       error.value = e instanceof ApiError ? e.message : t('adminLogin.loginError')
     }
   }
-}
-
-const onToggleShowPassword = () => {
-  showPassword.value = !showPassword.value
 }
 </script>
 

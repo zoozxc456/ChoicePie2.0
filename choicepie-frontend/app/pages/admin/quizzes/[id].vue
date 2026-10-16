@@ -8,15 +8,10 @@
       {{ t('adminQuizDetail.back') }}
     </NuxtLink>
 
-    <div
+    <LoadingSpinner
       v-if="adminQuizStore.isLoadingDetail"
-      class="flex justify-center py-16"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-3xl text-primary-500"
-      />
-    </div>
+      size="md"
+    />
 
     <p
       v-else-if="!quiz"
@@ -64,6 +59,8 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
+
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
 
 const { t } = useI18n()

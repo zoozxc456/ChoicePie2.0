@@ -1,29 +1,15 @@
 <template>
   <div>
-    <div
+    <LoadingSpinner
       v-if="favoritesStore.isLoading"
-      class="flex justify-center py-20"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-cp-primary"
-      />
-    </div>
+    />
 
-    <div
+    <EmptyState
       v-else-if="!favoritesStore.quizzes.length"
-      class="text-center py-20"
+      :title="t('library.favorites.empty')"
+      :description="t('library.favorites.emptyDesc')"
+      icon="i-lucide-heart"
     >
-      <UIcon
-        name="i-lucide-heart"
-        class="text-5xl mb-4 text-cp-text-muted"
-      />
-      <p class="font-bold text-base mb-1.5 text-cp-text-primary">
-        {{ t('library.favorites.empty') }}
-      </p>
-      <p class="text-sm text-cp-text-secondary mb-6">
-        {{ t('library.favorites.emptyDesc') }}
-      </p>
       <UButton
         color="primary"
         size="lg"
@@ -32,7 +18,7 @@
       >
         {{ t('library.favorites.emptyCta') }}
       </UButton>
-    </div>
+    </EmptyState>
 
     <template v-else>
       <p
@@ -83,6 +69,8 @@
 </template>
 
 <script setup lang="ts">
+import EmptyState from '~/components/common/EmptyState.vue'
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import QuizCard from '~/components/library/QuizCard.vue'
 import { useFavoritesStore } from '~/stores/favorites'
 

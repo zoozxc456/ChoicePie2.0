@@ -1,30 +1,17 @@
 <template>
   <div>
     <!-- Loading -->
-    <div
+    <LoadingSpinner
       v-if="isLoading"
-      class="flex justify-center py-20"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-cp-primary"
-      />
-    </div>
+    />
 
     <!-- Empty -->
-    <div
+    <EmptyState
       v-else-if="!quizStore.quizzes.length"
-      class="text-center py-20"
+      :title="t('myQuizzes.empty')"
+      :description="t('myQuizzes.emptyDesc')"
+      emoji="🥧"
     >
-      <div class="text-6xl mb-4">
-        🥧
-      </div>
-      <p class="font-bold text-base mb-1.5 text-cp-text-primary">
-        {{ t('myQuizzes.empty') }}
-      </p>
-      <p class="text-sm text-cp-text-secondary mb-6">
-        {{ t('myQuizzes.emptyDesc') }}
-      </p>
       <NuxtLink to="/library/new">
         <UButton
           color="primary"
@@ -34,7 +21,7 @@
           {{ t('myQuizzes.emptyCta') }}
         </UButton>
       </NuxtLink>
-    </div>
+    </EmptyState>
 
     <div
       v-else
@@ -98,6 +85,8 @@
 </template>
 
 <script setup lang="ts">
+import EmptyState from '~/components/common/EmptyState.vue'
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import { useQuizStore } from '~/stores/quiz'
 import MineQuizCard from '~/components/library/MineQuizCard.vue'
 

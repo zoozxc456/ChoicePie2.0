@@ -26,17 +26,12 @@
         >
           {{ t('creatorPage.followToLogin') }}
         </NuxtLink>
-        <button
+        <FollowButton
           v-else-if="!isSelf"
-          class="h-9 px-5 rounded-full text-sm font-semibold border whitespace-nowrap cursor-pointer disabled:opacity-60"
-          :class="creatorStore.profile.isFollowing
-            ? 'border-cp-border bg-cp-surface text-cp-text-primary'
-            : 'border-transparent bg-cp-primary text-white'"
-          :disabled="creatorStore.isTogglingFollow"
-          @click="handleToggleFollow"
-        >
-          {{ creatorStore.profile.isFollowing ? t('libraryDetail.creator.following') : t('libraryDetail.creator.follow') }}
-        </button>
+          :is-following="creatorStore.profile.isFollowing"
+          :loading="creatorStore.isTogglingFollow"
+          @toggle="handleToggleFollow"
+        />
       </div>
     </div>
 
@@ -88,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+import FollowButton from '~/components/creator/FollowButton.vue'
 import CreatorAvatar from '~/components/creator/CreatorAvatar.vue'
 import QuizCard from '~/components/library/QuizCard.vue'
 import { useAuthStore } from '~/stores/auth'
