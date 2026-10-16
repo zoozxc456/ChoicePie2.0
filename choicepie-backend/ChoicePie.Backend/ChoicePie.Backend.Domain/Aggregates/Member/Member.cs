@@ -84,6 +84,7 @@ public sealed class Member : AggregateRoot<Guid>
         IsSuspended = true;
         SuspendedReason = reason;
         SuspendedUntil = until;
+        AddDomainEvent(new MemberSuspendedDomainEvent(Id));
     }
 
     public void Unsuspend()
@@ -91,6 +92,7 @@ public sealed class Member : AggregateRoot<Guid>
         IsSuspended = false;
         SuspendedReason = null;
         SuspendedUntil = null;
+        AddDomainEvent(new MemberUnsuspendedDomainEvent(Id));
     }
 
     public bool IsCurrentlySuspended(DateTime nowUtc)

@@ -79,6 +79,27 @@ public class MemberTests
         });
     }
 
+    [Test]
+    public void Suspend_GivenValidReason_WhenCalled_ThenRaisesMemberSuspendedDomainEvent()
+    {
+        var member = MemberAggregate.Create("Host Name");
+
+        member.Suspend("spamming", null);
+
+        Assert.That(member.DomainEvents.OfType<MemberSuspendedDomainEvent>().Single().MemberId, Is.EqualTo(member.Id));
+    }
+
+    [Test]
+    public void Unsuspend_GivenSuspendedMember_WhenCalled_ThenRaisesMemberUnsuspendedDomainEvent()
+    {
+        var member = MemberAggregate.Create("Host Name");
+        member.Suspend("spamming", null);
+
+        member.Unsuspend();
+
+        Assert.That(member.DomainEvents.OfType<MemberUnsuspendedDomainEvent>().Single().MemberId, Is.EqualTo(member.Id));
+    }
+
     [TestCase("")]
     [TestCase("   ")]
     public void Suspend_GivenEmptyOrWhitespaceReason_WhenCalled_ThenThrowsInvalidMemberSuspensionException(string reason)
