@@ -159,12 +159,43 @@ public class RefreshTokenCommandHandlerTests
         Assert.That(result.AccessToken, Is.EqualTo("new-access-token"));
     }
 
-    // 同一顆 refresh token 被兩個請求同時輪替：後存檔的那個要被當成無效 token，不能也拿到新 token。
+    // 同一次 SSR 的 middleware 與頁面請求會拿同一顆 token 同時 refresh。先存檔的那個輪替成功；
+    // 後存檔的撞到 xmin 衝突，重新讀取後發現 token 是「剛被輪替、仍在寬限期內」，照樣換發，不能把使用者踢掉。
     [Test]
-    public void Handle_GivenTokenRotatedConcurrentlyByAnotherRequest_WhenSaving_ThenThrowsInvalidRefreshToken()
+    public async Task Handle_GivenTokenRotatedConcurrentlyWithinGracePeriod_WhenSaving_ThenReloadsAndStillIssuesTokens()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(_ => throw new ConcurrencyConflictException(), _ => Task.FromResult(1));
+        _refreshTokenRepository
+            .When(r => r.ReloadAsync(_existingRefreshToken, Arg.Any<CancellationToken>()))
+            .Do(_ => SimulateReloadedFromDatabase(revokedAt: DateTime.UtcNow, replacedByTokenId: Guid.NewGuid()));
+
+        var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
+
+        Assert.That(result.RefreshToken, Is.EqualTo("new-raw-token"));
+        await _unitOfWork.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    // 搶先的是登出（撤銷但沒有替代 token）：登出必須立即生效，不能在寬限期內再換出新 session。
+    [Test]
+    public async Task Handle_GivenTokenLoggedOutConcurrently_WhenSaving_ThenThrowsInvalidRefreshTokenWithoutRetrying()
     {
         _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new ConcurrencyConflictException());
+        _refreshTokenRepository
+            .When(r => r.ReloadAsync(_existingRefreshToken, Arg.Any<CancellationToken>()))
+            .Do(_ => SimulateReloadedFromDatabase(revokedAt: DateTime.UtcNow, replacedByTokenId: null));
 
         Assert.ThrowsAsync<InvalidRefreshTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    // EF 的 Reload 會用資料庫裡的值覆蓋記憶體中的聚合（包括 handler 自己剛做的 Revoke），
+    // 單純再呼叫一次 Revoke 會因為已撤銷而直接 return，模擬不出「別人寫進去的狀態」。
+    private void SimulateReloadedFromDatabase(DateTime revokedAt, Guid? replacedByTokenId)
+    {
+        typeof(RefreshTokenAggregate).GetProperty(nameof(RefreshTokenAggregate.RevokedAt))!
+            .SetValue(_existingRefreshToken, revokedAt);
+        typeof(RefreshTokenAggregate).GetProperty(nameof(RefreshTokenAggregate.ReplacedByTokenId))!
+            .SetValue(_existingRefreshToken, replacedByTokenId);
     }
 }

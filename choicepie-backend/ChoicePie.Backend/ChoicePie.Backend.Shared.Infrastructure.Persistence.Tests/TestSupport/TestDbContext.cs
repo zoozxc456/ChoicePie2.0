@@ -1,5 +1,6 @@
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Configurations;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Extensions;
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChoicePie.Backend.Shared.Infrastructure.Persistence.Tests.TestSupport;
@@ -10,6 +11,7 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options) : DbC
     {
         modelBuilder.ApplyConfiguration(new TestWidgetConfiguration());
         modelBuilder.ApplyConfiguration(new TestGadgetConfiguration());
+        modelBuilder.ApplyOutboxConfiguration();
     }
 }
 

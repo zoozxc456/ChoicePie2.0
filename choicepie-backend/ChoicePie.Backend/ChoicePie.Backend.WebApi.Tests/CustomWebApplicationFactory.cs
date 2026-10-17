@@ -3,6 +3,7 @@ using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Infrastructure.ExternalServices.Quizzes.Providers;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Application.Interfaces;
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Outbox;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -15,12 +16,19 @@ using Testcontainers.Redis;
 namespace ChoicePie.Backend.WebApi.Tests;
 
 // 測試環境沒有真正的 SMTP server（appsettings.json 的 Smtp:Host 是空字串），SmtpEmailSender
-// 會在 ConnectAsync 直接拋出例外；註冊/忘記密碼等流程會 raise domain event 觸發寄信，
-// 若不替換掉真正的寄信實作，這些端點在測試中一律 500。
-public sealed class NoOpEmailSender : IEmailSender
+// 會在 ConnectAsync 直接拋出例外；寄信由 outbox 派送，不換掉的話每封信都會一路重試到 dead letter。
+// 改成把信收下來，讓測試能驗證信真的寄出、內容帶著正確的連結。
+public sealed class CapturingEmailSender : IEmailSender
 {
-    public Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken = default) =>
-        Task.CompletedTask;
+    private readonly System.Collections.Concurrent.ConcurrentQueue<(string To, string Subject, string HtmlBody)> _sent = new();
+
+    public IReadOnlyCollection<(string To, string Subject, string HtmlBody)> Sent => _sent;
+
+    public Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken = default)
+    {
+        _sent.Enqueue((toEmail, subject, htmlBody));
+        return Task.CompletedTask;
+    }
 }
 
 // 真正的 Anthropic provider 會打外部付費 API：本機 user-secrets 有 ApiKey 時會真的呼叫，CI 沒有 key 則必定失敗。
@@ -76,6 +84,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         .WithImage("redis:7-alpine")
         .Build();
 
+    public CapturingEmailSender Emails { get; } = new();
+
     public async Task InitializeAsync()
     {
         if (_ownedPostgres is not null && _ownedRedis is not null)
@@ -86,6 +96,33 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
         await dbContext.Database.MigrateAsync();
+    }
+
+    /// <summary>
+    /// 可靠事件（挑戰統計、封存題庫、寄信）由 outbox processor 在 commit 後幾秒內非同步派送；
+    /// 斷言它們的結果之前先等 outbox 清空。
+    /// </summary>
+    public async Task WaitForOutboxDrainedAsync()
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(15);
+        while (true)
+        {
+            using (var scope = Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
+                if (!await dbContext.Set<OutboxMessage>().AnyAsync(m => m.DeadLetteredAt == null))
+                {
+                    return;
+                }
+            }
+
+            if (DateTime.UtcNow > deadline)
+            {
+                Assert.Fail("outbox 在 15 秒內沒有清空");
+            }
+
+            await Task.Delay(100);
+        }
     }
 
     public override async ValueTask DisposeAsync()
@@ -127,7 +164,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<IEmailSender>();
-            services.AddScoped<IEmailSender, NoOpEmailSender>();
+            services.AddSingleton<IEmailSender>(Emails);
             services.RemoveAll<IQuizGenerationProvider>();
             services.AddScoped<IQuizGenerationProvider, FakeQuizGenerationProvider>();
         });

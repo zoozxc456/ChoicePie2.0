@@ -33,6 +33,14 @@ public sealed class TestWidget : AggregateRoot<Guid>
     {
         Name = name;
     }
+
+    /// <summary>模擬寄信類事件：帶著不能明文落地的 raw token，且有可靠 handler 訂閱。</summary>
+    public void IssueSecret(string rawToken)
+    {
+        AddDomainEvent(new TestSecretIssuedDomainEvent(Id, rawToken));
+    }
 }
 
 public sealed record TestWidgetCreatedDomainEvent(Guid WidgetId, string Name) : BaseDomainEvent;
+
+public sealed record TestSecretIssuedDomainEvent(Guid WidgetId, string RawToken) : BaseDomainEvent;

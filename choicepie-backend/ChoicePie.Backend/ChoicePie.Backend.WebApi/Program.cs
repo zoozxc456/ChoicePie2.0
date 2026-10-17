@@ -16,6 +16,9 @@ using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
 using ChoicePie.Backend.WebApi.Extensions;
 using ChoicePie.Backend.WebApi.Hubs;
 using MediatR;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.StackExchangeRedis;
 using Microsoft.EntityFrameworkCore;
@@ -51,7 +54,8 @@ builder.Services
     .AddChoicePieRateLimiting(builder.Configuration)
     .AddChoicePieCaching(builder.Configuration)
     .AddSharedDbContextPool<ChoicePieDbContext>(builder.Configuration)
-    .AddSharedPersistence<ChoicePieDbContext>()
+    // 可靠事件 handler 都在 Application 組件：只有它們訂閱的事件會寫進 outbox。
+    .AddSharedPersistence<ChoicePieDbContext>(typeof(ChoicePie.Backend.Application.AssemblyReference).Assembly)
     .AddHttpClient<AnthropicQuizGenerationProvider>()
     .Services
     // 刻意不實作 DI marker interface：Scrutor 的掃描註冊會蓋掉 typed client，導致 SSRF handler 被繞過。
@@ -93,6 +97,13 @@ builder.Services.AddOptions<RedisOptions>()
         options.Configuration.ChannelPrefix = RedisChannel.Literal("ChoicePie:SignalR");
         options.ConnectionFactory = _ => Task.FromResult(redis);
     });
+
+// Outbox payload 以 Data Protection 加密；任何一台寫入的訊息都可能由另一台派送，金鑰必須共用，
+// 所以金鑰環放在 Redis（沿用快取那條連線）。
+builder.Services.AddDataProtection().SetApplicationName("ChoicePie");
+builder.Services.AddOptions<KeyManagementOptions>()
+    .Configure<IConnectionMultiplexer>((options, redis) =>
+        options.XmlRepository = new RedisXmlRepository(() => redis.GetDatabase(), "ChoicePie:DataProtection-Keys"));
 
 var app = builder.Build();
 
