@@ -17,6 +17,7 @@
         <PackageReference Include="Scalar.AspNetCore" Version="2.16.10" />
         <PackageReference Include="Scrutor" Version="7.0.0" />
         <PackageReference Include="Sentry.AspNetCore" Version="6.12.1" />
+        <PackageReference Include="StackExchange.Redis" Version="2.10.1" />
     </ItemGroup>
     
     <ItemGroup>
