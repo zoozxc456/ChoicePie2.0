@@ -100,7 +100,7 @@ catch-all.
 
 **WebSocket (game)** — `useGameRoom()` (`app/composables/useGameRoom.ts`) wraps a SignalR
 `HubConnection` to `${apiBaseUrl}/api/gamehub` — SignalR still connects **directly** to the
-backend (browser WebSocket, `withCredentials`, authenticated by the backend's own auth cookie,
+backend (WebSockets only with `skipNegotiation` so multi-node backends need no sticky sessions, `withCredentials`, authenticated by the backend's own auth cookie,
 which the BFF forwards from auth responses via `forwardSetCookie`); `NUXT_PUBLIC_API_BASE_URL` is
 only used for this. Server→client events (`RoomCreated`, `PlayerJoined`, `PlayerDisconnected`,
 `PlayerReconnected`, `PauseStateChanged`, `HostConnectionChanged`, `QuestionStart`, `AnswerResult`,
