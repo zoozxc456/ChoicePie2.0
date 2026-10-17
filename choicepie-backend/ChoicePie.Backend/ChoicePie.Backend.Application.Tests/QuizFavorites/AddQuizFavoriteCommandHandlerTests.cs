@@ -7,6 +7,8 @@ using ChoicePie.Backend.Domain.Aggregates.QuizFavorite;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.QuizFavorites;
 
@@ -75,5 +77,14 @@ public class AddQuizFavoriteCommandHandlerTests
         _currentUserService.UserId.Returns((Guid?)null);
 
         Assert.ThrowsAsync<UnauthenticatedException>(() => _sut.Handle(new AddQuizFavoriteCommand(_quiz.Id), CancellationToken.None));
+    }
+
+    // 連點收藏：另一個請求已經收藏成功，這次也視為成功（冪等）。
+    [Test]
+    public void Handle_GivenFavoriteAddedConcurrently_WhenSaving_ThenTreatsAsAlreadyFavorited()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new UniqueConstraintViolationException("ix"));
+
+        Assert.DoesNotThrowAsync(() => _sut.Handle(new AddQuizFavoriteCommand(_quiz.Id), CancellationToken.None));
     }
 }

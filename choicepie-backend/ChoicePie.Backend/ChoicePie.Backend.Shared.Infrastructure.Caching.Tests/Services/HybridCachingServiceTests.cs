@@ -2,6 +2,7 @@ using ChoicePie.Backend.Shared.Application.Abstractions.Caching;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Services;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace ChoicePie.Backend.Shared.Infrastructure.Caching.Tests.Services;
 
@@ -14,34 +15,16 @@ public class HybridCachingServiceTests
     [SetUp]
     public void SetUp()
     {
-        // 沒有配置 StackExchangeRedisCache 的話 AddHybridCache 純用 in-process memory 當 L1/L2，
-        // 不需要真的起一個 Redis 就能測 HybridCachingService 的行為。
+        // 正式環境的 HybridCache 是 FusionCache 的 adapter；這裡不接 Redis，只用 L1 記憶體，
+        // 不需要真的起一個 Redis 就能測 HybridCachingService 在 adapter 底下的行為。
         var services = new ServiceCollection();
-        services.AddHybridCache();
+        services.AddFusionCache().AsHybridCache();
         _serviceProvider = services.BuildServiceProvider();
         _sut = new HybridCachingService(_serviceProvider.GetRequiredService<HybridCache>());
     }
 
     [TearDown]
     public void TearDown() => _serviceProvider.Dispose();
-
-    [Test]
-    public async Task SetAsync_ThenGetAsync_GivenSameKey_WhenCalled_ThenReturnsStoredValue()
-    {
-        await _sut.SetAsync("key-1", "hello world");
-
-        var result = await _sut.GetAsync<string>("key-1");
-
-        Assert.That(result, Is.EqualTo("hello world"));
-    }
-
-    [Test]
-    public async Task GetAsync_GivenNeverSetKey_WhenCalled_ThenReturnsDefaultWithoutWritingToCache()
-    {
-        var result = await _sut.GetAsync<string>("never-set-key");
-
-        Assert.That(result, Is.Null);
-    }
 
     [Test]
     public async Task GetOrCreateAsync_GivenNeverSetKey_WhenCalled_ThenInvokesFactoryAndCachesResult()
@@ -65,40 +48,43 @@ public class HybridCachingServiceTests
     }
 
     [Test]
-    public async Task RemoveAsync_GivenPreviouslySetKey_WhenCalled_ThenSubsequentGetReturnsDefault()
+    public async Task RemoveAsync_GivenCachedKey_WhenCalled_ThenNextGetOrCreateRecomputes()
     {
-        await _sut.SetAsync("removable-key", "value");
+        await _sut.GetOrCreateAsync("removable-key", _ => ValueTask.FromResult("stale"));
 
         await _sut.RemoveAsync("removable-key");
-        var result = await _sut.GetAsync<string>("removable-key");
+        var result = await _sut.GetOrCreateAsync("removable-key", _ => ValueTask.FromResult("fresh"));
 
-        Assert.That(result, Is.Null);
+        Assert.That(result, Is.EqualTo("fresh"));
     }
 
     [Test]
-    public async Task RemoveByTagAsync_GivenEntriesSharingATag_WhenCalled_ThenRemovesAllOfThem()
+    public async Task RemoveByTagAsync_GivenEntriesSharingATag_WhenCalled_ThenRecomputesAllOfThem()
     {
-        await _sut.SetAsync("tagged-key-1", "a", tags: ["shared-tag"]);
-        await _sut.SetAsync("tagged-key-2", "b", tags: ["shared-tag"]);
+        await _sut.GetOrCreateAsync("tagged-key-1", _ => ValueTask.FromResult("stale"), tags: ["shared-tag"]);
+        await _sut.GetOrCreateAsync("tagged-key-2", _ => ValueTask.FromResult("stale"), tags: ["shared-tag"]);
 
         await _sut.RemoveByTagAsync("shared-tag");
 
-        Assert.That(await _sut.GetAsync<string>("tagged-key-1"), Is.Null);
-        Assert.That(await _sut.GetAsync<string>("tagged-key-2"), Is.Null);
+        Assert.That(await _sut.GetOrCreateAsync("tagged-key-1", _ => ValueTask.FromResult("fresh"), tags: ["shared-tag"]),
+            Is.EqualTo("fresh"));
+        Assert.That(await _sut.GetOrCreateAsync("tagged-key-2", _ => ValueTask.FromResult("fresh"), tags: ["shared-tag"]),
+            Is.EqualTo("fresh"));
     }
 
     [Test]
-    public async Task SetAsync_GivenNullChoicePieCacheOptions_WhenCalled_ThenStillCachesUsingHybridCacheDefaults()
+    public async Task RemoveByTagAsync_GivenEntryWithOtherTag_WhenCalled_ThenKeepsIt()
     {
-        await _sut.SetAsync("no-options-key", "value", options: null);
+        await _sut.GetOrCreateAsync("other-key", _ => ValueTask.FromResult("kept"), tags: ["other-tag"]);
 
-        var result = await _sut.GetAsync<string>("no-options-key");
+        await _sut.RemoveByTagAsync("shared-tag");
 
-        Assert.That(result, Is.EqualTo("value"));
+        Assert.That(await _sut.GetOrCreateAsync("other-key", _ => ValueTask.FromResult("fresh"), tags: ["other-tag"]),
+            Is.EqualTo("kept"));
     }
 
     [Test]
-    public async Task SetAsync_GivenCustomExpirationOptions_WhenCalled_ThenValueIsRetrievableBeforeExpiry()
+    public async Task GetOrCreateAsync_GivenCustomExpirationOptions_WhenCalledTwice_ThenSecondCallHitsCache()
     {
         var options = new ChoicePieCacheOptions
         {
@@ -106,8 +92,9 @@ public class HybridCachingServiceTests
             LocalCacheExpiration = TimeSpan.FromMinutes(1)
         };
 
-        await _sut.SetAsync("custom-options-key", "value", options);
+        await _sut.GetOrCreateAsync("custom-options-key", _ => ValueTask.FromResult("value"), options);
+        var result = await _sut.GetOrCreateAsync("custom-options-key", _ => ValueTask.FromResult("other"), options);
 
-        Assert.That(await _sut.GetAsync<string>("custom-options-key"), Is.EqualTo("value"));
+        Assert.That(result, Is.EqualTo("value"));
     }
 }

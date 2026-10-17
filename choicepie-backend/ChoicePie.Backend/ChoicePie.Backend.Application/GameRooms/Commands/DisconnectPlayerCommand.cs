@@ -4,4 +4,4 @@ using MediatR;
 namespace ChoicePie.Backend.Application.GameRooms.Commands;
 
 public sealed record DisconnectPlayerCommand(string RoomCode, Guid PlayerId, string ConnectionId)
-    : IRequest<PlayerDisconnectOutcome>;
+    : IRequest<PlayerDisconnectOutcome>, IGameRoomCommand;

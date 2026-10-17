@@ -41,6 +41,7 @@ public sealed class Member : AggregateRoot<Guid>
 
         Name = personName.Value.Trim();
         Touch();
+        AddDomainEvent(new MemberProfileChangedDomainEvent(Id));
     }
 
     // 回傳舊的頭像網址，讓呼叫端可以清掉不再使用的檔案。
@@ -51,6 +52,7 @@ public sealed class Member : AggregateRoot<Guid>
         var previous = Avatar;
         Avatar = avatarUrl;
         Touch();
+        AddDomainEvent(new MemberProfileChangedDomainEvent(Id));
 
         return previous;
     }

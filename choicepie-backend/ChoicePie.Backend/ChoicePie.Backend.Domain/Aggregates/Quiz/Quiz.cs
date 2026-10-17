@@ -82,7 +82,7 @@ public sealed class Quiz : AggregateRoot<Guid>
 
     public new void Delete(Guid deleterId)
     {
-        Status = QuizStatus.Deleted;
+        ChangeStatus(QuizStatus.Deleted);
         base.Delete(deleterId);
     }
 
@@ -100,6 +100,7 @@ public sealed class Quiz : AggregateRoot<Guid>
 
         _questions.Add(question);
         Touch();
+        AddDomainEvent(new QuizQuestionsChangedDomainEvent(Id));
     }
 
     public void RemoveQuestion(Guid questionId)
@@ -108,6 +109,7 @@ public sealed class Quiz : AggregateRoot<Guid>
 
         _questions.RemoveAll(q => q.Id == questionId);
         Touch();
+        AddDomainEvent(new QuizQuestionsChangedDomainEvent(Id));
     }
 
     public void UpdateQuestion(Guid questionId, string text, IReadOnlyList<string> options, int answerIndex,
@@ -120,6 +122,7 @@ public sealed class Quiz : AggregateRoot<Guid>
 
         question.Update(text, options, answerIndex, explanation);
         Touch();
+        AddDomainEvent(new QuizQuestionsChangedDomainEvent(Id));
     }
 
     public void UpdateDetails(string title, string? description, IEnumerable<string> tags)
@@ -130,10 +133,13 @@ public sealed class Quiz : AggregateRoot<Guid>
         Title = title;
         Description = description;
 
+        var newTags = TagList.Create(tags).Values;
+        var tagsChanged = !_tags.SequenceEqual(newTags);
         _tags.Clear();
-        _tags.AddRange(TagList.Create(tags).Values);
+        _tags.AddRange(newTags);
 
         Touch();
+        AddDomainEvent(new QuizDetailsUpdatedDomainEvent(Id, tagsChanged));
     }
 
     public void UpdateCover(string? imageUrl, string emoji, string gradient)
@@ -142,6 +148,7 @@ public sealed class Quiz : AggregateRoot<Guid>
 
         Cover = QuizCover.Create(imageUrl, emoji, gradient);
         Touch();
+        AddDomainEvent(new QuizCoverUpdatedDomainEvent(Id));
     }
 
     public void Publish()
@@ -156,7 +163,7 @@ public sealed class Quiz : AggregateRoot<Guid>
             throw new InvalidQuizException("題庫至少需要一題才能發布。");
         }
 
-        Status = QuizStatus.Published;
+        ChangeStatus(QuizStatus.Published);
         Touch();
     }
 
@@ -167,7 +174,7 @@ public sealed class Quiz : AggregateRoot<Guid>
             throw new InvalidQuizException("只有已發布狀態的題庫可以取消發布。");
         }
 
-        Status = QuizStatus.Draft;
+        ChangeStatus(QuizStatus.Draft);
         Touch();
     }
 
@@ -183,7 +190,7 @@ public sealed class Quiz : AggregateRoot<Guid>
             throw new InvalidQuizException("題庫已被下架，無法封存。");
         }
 
-        Status = QuizStatus.Archived;
+        ChangeStatus(QuizStatus.Archived);
         Touch();
     }
 
@@ -194,7 +201,7 @@ public sealed class Quiz : AggregateRoot<Guid>
             throw new InvalidQuizException("只有封存狀態的題庫可以取消封存。");
         }
 
-        Status = QuizStatus.Draft;
+        ChangeStatus(QuizStatus.Draft);
         Touch();
     }
 
@@ -220,7 +227,7 @@ public sealed class Quiz : AggregateRoot<Guid>
             throw new InvalidQuizException("下架原因不能為空。");
         }
 
-        Status = QuizStatus.TakenDown;
+        ChangeStatus(QuizStatus.TakenDown);
         TakedownReason = reason;
         TakedownBy = adminId;
         TakedownAt = utcNow;
@@ -234,11 +241,18 @@ public sealed class Quiz : AggregateRoot<Guid>
             throw new InvalidQuizException("題庫目前不是下架狀態。");
         }
 
-        Status = QuizStatus.Draft;
+        ChangeStatus(QuizStatus.Draft);
         TakedownReason = null;
         TakedownBy = null;
         TakedownAt = null;
         Touch();
+    }
+
+    private void ChangeStatus(QuizStatus newStatus)
+    {
+        var previous = Status;
+        Status = newStatus;
+        AddDomainEvent(new QuizStatusChangedDomainEvent(Id, previous, newStatus));
     }
 
     private void EnsureEditable()

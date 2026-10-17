@@ -1,4 +1,6 @@
+using ChoicePie.Backend.Application.GameRooms;
 using ChoicePie.Backend.Application.Quizzes.Contracts;
+using ChoicePie.Backend.Infrastructure.Caching.Quizzes;
 using ChoicePie.Backend.Infrastructure.ExternalServices.Quizzes.Providers;
 using ChoicePie.Backend.Infrastructure.ExternalServices.WebPages;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
@@ -13,8 +15,11 @@ using ChoicePie.Backend.Shared.Infrastructure.Persistence.Extensions;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Settings;
 using ChoicePie.Backend.WebApi.Extensions;
 using ChoicePie.Backend.WebApi.Hubs;
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR.StackExchangeRedis;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +64,10 @@ builder.Services
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Infrastructure.Security.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Infrastructure.Email.AssemblyReference).Assembly)
     .AddInfrastructure(typeof(ChoicePie.Backend.Shared.Hosting.AssemblyReference).Assembly)
+    // 快取 decorator 不走 marker interface 掃描，否則會被當成另一個 IQuizQueryService 實作註冊。
+    .Decorate<IQuizQueryService, CachedQuizQueryService>()
+    // 排在 AddApplication 的 ValidationBehaviour 之後：驗證不過的指令不必等房間鎖。
+    .AddTransient(typeof(IPipelineBehavior<,>), typeof(GameRoomLockBehavior<,>))
     .AddSingleton<DomainExceptionHubFilter>();
 
 builder.Services.AddChoicePieHealthChecks()
@@ -75,19 +84,34 @@ builder.Services.AddSignalR(options =>
         options.KeepAliveInterval = TimeSpan.FromSeconds(15);
         options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
     }
-});
+}).AddStackExchangeRedis();
+
+// 多台後端：Redis backplane 讓 Clients.Group(...) 也送達連在其他節點上的連線。沿用快取註冊的那條 Redis 連線。
+builder.Services.AddOptions<RedisOptions>()
+    .Configure<IConnectionMultiplexer>((options, redis) =>
+    {
+        options.Configuration.ChannelPrefix = RedisChannel.Literal("ChoicePie:SignalR");
+        options.ConnectionFactory = _ => Task.FromResult(redis);
+    });
 
 var app = builder.Build();
 
 using (var startupScope = app.Services.CreateScope())
 {
     var dbContext = startupScope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
-    await dbContext.Database.MigrateAsync();
 
-    var seeders = startupScope.ServiceProvider.GetServices<IDataSeeder>().OrderBy(s => s.Order);
-    foreach (var seeder in seeders)
+    // 多台同時啟動時一次只讓一台跑 migration 與 seed；其他台等它做完再跑，
+    // 這時 migration 已經是 no-op，seeder 也會看到資料已存在而略過，不會重複建立管理員。
+    const long startupMigrationLockKey = 0x43686F6963655069; // "ChoicePi"
+    await using (await dbContext.Database.AcquireAdvisoryLockAsync(startupMigrationLockKey))
     {
-        await seeder.SeedAsync();
+        await dbContext.Database.MigrateAsync();
+
+        var seeders = startupScope.ServiceProvider.GetServices<IDataSeeder>().OrderBy(s => s.Order);
+        foreach (var seeder in seeders)
+        {
+            await seeder.SeedAsync();
+        }
     }
 }
 

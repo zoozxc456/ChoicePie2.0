@@ -1,6 +1,9 @@
 <template>
   <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold mb-2">
+    <h1
+      data-testid="game-ended-title"
+      class="text-3xl font-bold mb-2"
+    >
       {{ t('host.ended.title') }}
     </h1>
     <p class="text-cp-text-secondary">

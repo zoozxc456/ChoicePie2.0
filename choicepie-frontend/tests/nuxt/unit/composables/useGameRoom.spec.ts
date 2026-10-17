@@ -65,6 +65,18 @@ describe('useGameRoom', () => {
       expect(hubConnectionMock.start).toHaveBeenCalledTimes(1)
     })
 
+    it('跳過 negotiate 直接用 WebSocket 連線，後端多台時不需要 sticky session', async () => {
+      const { useGameRoom } = await importUseGameRoom()
+      const gameRoom = useGameRoom()
+
+      await gameRoom.connect()
+
+      expect(builderMock.withUrl).toHaveBeenCalledWith(
+        'https://api.example.test/api/gamehub',
+        expect.objectContaining({ skipNegotiation: true, transport: 1 })
+      )
+    })
+
     it('已連線時不重複建立', async () => {
       const { useGameRoom } = await importUseGameRoom()
       const gameRoom = useGameRoom()

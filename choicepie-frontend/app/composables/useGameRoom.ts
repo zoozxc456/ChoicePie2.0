@@ -128,8 +128,12 @@ export const useGameRoom = () => {
     const config = useRuntimeConfig()
 
     _connection = new signalR.HubConnectionBuilder()
+      // 後端是多台部署：預設的 negotiate 是先打一個 HTTP 請求拿 connection ID，再用它開 WebSocket，
+      // 兩個請求可能被負載平衡器分到不同台而連線失敗。直接開 WebSocket 只有一個請求，不需要 sticky session。
       .withUrl(`${config.public.apiBaseUrl}/api/gamehub`, {
-        withCredentials: true
+        withCredentials: true,
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000])
       .configureLogging(signalR.LogLevel.Warning)

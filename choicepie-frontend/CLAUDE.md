@@ -33,6 +33,10 @@ npx vitest run              # run unit tests (tests/nuxt/unit/**/*.spec.ts)
 
 **Do not run `nuxi build` / `nuxi dev` to verify changes** — use typecheck + lint only.
 
+End-to-end tests live in `../e2e` (Playwright against a multi-node Docker Compose stack; the Nuxt
+build there runs only inside Docker — see `../e2e/README.md`). They select elements by `data-testid`,
+so keep those attributes when refactoring game-room components.
+
 ## Directory structure (`app/`)
 
 - `pages/` — file-based routing (see Routing below)
@@ -100,7 +104,7 @@ catch-all.
 
 **WebSocket (game)** — `useGameRoom()` (`app/composables/useGameRoom.ts`) wraps a SignalR
 `HubConnection` to `${apiBaseUrl}/api/gamehub` — SignalR still connects **directly** to the
-backend (browser WebSocket, `withCredentials`, authenticated by the backend's own auth cookie,
+backend (WebSockets only with `skipNegotiation` so multi-node backends need no sticky sessions, `withCredentials`, authenticated by the backend's own auth cookie,
 which the BFF forwards from auth responses via `forwardSetCookie`); `NUXT_PUBLIC_API_BASE_URL` is
 only used for this. Server→client events (`RoomCreated`, `PlayerJoined`, `PlayerDisconnected`,
 `PlayerReconnected`, `PauseStateChanged`, `HostConnectionChanged`, `QuestionStart`, `AnswerResult`,

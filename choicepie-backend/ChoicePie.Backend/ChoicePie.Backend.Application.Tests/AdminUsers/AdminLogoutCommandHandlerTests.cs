@@ -6,6 +6,8 @@ using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
 using RefreshTokenAggregate = ChoicePie.Backend.Domain.Aggregates.RefreshToken.RefreshToken;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.AdminUsers;
 
@@ -65,5 +67,14 @@ public class AdminLogoutCommandHandlerTests
         await _refreshTokenRepository.DidNotReceive()
             .UpdateAsync(Arg.Any<RefreshTokenAggregate>(), Arg.Any<CancellationToken>());
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public void Handle_GivenTokenRevokedConcurrently_WhenSaving_ThenTreatsLogoutAsDone()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new ConcurrencyConflictException());
+
+        Assert.DoesNotThrowAsync(() =>
+            _sut.Handle(new AdminLogoutCommand { RefreshToken = "valid-raw-token" }, CancellationToken.None));
     }
 }

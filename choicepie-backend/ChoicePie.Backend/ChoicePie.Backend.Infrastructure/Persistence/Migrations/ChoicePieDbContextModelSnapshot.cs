@@ -383,6 +383,12 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("used_at");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id")
                         .HasName("pk_email_verification_token");
 
@@ -655,6 +661,12 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("used_at");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id")
                         .HasName("pk_password_reset_token");
 
@@ -801,11 +813,22 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("status");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id")
                         .HasName("pk_quiz_attempt");
 
                     b.HasIndex("QuizId", "MemberId")
                         .HasDatabaseName("ix_quiz_attempt_quiz_id_member_id");
+
+                    b.HasIndex(new[] { "QuizId", "MemberId" }, "ix_quiz_attempt_one_in_progress_per_member")
+                        .IsUnique()
+                        .HasDatabaseName("ix_quiz_attempt_one_in_progress_per_member")
+                        .HasFilter("status = 1");
 
                     b.ToTable("quiz_attempt", (string)null);
                 });
@@ -925,6 +948,11 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_quiz_report_status");
 
+                    b.HasIndex("QuizId", "CreatorId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_quiz_report_one_pending_per_reporter")
+                        .HasFilter("status = 1");
+
                     b.ToTable("quiz_report", (string)null);
                 });
 
@@ -983,6 +1011,12 @@ namespace ChoicePie.Backend.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("token_hash");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id")
                         .HasName("pk_refresh_token");

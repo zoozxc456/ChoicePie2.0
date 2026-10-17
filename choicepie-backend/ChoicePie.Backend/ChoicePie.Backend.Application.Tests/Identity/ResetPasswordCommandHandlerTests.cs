@@ -9,6 +9,8 @@ using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 using AuthAccountAggregate = ChoicePie.Backend.Domain.Aggregates.AuthAccount.AuthAccount;
 using PasswordResetTokenAggregate = ChoicePie.Backend.Domain.Aggregates.PasswordResetToken.PasswordResetToken;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.Identity;
 
@@ -93,6 +95,15 @@ public class ResetPasswordCommandHandlerTests
     public void Handle_GivenAlreadyUsedToken_WhenCalled_ThenThrowsInvalidPasswordResetTokenException()
     {
         _resetToken.MarkUsed(_now.UtcDateTime);
+
+        Assert.ThrowsAsync<InvalidPasswordResetTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+    }
+
+    // 同一顆重設 token 同時被用兩次：只有先存檔的成功，另一個視為 token 已失效。
+    [Test]
+    public void Handle_GivenTokenUsedConcurrentlyByAnotherRequest_WhenSaving_ThenThrowsInvalidToken()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new ConcurrencyConflictException());
 
         Assert.ThrowsAsync<InvalidPasswordResetTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }

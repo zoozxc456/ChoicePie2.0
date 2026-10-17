@@ -22,43 +22,12 @@ public sealed class GameHubTests
     [OneTimeTearDown]
     public async Task OneTimeTearDown() => await _factory.DisposeAsync();
 
-    private static async Task<Guid> CreateAndPublishQuizAsync(HttpClient hostClient)
-    {
-        var createResponse = await hostClient.PostAsJsonAsync("/api/v1/quizzes", new
-        {
-            Title = "Integration Test Quiz",
-            Description = "for GameHub tests",
-            CoverEmoji = "🎯",
-            CoverGradient = "primary",
-            Difficulty = "beginner",
-            Tags = new[] { "test" },
-            Questions = new[]
-            {
-                new
-                {
-                    Text = "1 + 1 = ?",
-                    Options = new[] { "1", "2", "3", "4" },
-                    AnswerIndex = 1,
-                    Explanation = "basic math"
-                }
-            }
-        });
-        createResponse.EnsureSuccessStatusCode();
-        var created = await createResponse.Content.ReadFromJsonAsync<ApiResponse<QuizDto>>();
-        var quizId = created!.Data!.Id;
-
-        var publishResponse = await hostClient.PostAsync($"/api/v1/quizzes/{quizId}/publish", null);
-        publishResponse.EnsureSuccessStatusCode();
-
-        return quizId;
-    }
-
     [Test]
     public async Task CreateRoom_GivenAuthenticatedHostWithPublishedQuiz_WhenCalled_ThenReturnsRoomCodeAndJoinsHostGroup()
     {
         var (hostClient, hostCookies, _) = await GameHubTestClient.CreateAuthenticatedHostClientAsync(_factory);
         using var _1 = hostClient;
-        var quizId = await CreateAndPublishQuizAsync(hostClient);
+        var quizId = await GameHubTestClient.CreateAndPublishQuizAsync(hostClient);
 
         await using var hostConnection = await GameHubTestClient.CreateHostHubConnectionAsync(_factory, hostCookies);
 
@@ -77,7 +46,7 @@ public sealed class GameHubTests
     {
         var (hostClient, hostCookies, _) = await GameHubTestClient.CreateAuthenticatedHostClientAsync(_factory);
         using var _1 = hostClient;
-        var quizId = await CreateAndPublishQuizAsync(hostClient);
+        var quizId = await GameHubTestClient.CreateAndPublishQuizAsync(hostClient);
 
         await using var hostConnection = await GameHubTestClient.CreateHostHubConnectionAsync(_factory, hostCookies);
 
@@ -106,7 +75,7 @@ public sealed class GameHubTests
     {
         var (hostClient, hostCookies, _) = await GameHubTestClient.CreateAuthenticatedHostClientAsync(_factory);
         using var _1 = hostClient;
-        var quizId = await CreateAndPublishQuizAsync(hostClient);
+        var quizId = await GameHubTestClient.CreateAndPublishQuizAsync(hostClient);
 
         var hostConnection = await GameHubTestClient.CreateHostHubConnectionAsync(_factory, hostCookies);
         var roomCreatedTcs = new TaskCompletionSource<string>();
@@ -232,7 +201,7 @@ public sealed class GameHubTests
     {
         var (hostClient, hostCookies, _) = await GameHubTestClient.CreateAuthenticatedHostClientAsync(_factory);
         using var _1 = hostClient;
-        var quizId = await CreateAndPublishQuizAsync(hostClient);
+        var quizId = await GameHubTestClient.CreateAndPublishQuizAsync(hostClient);
 
         var firstHostConnection = await GameHubTestClient.CreateHostHubConnectionAsync(_factory, hostCookies);
         var roomCreatedTcs = new TaskCompletionSource<string>();

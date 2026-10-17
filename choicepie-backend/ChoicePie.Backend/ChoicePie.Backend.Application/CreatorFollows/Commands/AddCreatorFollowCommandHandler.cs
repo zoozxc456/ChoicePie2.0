@@ -4,6 +4,7 @@ using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using MediatR;
 
 namespace ChoicePie.Backend.Application.CreatorFollows.Commands;
@@ -32,6 +33,13 @@ public sealed class AddCreatorFollowCommandHandler(
 
         var follow = CreatorFollow.Create(userId, request.CreatorId);
         await followRepository.AddAsync(follow, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (UniqueConstraintViolationException)
+        {
+            // 連點追蹤時另一個請求已經追蹤成功：結果相同，視為成功。
+        }
     }
 }

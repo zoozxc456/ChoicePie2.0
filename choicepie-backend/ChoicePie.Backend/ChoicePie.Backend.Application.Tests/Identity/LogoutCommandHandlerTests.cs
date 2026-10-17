@@ -6,6 +6,8 @@ using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
 using RefreshTokenAggregate = ChoicePie.Backend.Domain.Aggregates.RefreshToken.RefreshToken;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.Identity;
 
@@ -75,5 +77,15 @@ public class LogoutCommandHandlerTests
         await _sut.Handle(new LogoutCommand { RefreshToken = "valid-raw-token" }, CancellationToken.None);
 
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    // 登出與另一個請求同時撤銷同一顆 token：結果一樣是 token 失效，登出視為成功。
+    [Test]
+    public void Handle_GivenTokenRevokedConcurrently_WhenSaving_ThenTreatsLogoutAsDone()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new ConcurrencyConflictException());
+
+        Assert.DoesNotThrowAsync(() =>
+            _sut.Handle(new LogoutCommand { RefreshToken = "valid-raw-token" }, CancellationToken.None));
     }
 }

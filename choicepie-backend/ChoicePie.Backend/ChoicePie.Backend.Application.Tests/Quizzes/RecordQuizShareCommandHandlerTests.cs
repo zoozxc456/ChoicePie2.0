@@ -1,8 +1,6 @@
 using ChoicePie.Backend.Application.Quizzes.Commands;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
-using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
-using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.Quizzes;
@@ -11,39 +9,32 @@ namespace ChoicePie.Backend.Application.Tests.Quizzes;
 public class RecordQuizShareCommandHandlerTests
 {
     private IQuizRepository _quizRepository = null!;
-    private IUnitOfWork _unitOfWork = null!;
     private RecordQuizShareCommandHandler _sut = null!;
-    private Quiz _quiz = null!;
 
     [SetUp]
     public void SetUp()
     {
         _quizRepository = Substitute.For<IQuizRepository>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new RecordQuizShareCommandHandler(_quizRepository, _unitOfWork);
-
-        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
-        _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
+        _sut = new RecordQuizShareCommandHandler(_quizRepository);
     }
 
-    [TearDown]
-    public void TearDown() => _unitOfWork.Dispose();
-
+    // 同時分享時不能「讀出來加一再寫回」而少算：交給 repository 用單一 UPDATE 原子遞增。
     [Test]
-    public async Task Handle_WhenCalled_ThenIncrementsShareCountAndPersists()
+    public async Task Handle_WhenCalled_ThenIncrementsShareCountAtomicallyAndReturnsNewCount()
     {
-        var result = await _sut.Handle(new RecordQuizShareCommand(_quiz.Id), CancellationToken.None);
+        var quizId = Guid.NewGuid();
+        _quizRepository.IncrementShareCountAsync(quizId, Arg.Any<CancellationToken>()).Returns(7);
 
-        Assert.That(result, Is.EqualTo(1));
-        Assert.That(_quiz.ShareCount, Is.EqualTo(1));
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        var result = await _sut.Handle(new RecordQuizShareCommand(quizId), CancellationToken.None);
+
+        Assert.That(result, Is.EqualTo(7));
     }
 
     [Test]
     public void Handle_GivenQuizNotFound_WhenCalled_ThenThrowsQuizNotFoundException()
     {
         var missingId = Guid.NewGuid();
-        _quizRepository.GetByIdAsync(missingId, Arg.Any<CancellationToken>()).Returns((Quiz?)null);
+        _quizRepository.IncrementShareCountAsync(missingId, Arg.Any<CancellationToken>()).Returns((int?)null);
 
         Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(new RecordQuizShareCommand(missingId), CancellationToken.None));
     }

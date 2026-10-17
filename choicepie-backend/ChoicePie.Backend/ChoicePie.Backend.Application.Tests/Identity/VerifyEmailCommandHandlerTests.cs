@@ -9,6 +9,8 @@ using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 using AuthAccountAggregate = ChoicePie.Backend.Domain.Aggregates.AuthAccount.AuthAccount;
 using EmailVerificationTokenAggregate = ChoicePie.Backend.Domain.Aggregates.EmailVerificationToken.EmailVerificationToken;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.Identity;
 
@@ -78,6 +80,15 @@ public class VerifyEmailCommandHandlerTests
     public void Handle_GivenExpiredToken_WhenCalled_ThenThrowsInvalidEmailVerificationTokenException()
     {
         _timeProvider.GetUtcNow().Returns(_now.AddHours(25));
+
+        Assert.ThrowsAsync<InvalidEmailVerificationTokenException>(() =>
+            _sut.Handle(new VerifyEmailCommand { Token = "raw-token" }, CancellationToken.None));
+    }
+
+    [Test]
+    public void Handle_GivenTokenUsedConcurrentlyByAnotherRequest_WhenSaving_ThenThrowsInvalidToken()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new ConcurrencyConflictException());
 
         Assert.ThrowsAsync<InvalidEmailVerificationTokenException>(() =>
             _sut.Handle(new VerifyEmailCommand { Token = "raw-token" }, CancellationToken.None));

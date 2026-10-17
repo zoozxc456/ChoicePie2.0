@@ -2,6 +2,7 @@ using ChoicePie.Backend.Domain.Aggregates.RefreshToken;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using MediatR;
 
 namespace ChoicePie.Backend.Application.AdminUsers.Commands;
@@ -27,6 +28,13 @@ public sealed class AdminLogoutCommandHandler(
 
         existingToken.Revoke(timeProvider.GetUtcNow().UtcDateTime);
         await refreshTokenRepository.UpdateAsync(existingToken, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            // token 同時被另一個請求撤銷或輪替：結果一樣是這顆 token 失效，登出視為完成。
+        }
     }
 }

@@ -18,37 +18,6 @@ public class HybridCachingService(HybridCache cache) : ICachingService, IScopedD
         return cache.GetOrCreateAsync(key, factory, entryOptions, tags, ct);
     }
 
-    public async ValueTask<T?> GetAsync<T>(string key, CancellationToken ct = default)
-    {
-        var factoryRan = false;
-        var result = await cache.GetOrCreateAsync<T?>(
-            key,
-            ct2 =>
-            {
-                factoryRan = true;
-                return ValueTask.FromResult<T?>(default);
-            },
-            new HybridCacheEntryOptions
-            {
-                Flags = HybridCacheEntryFlags.DisableLocalCacheWrite |
-                        HybridCacheEntryFlags.DisableDistributedCacheWrite
-            },
-            cancellationToken: ct
-        );
-        return factoryRan ? default : result;
-    }
-
-    public ValueTask SetAsync<T>(
-        string key,
-        T value,
-        ChoicePieCacheOptions? options = null,
-        IEnumerable<string>? tags = null,
-        CancellationToken ct = default)
-    {
-        var entryOptions = MapOptions(options);
-        return cache.SetAsync(key, value, entryOptions, tags, ct);
-    }
-
     public ValueTask RemoveAsync(string key, CancellationToken ct = default)
     {
         return cache.RemoveAsync(key, ct);

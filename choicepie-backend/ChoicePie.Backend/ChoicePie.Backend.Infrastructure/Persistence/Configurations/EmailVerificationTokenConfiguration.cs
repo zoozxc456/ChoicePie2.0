@@ -1,3 +1,4 @@
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Extensions;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using EmailVerificationTokenAggregate = ChoicePie.Backend.Domain.Aggregates.EmailVerificationToken.EmailVerificationToken;
@@ -12,6 +13,8 @@ public sealed class EmailVerificationTokenConfiguration : AuditableEntityConfigu
 
         builder.Property(t => t.TokenHash).IsRequired();
         builder.HasIndex(t => t.TokenHash).IsUnique();
+        // 一次性 token：同一顆 token 同時被使用兩次時，只有先存檔的成功。
+        builder.UseXminConcurrencyToken();
         builder.HasIndex(t => t.AuthAccountId);
     }
 }

@@ -1,3 +1,4 @@
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Extensions;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Enums;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,15 @@ public sealed class QuizAttemptConfiguration : AuditableEntityConfiguration<Quiz
             list => list.ToList());
 
         builder.HasIndex(a => new { a.QuizId, a.MemberId });
+
+        // 同一位會員對同一份題庫最多一個進行中的作答（連點「開始挑戰」時只會建立一筆）。
+        builder.HasIndex(a => new { a.QuizId, a.MemberId }, "ix_quiz_attempt_one_in_progress_per_member")
+            .HasDatabaseName("ix_quiz_attempt_one_in_progress_per_member")
+            .IsUnique()
+            .HasFilter($"status = {AttemptStatus.InProgress.Id}");
+
+        // 繳交與作答會改寫同一筆作答，連點「繳交」時只有一次會成立，挑戰次數不會重複計算。
+        builder.UseXminConcurrencyToken();
 
         builder.Property(a => a.Status)
             .HasConversion(new EnumerationValueConverter<AttemptStatus>())

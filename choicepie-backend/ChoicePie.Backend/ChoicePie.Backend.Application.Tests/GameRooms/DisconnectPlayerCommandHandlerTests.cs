@@ -19,7 +19,7 @@ public class DisconnectPlayerCommandHandlerTests
     public void SetUp()
     {
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
-        _sut = new DisconnectPlayerCommandHandler(_gameRoomRepository, new GameRoomLock());
+        _sut = new DisconnectPlayerCommandHandler(_gameRoomRepository);
     }
 
     private Domain.Aggregates.GameRoom.GameRoom CreateLobbyRoom()

@@ -7,6 +7,7 @@ using ChoicePie.Backend.Domain.Aggregates.QuizReport.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.QuizReport.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using MediatR;
 
 namespace ChoicePie.Backend.Application.QuizReports.Commands;
@@ -39,6 +40,14 @@ public sealed class CreateQuizReportCommandHandler(
         var report = QuizReport.Create(request.QuizId, userId, reason, request.Description);
 
         await quizReportRepository.AddAsync(report, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (UniqueConstraintViolationException)
+        {
+            // 連點檢舉：同一份題庫最多一筆待處理檢舉，由部分唯一索引擋下較慢的那個。
+            throw new InvalidQuizReportException("你已檢舉過此題庫，請等待處理結果。");
+        }
     }
 }

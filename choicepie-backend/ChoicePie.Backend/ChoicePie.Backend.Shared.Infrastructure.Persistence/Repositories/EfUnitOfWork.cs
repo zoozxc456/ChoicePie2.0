@@ -5,7 +5,9 @@ using ChoicePie.Backend.Shared.Kernel.Abstractions.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 
@@ -19,7 +21,22 @@ public class EfUnitOfWork<TContext>(TContext context, IPublisher mediator, IServ
         var domainEvents = GetAndClearDomainEvents();
         FixPhantomModifiedOwnedEntities();
 
-        var result = await context.SaveChangesAsync(ct);
+        int result;
+        try
+        {
+            result = await context.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new ConcurrencyConflictException(ex);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+                                           {
+                                               SqlState: PostgresErrorCodes.UniqueViolation
+                                           } postgresException)
+        {
+            throw new UniqueConstraintViolationException(postgresException.ConstraintName, ex);
+        }
 
         await DispatchDomainEventsAsync(domainEvents, ct);
         return result;

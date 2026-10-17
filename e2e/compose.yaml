@@ -1,0 +1,130 @@
+# 端到端測試用的多節點環境：兩台後端共用 Postgres / Redis，前面是一台「不開 sticky session」的 nginx。
+#
+#   瀏覽器 ─► web-a (localhost:3000) ─┐ BFF REST：lb:8080，兩台輪流（round-robin）
+#   瀏覽器 ─► web-b (localhost:3001) ─┘
+#   web-a 頁面的 SignalR ─► localhost:8081 ─► 固定 backend-a
+#   web-b 頁面的 SignalR ─► localhost:8082 ─► 固定 backend-b
+#
+# SignalR 分成兩個固定入口，Host 與玩家才保證連在不同台上，跨節點的推播每次都會被測到；
+# 兩個入口都經過 nginx，WebSocket upgrade 的反向代理設定也一起被驗證。
+name: choicepie-e2e
+
+x-backend: &backend
+  build:
+    context: ../choicepie-backend/ChoicePie.Backend
+    dockerfile: ChoicePie.Backend.WebApi/Dockerfile
+  image: choicepie-e2e-backend
+  depends_on:
+    postgres: { condition: service_healthy }
+    redis: { condition: service_healthy }
+    mailpit: { condition: service_started }
+  environment:
+    # Development + 空的 CookieDomain = 本機 localhost 拓樸（純 HTTP、不設 Domain、SameSite=Lax）。
+    ASPNETCORE_ENVIRONMENT: Development
+    Auth__CookieDomain: ""
+    DatabaseConnections__0__Type: NPGSQL
+    DatabaseConnections__0__ConnectionString: Host=postgres;Database=choicepie;Username=choicepie;Password=choicepie
+    RedisConnection__ConnectionString: redis:6379
+    Jwt__SigningKey: e2e-signing-key-used-only-for-end-to-end-tests-0123456789
+    Cors__AllowedOrigins__0: http://localhost:3000
+    Cors__AllowedOrigins__1: http://localhost:3001
+    Smtp__Host: mailpit
+    Smtp__Port: "1025"
+    Smtp__UseSsl: "false"
+    Smtp__Username: e2e
+    Smtp__Password: e2e
+    Google__ClientId: ""
+    # 所有請求都從 nginx 這個 IP 進來，正式的限流值會讓測試吃到 429。
+    RateLimiting__Auth__PermitLimit: "100000"
+    RateLimiting__Email__PermitLimit: "100000"
+    RateLimiting__Ai__PermitLimit: "100000"
+    RateLimiting__Write__PermitLimit: "100000"
+    RateLimiting__Global__PermitLimit: "100000"
+  healthcheck:
+    # aspnet runtime image 沒有 curl/wget，用 bash 的 /dev/tcp 打 readiness 端點。
+    test:
+      - CMD
+      - bash
+      - -c
+      - exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health/ready HTTP/1.0\r\n\r\n' >&3 && grep -q '200 OK' <&3
+    interval: 3s
+    timeout: 5s
+    retries: 40
+
+x-web: &web
+  build:
+    context: ../choicepie-frontend
+    dockerfile: ../e2e/frontend.Dockerfile
+  image: choicepie-e2e-web
+  depends_on:
+    lb: { condition: service_healthy }
+  healthcheck:
+    test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/join').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+    interval: 2s
+    timeout: 5s
+    retries: 30
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: choicepie
+      POSTGRES_USER: choicepie
+      POSTGRES_PASSWORD: choicepie
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U choicepie -d choicepie]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  # 註冊流程會寄驗證信；mailpit 接收任何帳密，信件不會真的寄出。
+  mailpit:
+    image: axllent/mailpit:v1.27
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+
+  backend-a: *backend
+  backend-b: *backend
+
+  lb:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      backend-a: { condition: service_healthy }
+      backend-b: { condition: service_healthy }
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+    healthcheck:
+      test: [CMD, wget, -qO-, http://127.0.0.1:8080/health/ready]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  web-a:
+    <<: *web
+    environment:
+      NUXT_BACKEND_API_URL: http://lb:8080
+      NUXT_PUBLIC_API_BASE_URL: http://localhost:8081
+      NUXT_PUBLIC_GOOGLE_CLIENT_ID: e2e-dummy
+    ports:
+      - "3000:3000"
+
+  web-b:
+    <<: *web
+    environment:
+      NUXT_BACKEND_API_URL: http://lb:8080
+      NUXT_PUBLIC_API_BASE_URL: http://localhost:8082
+      NUXT_PUBLIC_GOOGLE_CLIENT_ID: e2e-dummy
+    ports:
+      - "3001:3000"
