@@ -42,20 +42,46 @@ public sealed class FakeQuizGenerationProvider : IQuizGenerationProvider
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
+    // 只有自己建立的容器才由這個 factory 啟動與釋放；共用模式下由呼叫端負責。
+    private readonly PostgreSqlContainer? _ownedPostgres;
+    private readonly RedisContainer? _ownedRedis;
+    private readonly Func<string> _postgresConnectionString;
+    private readonly Func<string> _redisConnectionString;
+
+    public CustomWebApplicationFactory()
+    {
+        var postgres = CreatePostgresContainer();
+        var redis = CreateRedisContainer();
+        _ownedPostgres = postgres;
+        _ownedRedis = redis;
+        _postgresConnectionString = postgres.GetConnectionString;
+        _redisConnectionString = redis.GetConnectionString;
+    }
+
+    /// <summary>多節點測試：多個 factory 共用同一組 Postgres / Redis，每個 factory 就是一台獨立的後端。</summary>
+    public CustomWebApplicationFactory(PostgreSqlContainer sharedPostgres, RedisContainer sharedRedis)
+    {
+        _postgresConnectionString = sharedPostgres.GetConnectionString;
+        _redisConnectionString = sharedRedis.GetConnectionString;
+    }
+
+    public static PostgreSqlContainer CreatePostgresContainer() => new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
         .WithDatabase("choicepie_test")
         .WithUsername("choicepie")
         .WithPassword("choicepie")
         .Build();
 
-    private readonly RedisContainer _redis = new RedisBuilder()
+    public static RedisContainer CreateRedisContainer() => new RedisBuilder()
         .WithImage("redis:7-alpine")
         .Build();
 
     public async Task InitializeAsync()
     {
-        await Task.WhenAll(_postgres.StartAsync(), _redis.StartAsync());
+        if (_ownedPostgres is not null && _ownedRedis is not null)
+        {
+            await Task.WhenAll(_ownedPostgres.StartAsync(), _ownedRedis.StartAsync());
+        }
 
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
@@ -65,8 +91,15 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
-        await _postgres.DisposeAsync();
-        await _redis.DisposeAsync();
+        if (_ownedPostgres is not null)
+        {
+            await _ownedPostgres.DisposeAsync();
+        }
+
+        if (_ownedRedis is not null)
+        {
+            await _ownedRedis.DisposeAsync();
+        }
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -76,8 +109,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         // 檢查 DatabaseConnections）。本機有 user-secrets 補上所以看不出來，CI 沒有就會直接啟動失敗。
         // UseSetting 會在進入 Program 時就以 host 設定帶入，註冊階段即可讀到。
         builder.UseSetting("DatabaseConnections:0:Type", "NPGSQL");
-        builder.UseSetting("DatabaseConnections:0:ConnectionString", _postgres.GetConnectionString());
-        builder.UseSetting("RedisConnection:ConnectionString", _redis.GetConnectionString());
+        builder.UseSetting("DatabaseConnections:0:ConnectionString", _postgresConnectionString());
+        builder.UseSetting("RedisConnection:ConnectionString", _redisConnectionString());
         builder.UseSetting("Jwt:SigningKey", "test-signing-key-used-only-for-integration-tests-0123456789");
         // appsettings.Development.json 設了 Auth:CookieDomain=minjie.demo（給共用 dev 環境用），
         // 但這裡的 HttpClient BaseAddress 是 localhost，瀏覽器/CookieContainer 不允許把跨網域

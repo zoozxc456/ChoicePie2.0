@@ -6,13 +6,11 @@ using MediatR;
 namespace ChoicePie.Backend.Application.GameRooms.Commands;
 
 public sealed class RejoinAsPlayerCommandHandler(
-    IGameRoomRepository gameRoomRepository, GameRoomLock roomLock, TimeProvider timeProvider)
+    IGameRoomRepository gameRoomRepository, TimeProvider timeProvider)
     : IRequestHandler<RejoinAsPlayerCommand, RejoinAsPlayerResult>
 {
     public async Task<RejoinAsPlayerResult> Handle(RejoinAsPlayerCommand request, CancellationToken cancellationToken)
     {
-        using var _ = await roomLock.AcquireAsync(request.RoomCode, cancellationToken);
-
         var room = await gameRoomRepository.GetByRoomCodeAsync(request.RoomCode, cancellationToken)
                    ?? throw new RoomNotFoundException(request.RoomCode);
 

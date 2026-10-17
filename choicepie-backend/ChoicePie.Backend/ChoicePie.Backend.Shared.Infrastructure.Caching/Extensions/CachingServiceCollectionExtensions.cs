@@ -3,6 +3,7 @@ using ChoicePie.Backend.Shared.Infrastructure.Caching.AppSettings;
 using ChoicePie.Backend.Shared.Infrastructure.Caching.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
@@ -38,6 +39,19 @@ public static class CachingServiceCollectionExtensions
                 .AsHybridCache();
 
             services.AddScoped<ICachingService, HybridCachingService>();
+
+            // 直接操作 Redis 的元件（GameRoom 狀態、分散式鎖、SignalR backplane）共用這一條連線。
+            // 第一次被解析時才連線；AbortOnConnectFail=false 讓 Redis 暫時連不上時會在背景重試，而不是讓啟動失敗。
+            services.AddSingleton<IConnectionMultiplexer>(_ =>
+            {
+                var options = ConfigurationOptions.Parse(RedisConnectionString()
+                    ?? throw new InvalidOperationException("缺少 RedisConnection:ConnectionString 設定。"));
+                options.AbortOnConnectFail = false;
+                return ConnectionMultiplexer.Connect(options);
+            });
+
+            services.AddSingleton(new RedisDistributedLockOptions());
+            services.AddSingleton<IDistributedLock, RedisDistributedLock>();
 
             return services;
         }

@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using ChoicePie.Backend.Application.Quizzes.Dtos;
+using ChoicePie.Backend.Shared.Hosting.API.Response;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -43,6 +45,37 @@ public static class GameHubTestClient
         loginResponse.EnsureSuccessStatusCode();
 
         return (httpClient, cookieContainer, email);
+    }
+
+    public static async Task<Guid> CreateAndPublishQuizAsync(HttpClient hostClient)
+    {
+        var createResponse = await hostClient.PostAsJsonAsync("/api/v1/quizzes", new
+        {
+            Title = "Integration Test Quiz",
+            Description = "for GameHub tests",
+            CoverEmoji = "🎯",
+            CoverGradient = "primary",
+            Difficulty = "beginner",
+            Tags = new[] { "test" },
+            Questions = new[]
+            {
+                new
+                {
+                    Text = "1 + 1 = ?",
+                    Options = new[] { "1", "2", "3", "4" },
+                    AnswerIndex = 1,
+                    Explanation = "basic math"
+                }
+            }
+        });
+        createResponse.EnsureSuccessStatusCode();
+        var created = await createResponse.Content.ReadFromJsonAsync<ApiResponse<QuizDto>>();
+        var quizId = created!.Data!.Id;
+
+        var publishResponse = await hostClient.PostAsync($"/api/v1/quizzes/{quizId}/publish", null);
+        publishResponse.EnsureSuccessStatusCode();
+
+        return quizId;
     }
 
     public static async Task<HubConnection> CreateHostHubConnectionAsync(
