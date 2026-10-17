@@ -14,7 +14,8 @@ namespace ChoicePie.Backend.Application.Tests.Account;
 public class ProfileCommandHandlerTests
 {
     private IMemberRepository _memberRepository = null!;
-    private IFileStorageService _fileStorage = null!;
+    private IFileStorageReader _fileStorageReader = null!;
+    private IFileStorageWriter _fileStorageWriter = null!;
     private ICurrentUserService _currentUserService = null!;
     private IUnitOfWork _unitOfWork = null!;
     private Member _member = null!;
@@ -23,7 +24,8 @@ public class ProfileCommandHandlerTests
     public void SetUp()
     {
         _memberRepository = Substitute.For<IMemberRepository>();
-        _fileStorage = Substitute.For<IFileStorageService>();
+        _fileStorageReader = Substitute.For<IFileStorageReader>();
+        _fileStorageWriter = Substitute.For<IFileStorageWriter>();
         _currentUserService = Substitute.For<ICurrentUserService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _member = Member.Create("Host Name");
@@ -37,7 +39,7 @@ public class ProfileCommandHandlerTests
     private UpdateProfileCommandHandler ProfileSut() => new(_memberRepository, _currentUserService, _unitOfWork);
 
     private UploadAvatarCommandHandler AvatarSut() =>
-        new(_memberRepository, _fileStorage, _currentUserService, _unitOfWork,
+        new(_memberRepository, _fileStorageReader, _fileStorageWriter, _currentUserService, _unitOfWork,
             NullLogger<UploadAvatarCommandHandler>.Instance);
 
     private static IFormFile File(string contentType, long length, string name = "me.png")
@@ -82,13 +84,13 @@ public class ProfileCommandHandlerTests
     public async Task UploadAvatar_GivenValidImage_WhenCalled_ThenStoresUnderAvatarPrefixAndSetsAvatar()
     {
         var file = File("image/png", 1000);
-        _fileStorage.UploadFileAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _fileStorageWriter.UploadFileAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns("https://cdn/avatars/x.png");
 
         var result = await AvatarSut().Handle(new UploadAvatarCommand { File = file }, CancellationToken.None);
 
         Assert.That(result.Avatar, Is.EqualTo("https://cdn/avatars/x.png"));
-        await _fileStorage.Received(1).UploadFileAsync(file,
+        await _fileStorageWriter.Received(1).UploadFileAsync(file,
             Arg.Is<string>(p => p.StartsWith($"avatars/{_member.Id}/") && p.EndsWith(".png")),
             Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
@@ -114,13 +116,13 @@ public class ProfileCommandHandlerTests
         var oldUrl = $"https://cdn/avatars/{_member.Id}/old.png";
         _member.ChangeAvatar(oldUrl);
         var file = File("image/png", 1000);
-        _fileStorage.UploadFileAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _fileStorageWriter.UploadFileAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns("https://cdn/new.png");
-        _fileStorage.ExtractObjectNameFromUrl(oldUrl).Returns($"avatars/{_member.Id}/old.png");
+        _fileStorageReader.ExtractObjectNameFromUrl(oldUrl).Returns($"avatars/{_member.Id}/old.png");
 
         await AvatarSut().Handle(new UploadAvatarCommand { File = file }, CancellationToken.None);
 
-        await _fileStorage.Received(1).DeleteFileAsync(oldUrl, Arg.Any<CancellationToken>());
+        await _fileStorageWriter.Received(1).DeleteFileAsync(oldUrl, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -129,13 +131,13 @@ public class ProfileCommandHandlerTests
         var oldUrl = "https://lh3.googleusercontent.com/pic";
         _member.ChangeAvatar(oldUrl);
         var file = File("image/png", 1000);
-        _fileStorage.UploadFileAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _fileStorageWriter.UploadFileAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns("https://cdn/new.png");
-        _fileStorage.ExtractObjectNameFromUrl(oldUrl).Returns("pic");
+        _fileStorageReader.ExtractObjectNameFromUrl(oldUrl).Returns("pic");
 
         await AvatarSut().Handle(new UploadAvatarCommand { File = file }, CancellationToken.None);
 
-        await _fileStorage.DidNotReceive().DeleteFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _fileStorageWriter.DidNotReceive().DeleteFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -144,10 +146,10 @@ public class ProfileCommandHandlerTests
         var oldUrl = $"https://cdn/avatars/{_member.Id}/old.png";
         _member.ChangeAvatar(oldUrl);
         var file = File("image/png", 1000);
-        _fileStorage.UploadFileAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _fileStorageWriter.UploadFileAsync(file, Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns("https://cdn/new.png");
-        _fileStorage.ExtractObjectNameFromUrl(oldUrl).Returns($"avatars/{_member.Id}/old.png");
-        _fileStorage.DeleteFileAsync(oldUrl, Arg.Any<CancellationToken>())
+        _fileStorageReader.ExtractObjectNameFromUrl(oldUrl).Returns($"avatars/{_member.Id}/old.png");
+        _fileStorageWriter.DeleteFileAsync(oldUrl, Arg.Any<CancellationToken>())
             .Returns(Task.FromException(new InvalidOperationException("r2 down")));
 
         var result = await AvatarSut().Handle(new UploadAvatarCommand { File = file }, CancellationToken.None);
