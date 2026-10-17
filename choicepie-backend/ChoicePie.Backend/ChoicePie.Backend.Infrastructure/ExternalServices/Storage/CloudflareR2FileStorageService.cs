@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace ChoicePie.Backend.Infrastructure.ExternalServices.Storage;
 
-public sealed class CloudflareR2FileStorageService : IFileStorageService, IScopedDependency
+public sealed class CloudflareR2FileStorageService : IFileStorageReader, IFileStorageWriter, IScopedDependency
 {
     private readonly AmazonS3Client client;
     private readonly CloudflareR2Settings settings;

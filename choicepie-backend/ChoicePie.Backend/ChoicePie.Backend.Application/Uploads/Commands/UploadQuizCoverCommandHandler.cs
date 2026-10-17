@@ -7,7 +7,7 @@ using MediatR;
 namespace ChoicePie.Backend.Application.Uploads.Commands;
 
 public sealed class UploadQuizCoverCommandHandler(
-    IFileStorageService fileStorageService,
+    IFileStorageWriter fileStorageWriter,
     ICurrentUserService currentUserService)
     : IRequestHandler<UploadQuizCoverCommand, UploadQuizCoverResultDto>
 {
@@ -31,7 +31,7 @@ public sealed class UploadQuizCoverCommandHandler(
         var ext = Path.GetExtension(request.File.FileName);
         var destinationPath = $"quiz-covers/{userId}/{Guid.NewGuid()}{ext}";
 
-        var url = await fileStorageService.UploadFileAsync(request.File, destinationPath, cancellationToken);
+        var url = await fileStorageWriter.UploadFileAsync(request.File, destinationPath, cancellationToken);
 
         return new UploadQuizCoverResultDto(url);
     }

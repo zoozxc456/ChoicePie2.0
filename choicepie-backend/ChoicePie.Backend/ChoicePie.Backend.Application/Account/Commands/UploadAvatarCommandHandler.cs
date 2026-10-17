@@ -11,7 +11,8 @@ namespace ChoicePie.Backend.Application.Account.Commands;
 
 public sealed class UploadAvatarCommandHandler(
     IMemberRepository memberRepository,
-    IFileStorageService fileStorageService,
+    IFileStorageReader fileStorageReader,
+    IFileStorageWriter fileStorageWriter,
     ICurrentUserService currentUserService,
     IUnitOfWork unitOfWork,
     ILogger<UploadAvatarCommandHandler> logger)
@@ -41,7 +42,7 @@ public sealed class UploadAvatarCommandHandler(
 
         var extension = Path.GetExtension(request.File.FileName);
         var destinationPath = $"{AvatarKeyPrefix}/{memberId}/{Guid.NewGuid()}{extension}";
-        var avatarUrl = await fileStorageService.UploadFileAsync(request.File, destinationPath, cancellationToken);
+        var avatarUrl = await fileStorageWriter.UploadFileAsync(request.File, destinationPath, cancellationToken);
 
         var previousAvatar = member.ChangeAvatar(avatarUrl);
 
@@ -64,10 +65,10 @@ public sealed class UploadAvatarCommandHandler(
 
         try
         {
-            var objectName = fileStorageService.ExtractObjectNameFromUrl(previousAvatar);
+            var objectName = fileStorageReader.ExtractObjectNameFromUrl(previousAvatar);
             if (objectName.StartsWith($"{AvatarKeyPrefix}/{memberId}/", StringComparison.Ordinal))
             {
-                await fileStorageService.DeleteFileAsync(previousAvatar, ct);
+                await fileStorageWriter.DeleteFileAsync(previousAvatar, ct);
             }
         }
         catch (Exception ex)
