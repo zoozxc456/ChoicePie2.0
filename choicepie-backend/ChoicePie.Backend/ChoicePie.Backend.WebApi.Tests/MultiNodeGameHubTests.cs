@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using ChoicePie.Backend.Application.GameRooms.Dtos;
 using ChoicePie.Backend.WebApi.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -121,6 +122,42 @@ public sealed class MultiNodeGameHubTests
                 await player.DisposeAsync();
             }
         }
+    }
+
+    [Test]
+    public async Task BrowserLikeConnection_GivenHostOnNodeAAndPlayerOnNodeB_WhenGameIsPlayed_ThenWorksWithoutNegotiation()
+    {
+        var (hostClient, hostCookies, _) = await GameHubTestClient.CreateAuthenticatedHostClientAsync(_nodeA);
+        using var _1 = hostClient;
+        var quizId = await GameHubTestClient.CreateAndPublishQuizAsync(hostClient);
+
+        await using var host = await GameHubTestClient.CreateBrowserLikeConnectionAsync(_nodeA, hostCookies);
+        var roomCreated = new TaskCompletionSource<string>();
+        var playerJoinedOnHost = new TaskCompletionSource<PlayerDto>();
+        host.On<string>("RoomCreated", code => roomCreated.TrySetResult(code));
+        host.On<PlayerDto>("PlayerJoined", p => playerJoinedOnHost.TrySetResult(p));
+        // CreateRoom 是 MemberOnly：成功代表 WebSocket handshake 上的 cookie 有被認出身分。
+        await host.InvokeAsync("CreateRoom", new CreateRoomRequest(quizId, null, null));
+        var roomCode = await roomCreated.Task.WaitAsync(Timeout);
+
+        await using var player = await GameHubTestClient.CreateBrowserLikeConnectionAsync(_nodeB);
+        var questionStart = new TaskCompletionSource<QuestionPayloadDto>();
+        player.On<QuestionPayloadDto>("QuestionStart", q => questionStart.TrySetResult(q));
+        await player.InvokeAsync<JoinRoomResponse>("JoinRoom", roomCode, "Alice");
+        Assert.That((await playerJoinedOnHost.Task.WaitAsync(Timeout)).Nickname, Is.EqualTo("Alice"));
+
+        await host.InvokeAsync("StartGame", roomCode);
+
+        Assert.That((await questionStart.Task.WaitAsync(Timeout)).Text, Is.EqualTo("1 + 1 = ?"));
+    }
+
+    [Test]
+    public async Task BrowserLikeConnection_GivenNoAuthCookie_WhenCallingMemberOnlyMethod_ThenIsRejected()
+    {
+        await using var anonymous = await GameHubTestClient.CreateBrowserLikeConnectionAsync(_nodeB);
+
+        Assert.ThrowsAsync<HubException>(() =>
+            anonymous.InvokeAsync("CreateRoom", new CreateRoomRequest(Guid.NewGuid(), null, null)));
     }
 
     private async Task<(HubConnection Host, string RoomCode)> CreateRoomOnNodeAAsync()
