@@ -27,9 +27,13 @@ public sealed class GenerateQuizQuestionsCommandHandler(
     IWebPageContentFetcher webPageContentFetcher,
     IOptions<AiQuizGenerationSettings> aiSettings,
     IUnitOfWork unitOfWork,
+    IDistributedLock distributedLock,
     TimeProvider timeProvider)
     : IRequestHandler<GenerateQuizQuestionsCommand, GenerateQuestionsResultDto>
 {
+    // 要涵蓋抓網頁 + AI 呼叫的最長時間（HttpClient 預設 100 秒逾時）；請求結束時就會提早釋放。
+    private static readonly TimeSpan AiGenerationLease = TimeSpan.FromMinutes(5);
+
     private static readonly int[] AllowedQuestionCounts = [3, 5, 10];
 
     public async Task<GenerateQuestionsResultDto> Handle(
@@ -44,6 +48,12 @@ public sealed class GenerateQuizQuestionsCommandHandler(
                           ?? throw new InvalidQuizException($"未知的難度：{request.Difficulty}");
 
         var memberId = currentUserService.UserId ?? throw new UnauthenticatedException();
+
+        // 額度是「先檢查、AI 回來後才記錄用量」，中間隔著好幾秒的 AI 呼叫：同一位會員的並行請求
+        // 會一起通過檢查而超用付費 API。同一位會員同時只放行一個出題請求（不排隊，直接回 409）。
+        await using var inFlight = await distributedLock.TryAcquireAsync(
+                                       $"AiGeneration:{memberId}", AiGenerationLease, cancellationToken)
+                                   ?? throw new AiGenerationInProgressException(memberId);
         var member = await memberRepository.GetByIdAsync(memberId, cancellationToken)
                      ?? throw new MemberNotFoundException(memberId);
 

@@ -107,6 +107,49 @@ public class RedisDistributedLockTests
             "過期的 lease 釋放時不可刪掉別人正持有的鎖");
     }
 
+    [Test]
+    public async Task TryAcquireAsync_GivenFreeResource_WhenCalled_ThenReturnsLease()
+    {
+        await using var lease = await CreateLock(_nodeAConnection).TryAcquireAsync(NewResource(), TimeSpan.FromSeconds(5));
+
+        Assert.That(lease, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task TryAcquireAsync_GivenResourceHeldByOtherNode_WhenCalled_ThenReturnsNullWithoutWaiting()
+    {
+        var resource = NewResource();
+        await using var held = await CreateLock(_nodeAConnection).TryAcquireAsync(resource, TimeSpan.FromSeconds(30));
+
+        var attempt = CreateLock(_nodeBConnection).TryAcquireAsync(resource, TimeSpan.FromSeconds(30));
+
+        Assert.That(await attempt.WaitAsync(TimeSpan.FromSeconds(1)), Is.Null);
+    }
+
+    [Test]
+    public async Task TryAcquireAsync_GivenLeaseReleased_WhenOtherNodeTries_ThenSucceeds()
+    {
+        var resource = NewResource();
+        var first = await CreateLock(_nodeAConnection).TryAcquireAsync(resource, TimeSpan.FromSeconds(30));
+        await first!.DisposeAsync();
+
+        await using var second = await CreateLock(_nodeBConnection).TryAcquireAsync(resource, TimeSpan.FromSeconds(30));
+
+        Assert.That(second, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task TryAcquireAsync_GivenHolderCrashedWithoutReleasing_WhenCustomLeaseExpires_ThenOtherNodeSucceeds()
+    {
+        var resource = NewResource();
+        _ = await CreateLock(_nodeAConnection).TryAcquireAsync(resource, TimeSpan.FromMilliseconds(300));
+
+        await Task.Delay(TimeSpan.FromMilliseconds(500));
+        await using var lease = await CreateLock(_nodeBConnection).TryAcquireAsync(resource, TimeSpan.FromSeconds(30));
+
+        Assert.That(lease, Is.Not.Null);
+    }
+
     private static RedisDistributedLock CreateLock(
         IConnectionMultiplexer connection, TimeSpan? lease = null, TimeSpan? acquireTimeout = null) =>
         new(connection, new RedisDistributedLockOptions

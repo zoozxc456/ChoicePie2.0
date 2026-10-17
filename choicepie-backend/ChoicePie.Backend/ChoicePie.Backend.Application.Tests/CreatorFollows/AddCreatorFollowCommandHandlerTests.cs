@@ -7,6 +7,8 @@ using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
 using CreatorFollowAggregate = ChoicePie.Backend.Domain.Aggregates.CreatorFollow.CreatorFollow;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.CreatorFollows;
 
@@ -83,5 +85,13 @@ public class AddCreatorFollowCommandHandlerTests
         _currentUserService.UserId.Returns((Guid?)null);
 
         Assert.ThrowsAsync<UnauthenticatedException>(() => _sut.Handle(new AddCreatorFollowCommand(_creator.Id), CancellationToken.None));
+    }
+
+    [Test]
+    public void Handle_GivenFollowAddedConcurrently_WhenSaving_ThenTreatsAsAlreadyFollowing()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new UniqueConstraintViolationException("ix"));
+
+        Assert.DoesNotThrowAsync(() => _sut.Handle(new AddCreatorFollowCommand(_creator.Id), CancellationToken.None));
     }
 }

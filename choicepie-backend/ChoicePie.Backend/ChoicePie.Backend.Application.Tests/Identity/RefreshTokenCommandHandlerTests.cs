@@ -12,6 +12,8 @@ using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 using RefreshTokenAggregate = ChoicePie.Backend.Domain.Aggregates.RefreshToken.RefreshToken;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.Identity;
 
@@ -155,5 +157,14 @@ public class RefreshTokenCommandHandlerTests
         var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
 
         Assert.That(result.AccessToken, Is.EqualTo("new-access-token"));
+    }
+
+    // 同一顆 refresh token 被兩個請求同時輪替：後存檔的那個要被當成無效 token，不能也拿到新 token。
+    [Test]
+    public void Handle_GivenTokenRotatedConcurrentlyByAnotherRequest_WhenSaving_ThenThrowsInvalidRefreshToken()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new ConcurrencyConflictException());
+
+        Assert.ThrowsAsync<InvalidRefreshTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }
 }

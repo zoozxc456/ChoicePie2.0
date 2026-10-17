@@ -11,6 +11,7 @@ using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using MediatR;
 using RefreshTokenAggregate = ChoicePie.Backend.Domain.Aggregates.RefreshToken.RefreshToken;
 
@@ -57,7 +58,15 @@ public sealed class AdminRefreshTokenCommandHandler(
 
         await refreshTokenRepository.AddAsync(newRefreshToken, cancellationToken);
         await refreshTokenRepository.UpdateAsync(existingToken, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            // 同一顆 token 被另一個請求搶先輪替：一次性語意下這顆 token 已失效，不能再換出第二組新 token。
+            throw new InvalidRefreshTokenException();
+        }
 
         return new AdminLoginResultDto(AdminUserDto.FromDomain(adminUser, adminAuthAccount), accessToken,
             rawRefreshToken);

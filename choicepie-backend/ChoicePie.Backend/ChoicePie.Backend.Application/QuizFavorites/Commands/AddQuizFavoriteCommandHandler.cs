@@ -5,6 +5,7 @@ using ChoicePie.Backend.Domain.Aggregates.QuizFavorite;
 using ChoicePie.Backend.Domain.Aggregates.QuizFavorite.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using MediatR;
 
 namespace ChoicePie.Backend.Application.QuizFavorites.Commands;
@@ -33,6 +34,13 @@ public sealed class AddQuizFavoriteCommandHandler(
 
         var favorite = QuizFavorite.Create(request.QuizId, userId);
         await favoriteRepository.AddAsync(favorite, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (UniqueConstraintViolationException)
+        {
+            // 連點收藏時另一個請求已經收藏成功：結果相同，視為成功。
+        }
     }
 }

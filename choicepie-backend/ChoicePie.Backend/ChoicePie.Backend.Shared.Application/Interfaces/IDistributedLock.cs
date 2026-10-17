@@ -8,4 +8,10 @@ public interface IDistributedLock
 {
     /// <summary>等到取得鎖為止；等太久會丟 <see cref="TimeoutException"/>。</summary>
     Task<IAsyncDisposable> AcquireAsync(string resource, CancellationToken ct = default);
+
+    /// <summary>
+    /// 只試一次、不等待：已被別人持有就回傳 null。用在「同時只能有一個在進行」而不是「排隊依序做」的情境，
+    /// 例如耗時的 AI 出題。<paramref name="leaseDuration"/> 必須涵蓋受保護工作的最長執行時間。
+    /// </summary>
+    Task<IAsyncDisposable?> TryAcquireAsync(string resource, TimeSpan leaseDuration, CancellationToken ct = default);
 }

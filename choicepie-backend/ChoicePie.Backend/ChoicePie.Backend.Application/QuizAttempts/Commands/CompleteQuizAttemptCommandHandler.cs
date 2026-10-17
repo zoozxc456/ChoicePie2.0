@@ -6,6 +6,7 @@ using ChoicePie.Backend.Domain.Aggregates.QuizAttempt;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using MediatR;
 
 namespace ChoicePie.Backend.Application.QuizAttempts.Commands;
@@ -33,7 +34,15 @@ public sealed class CompleteQuizAttemptCommandHandler(
         attempt.Complete(correctAnswerIndexByQuestionId, timeProvider.GetUtcNow().UtcDateTime);
 
         await quizAttemptRepository.UpdateAsync(attempt, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            // 連點「繳交」時另一個請求已完成這次作答；挑戰次數只會由先完成的那次計算。
+            throw new InvalidQuizAttemptStateException(attempt.Id, "作答已經結束，無法重複繳交。");
+        }
 
         var selectedOptionByQuestionId = attempt.Answers.ToDictionary(a => a.QuestionId, a => a.SelectedOptionIndex);
         var answers = quiz.Questions.Select(question =>

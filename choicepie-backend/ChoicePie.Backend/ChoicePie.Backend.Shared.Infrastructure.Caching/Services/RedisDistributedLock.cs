@@ -50,6 +50,18 @@ public sealed class RedisDistributedLock(IConnectionMultiplexer redis, RedisDist
         return new Lease(db, key, token);
     }
 
+    public async Task<IAsyncDisposable?> TryAcquireAsync(
+        string resource, TimeSpan leaseDuration, CancellationToken ct = default)
+    {
+        var db = redis.GetDatabase();
+        var key = new RedisKey(KeyPrefix + resource);
+        var token = Guid.NewGuid().ToString("N");
+
+        return await db.StringSetAsync(key, token, leaseDuration, When.NotExists)
+            ? new Lease(db, key, token)
+            : null;
+    }
+
     private sealed class Lease(IDatabase db, RedisKey key, string token) : IAsyncDisposable
     {
         public async ValueTask DisposeAsync()

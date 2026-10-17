@@ -8,6 +8,8 @@ using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.Identity;
 
@@ -128,5 +130,14 @@ public class RegisterMemberCommandHandlerTests
 
         await _memberRepository.DidNotReceive().AddAsync(Arg.Any<Member>(), Arg.Any<CancellationToken>());
         await _authAccountRepository.DidNotReceive().AddAsync(Arg.Any<AuthAccount>(), Arg.Any<CancellationToken>());
+    }
+
+    // 同一個 Email 同時註冊兩次：兩邊都通過了「是否已註冊」的檢查，由唯一索引擋下後要回「已註冊」。
+    [Test]
+    public void Handle_GivenSameEmailRegisteredConcurrently_WhenSaving_ThenThrowsEmailAlreadyRegistered()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new UniqueConstraintViolationException("ix"));
+
+        Assert.ThrowsAsync<EmailAlreadyRegisteredException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }
 }

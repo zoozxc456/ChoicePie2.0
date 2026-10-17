@@ -11,6 +11,8 @@ using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
 using QuizAttemptAggregate = ChoicePie.Backend.Domain.Aggregates.QuizAttempt.QuizAttempt;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.QuizAttempts;
 
@@ -127,5 +129,21 @@ public class StartQuizAttemptCommandHandlerTests
 
         Assert.ThrowsAsync<UnauthenticatedException>(() =>
             _sut.Handle(new StartQuizAttemptCommand(_quiz.Id), CancellationToken.None));
+    }
+
+    // 連點「開始挑戰」：另一個請求已經建立進行中的作答，這次改回傳那一筆，而不是失敗或再建一筆。
+    [Test]
+    public async Task Handle_GivenAttemptStartedConcurrently_WhenSaving_ThenReturnsTheExistingInProgressAttempt()
+    {
+        var concurrentAttempt = QuizAttemptAggregate.Start(
+            _quiz.Id, _memberId, _quiz.Questions.Select(q => q.Id).ToList(), DateTime.UtcNow);
+        _quizAttemptRepository.FirstOrDefaultAsync(
+                Arg.Any<QuizAttemptInProgressByQuizAndMemberSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(null, concurrentAttempt);
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new UniqueConstraintViolationException("ix"));
+
+        var result = await _sut.Handle(new StartQuizAttemptCommand(_quiz.Id), CancellationToken.None);
+
+        Assert.That(result.AttemptId, Is.EqualTo(concurrentAttempt.Id));
     }
 }

@@ -6,6 +6,7 @@ using ChoicePie.Backend.Domain.Aggregates.EmailVerificationToken;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using MediatR;
 
@@ -43,7 +44,15 @@ public sealed class RegisterMemberCommandHandler(
         await memberRepository.AddAsync(member, cancellationToken);
         await authAccountRepository.AddAsync(authAccount, cancellationToken);
         await emailVerificationTokenRepository.AddAsync(verificationToken, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (UniqueConstraintViolationException)
+        {
+            // 同一個 Email 同時註冊：兩邊都通過了上面的檢查，由唯一索引擋下較慢的那個。
+            throw new EmailAlreadyRegisteredException(email.Value);
+        }
 
         return MemberDto.FromDomain(member, authAccount);
     }
