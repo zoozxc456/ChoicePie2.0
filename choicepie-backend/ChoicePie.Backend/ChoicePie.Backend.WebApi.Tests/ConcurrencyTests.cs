@@ -47,21 +47,27 @@ public sealed class ConcurrencyTests
         Assert.That(statuses.Where(s => (int)s >= 300), Is.All.EqualTo(HttpStatusCode.Conflict));
     }
 
+    // 同一次 SSR 的 middleware 與頁面請求會拿同一顆 token 同時 refresh。不論哪個請求先存檔、
+    // 其他請求是在對方存檔前讀到（撞 xmin 衝突）還是存檔後讀到（看到已輪替），寬限期內都要成功，
+    // 不能因為時序不同就把使用者踢回登入頁；每個請求各自拿到一顆不同的新 token。
     [Test]
-    public async Task Refresh_GivenSameRefreshTokenAtOnce_ThenOnlyOneRotationSucceeds()
+    public async Task Refresh_GivenSameRefreshTokenAtOnce_ThenAllSucceedWithinGracePeriodWithDistinctNewTokens()
     {
         using var client = CreateClient();
         var refreshToken = await RegisterAndLoginAsync(client);
 
-        var statuses = await SendAtOnceAsync(() =>
+        var responses = await Task.WhenAll(Enumerable.Range(0, Parallelism).Select(_ =>
         {
             var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/refresh");
             request.Headers.Add(AuthHeaderNames.RefreshToken, refreshToken);
             return client.SendAsync(request);
-        });
+        }));
 
-        Assert.That(statuses.Count(s => s == HttpStatusCode.OK), Is.EqualTo(1), "一次性 token 只能換出一組新 token");
-        Assert.That(statuses.Where(s => s != HttpStatusCode.OK), Is.All.EqualTo(HttpStatusCode.Unauthorized));
+        Assert.That(responses.Select(r => r.StatusCode), Is.All.EqualTo(HttpStatusCode.OK));
+        var newRefreshTokens = await Task.WhenAll(responses.Select(async r =>
+            (await r.Content.ReadFromJsonAsync<ApiResponse<LoginResultDto>>())!.Data!.RefreshToken));
+        Assert.That(newRefreshTokens, Is.Unique);
+        Assert.That(newRefreshTokens, Has.None.EqualTo(refreshToken));
     }
 
     [Test]

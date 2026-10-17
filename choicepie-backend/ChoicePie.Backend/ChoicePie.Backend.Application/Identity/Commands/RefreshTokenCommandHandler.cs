@@ -70,8 +70,16 @@ public sealed class RefreshTokenCommandHandler(
         }
         catch (ConcurrencyConflictException)
         {
-            // 同一顆 token 被另一個請求搶先輪替：一次性語意下這顆 token 已失效，不能再換出第二組新 token。
-            throw new InvalidRefreshTokenException();
+            // 同一顆 token 被另一個請求搶先改寫。重新讀取後交給聚合判斷：若是剛被輪替、仍在寬限期內
+            // （同一次 SSR 的並行 refresh），照樣換發——跟「晚一點才讀到已輪替 token」的請求結果一致；
+            // 若是被登出或寬限期已過，就是無效 token。
+            await refreshTokenRepository.ReloadAsync(existingToken, cancellationToken);
+            if (!existingToken.IsActive)
+            {
+                throw new InvalidRefreshTokenException();
+            }
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         return new LoginResultDto(MemberDto.FromDomain(member, authAccount), accessToken, rawRefreshToken);
