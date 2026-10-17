@@ -33,6 +33,10 @@ npx vitest run              # run unit tests (tests/nuxt/unit/**/*.spec.ts)
 
 **Do not run `nuxi build` / `nuxi dev` to verify changes** — use typecheck + lint only.
 
+End-to-end tests live in `../e2e` (Playwright against a multi-node Docker Compose stack; the Nuxt
+build there runs only inside Docker — see `../e2e/README.md`). They select elements by `data-testid`,
+so keep those attributes when refactoring game-room components.
+
 ## Directory structure (`app/`)
 
 - `pages/` — file-based routing (see Routing below)

@@ -67,6 +67,7 @@
 
       <!-- Actions -->
       <UButton
+        data-testid="start-game"
         block
         size="lg"
         color="primary"
