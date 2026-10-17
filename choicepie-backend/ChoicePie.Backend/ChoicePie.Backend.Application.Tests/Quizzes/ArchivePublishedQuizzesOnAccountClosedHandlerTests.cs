@@ -27,7 +27,7 @@ public class ArchivePublishedQuizzesOnAccountClosedHandlerTests
         using var unitOfWork = Substitute.For<IUnitOfWork>();
         var sut = new ArchivePublishedQuizzesOnAccountClosedHandler(quizRepository, unitOfWork);
 
-        await sut.Handle(new DomainEventNotification<MemberAccountClosedDomainEvent>(
+        await sut.Handle(new ReliableDomainEventNotification<MemberAccountClosedDomainEvent>(
             new MemberAccountClosedDomainEvent(memberId)), CancellationToken.None);
 
         Assert.That(quiz.Status, Is.EqualTo(QuizStatus.Archived));
@@ -43,7 +43,7 @@ public class ArchivePublishedQuizzesOnAccountClosedHandlerTests
         using var unitOfWork = Substitute.For<IUnitOfWork>();
         var sut = new ArchivePublishedQuizzesOnAccountClosedHandler(quizRepository, unitOfWork);
 
-        await sut.Handle(new DomainEventNotification<MemberAccountClosedDomainEvent>(
+        await sut.Handle(new ReliableDomainEventNotification<MemberAccountClosedDomainEvent>(
             new MemberAccountClosedDomainEvent(Guid.NewGuid())), CancellationToken.None);
 
         await unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());

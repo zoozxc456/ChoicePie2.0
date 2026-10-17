@@ -117,6 +117,7 @@ public sealed class ConcurrencyTests
 
         Assert.That(statuses.Count(s => s == HttpStatusCode.OK), Is.EqualTo(1));
         Assert.That(statuses.Where(s => s != HttpStatusCode.OK), Has.None.EqualTo(HttpStatusCode.InternalServerError));
+        await _factory.WaitForOutboxDrainedAsync();
         Assert.That((await GetQuizAsync(owner, quizId)).ChallengeCount, Is.EqualTo(1), "連點繳交不能重複計算挑戰次數");
         owner.Dispose();
     }
@@ -146,6 +147,7 @@ public sealed class ConcurrencyTests
             p.Client.PostAsync($"/api/v1/quiz-attempts/{p.Attempt.AttemptId}/complete", null)));
 
         Assert.That(responses.Select(r => r.StatusCode), Is.All.EqualTo(HttpStatusCode.OK));
+        await _factory.WaitForOutboxDrainedAsync();
         var quiz = await GetQuizAsync(owner, quizId);
         Assert.That(quiz.ChallengeCount, Is.EqualTo(playerCount));
         Assert.That(quiz.PassRate, Is.EqualTo(50m));

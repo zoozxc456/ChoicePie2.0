@@ -1,17 +1,17 @@
 using System.Data;
 using ChoicePie.Backend.Shared.Application.Events;
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Outbox;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ChoicePie.Backend.Shared.Kernel.Exceptions;
-using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 namespace ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 
-public class EfUnitOfWork<TContext>(TContext context, IPublisher mediator, IServiceScopeFactory scopeFactory)
+public class EfUnitOfWork<TContext>(TContext context, IPublisher mediator, OutboxMessageFactory outboxMessageFactory)
     : IUnitOfWork where TContext : DbContext
 {
     private IDbContextTransaction? _transaction;
@@ -20,6 +20,9 @@ public class EfUnitOfWork<TContext>(TContext context, IPublisher mediator, IServ
     {
         var domainEvents = GetAndClearDomainEvents();
         FixPhantomModifiedOwnedEntities();
+
+        // 有可靠 handler 的事件跟業務資料同一個交易寫進 outbox：commit 成功事件就不會丟，失敗就一起回滾。
+        context.Set<OutboxMessage>().AddRange(outboxMessageFactory.CreateFor(domainEvents));
 
         int result;
         try

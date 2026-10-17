@@ -25,7 +25,7 @@ public class RecordChallengeOutcomeHandlerTests
     public async Task Handle_GivenCompletedAttempt_WhenCalled_ThenRecordsOutcomeAtomically(bool passed)
     {
         var quizId = Guid.NewGuid();
-        var notification = new DomainEventNotification<QuizAttemptCompletedDomainEvent>(
+        var notification = new ReliableDomainEventNotification<QuizAttemptCompletedDomainEvent>(
             new QuizAttemptCompletedDomainEvent(Guid.NewGuid(), quizId, Guid.NewGuid(), passed ? 100m : 0m, passed));
 
         await _sut.Handle(notification, CancellationToken.None);
