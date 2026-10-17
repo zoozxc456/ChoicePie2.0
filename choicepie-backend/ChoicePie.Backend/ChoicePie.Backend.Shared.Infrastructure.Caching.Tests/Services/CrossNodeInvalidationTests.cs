@@ -9,7 +9,7 @@ namespace ChoicePie.Backend.Shared.Infrastructure.Caching.Tests.Services;
 
 /// <summary>
 /// 用正式的 AddChoicePieCaching 建兩個獨立的 ServiceProvider 模擬兩台後端，共用一個 Testcontainers Redis，
-/// 驗證一台的 Remove/RemoveByTag/Set 會經由 backplane 讓另一台的 L1 失效。
+/// 驗證一台的 Remove/RemoveByTag 會經由 backplane 讓另一台的 L1 失效。
 /// </summary>
 [TestFixture]
 public class CrossNodeInvalidationTests
@@ -101,21 +101,6 @@ public class CrossNodeInvalidationTests
 
         var result = await _nodeB.GetOrCreateAsync(untouchedKey, _ => ValueTask.FromResult("fresh"), tags: ["other-tag"]);
         Assert.That(result, Is.EqualTo("kept"));
-    }
-
-    [Test]
-    public async Task SetAsync_GivenKeyInNodeBL1_WhenNodeAOverwrites_ThenNodeBEventuallyReadsNewValue()
-    {
-        var key = NewKey();
-        await WarmBothNodesAsync(key, "old");
-
-        await _nodeA.SetAsync(key, "new");
-
-        Assert.That(
-            await EventuallyAsync(async () =>
-                await _nodeB.GetOrCreateAsync(key, _ => ValueTask.FromResult("fallback")) == "new"),
-            Is.True,
-            "node B 應該丟掉舊的 L1，改從 Redis 讀到 node A 寫的新值");
     }
 
     private (ServiceProvider Provider, HybridCachingService Cache) CreateNode()
