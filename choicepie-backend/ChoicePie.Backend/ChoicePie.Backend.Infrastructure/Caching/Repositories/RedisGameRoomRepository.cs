@@ -31,8 +31,9 @@ public sealed class RedisGameRoomRepository(IConnectionMultiplexer redis) : IGam
         redis.GetDatabase().StringSetAsync(
             BuildKey(room.RoomCode), JsonSerializer.Serialize(room.ToMemento()), RoomExpiration);
 
-    public Task<bool> RoomCodeExistsAsync(string roomCode, CancellationToken ct = default) =>
-        redis.GetDatabase().KeyExistsAsync(BuildKey(roomCode));
+    public Task<bool> TryAddAsync(GameRoom room, CancellationToken ct = default) =>
+        redis.GetDatabase().StringSetAsync(
+            BuildKey(room.RoomCode), JsonSerializer.Serialize(room.ToMemento()), RoomExpiration, When.NotExists);
 
     private static RedisKey BuildKey(string roomCode) => $"ChoicePie:GameRoom:{roomCode}";
 }

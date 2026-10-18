@@ -55,9 +55,15 @@ public sealed class SkipQuestionCommandHandler(
                 SkipQuestionOutcomeKind.AdvancedToNextQuestion, null, GameRoomCommandGuards.CurrentQuestionPayload(room), null);
         }
 
-        var session = GameSessionAggregate.RecordFrom(room, now);
-        await gameSessionRepository.AddAsync(session, ct);
-        await unitOfWork.SaveChangesAsync(ct);
+        // Postgres 與 Redis 的寫入之間沒有交易：上一次呼叫若已寫入紀錄、但寫回 Redis 失敗，房間會停在 Reveal，
+        // Host 重送時沿用既有紀錄並把房間補寫成 Ended，不再寫第二筆。
+        var session = await gameSessionRepository.GetByIdAsync(room.Id, ct);
+        if (session is null)
+        {
+            session = GameSessionAggregate.RecordFrom(room, now);
+            await gameSessionRepository.AddAsync(session, ct);
+            await unitOfWork.SaveChangesAsync(ct);
+        }
 
         var finalRankings = session.PlayerResults
             .Select(r => new RankEntryDto(r.Rank, r.Nickname, r.FinalScore))

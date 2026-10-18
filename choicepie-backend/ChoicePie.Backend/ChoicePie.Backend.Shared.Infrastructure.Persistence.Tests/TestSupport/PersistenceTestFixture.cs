@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Outbox;
@@ -42,7 +43,8 @@ public sealed class PersistenceTestFixture : IAsyncDisposable
         OutboxEventRegistry.FromAssemblies(typeof(PersistenceTestFixture).Assembly);
 
     public EfUnitOfWork<TestDbContext> CreateUnitOfWork(TestDbContext context, MediatR.IPublisher publisher) =>
-        new(context, publisher, new OutboxMessageFactory(OutboxSerializer, OutboxEventRegistry));
+        new(context, publisher, new OutboxMessageFactory(OutboxSerializer, OutboxEventRegistry),
+            NullLogger<EfUnitOfWork<TestDbContext>>.Instance);
 
     public async ValueTask DisposeAsync() => await _postgres.DisposeAsync();
 }
