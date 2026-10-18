@@ -10,9 +10,8 @@ const ADMIN_REFRESH_COOKIE = 'cp_admin_refresh_token'
 // event.node.req.headers.cookie，setCookie 寫的是 event.node.res，兩者互不影響）。
 // 若同一次 SSR 內先 401 → refresh 換到新 access token，緊接著的 retry 若是透過
 // useRequestFetch() 打自己的 server route，Nitro 對每次呼叫都會建立全新的 H3Event
-// （event.context 不共享），無法用 event.context 暫存新 token 讓 retry 讀到——
-// 新 token 改由呼叫端（useApi.ts）顯式帶在 x-fresh-access-token header 上，
-// 見 server/api/v1/[...path].ts。
+// （event.context 不共享），Cookie header 則是從最外層 request 複製過來的——
+// 所以由呼叫端（useApi.ts）把 refresh 的 Set-Cookie 轉到最外層 response，並改寫最外層 request 的 Cookie header。
 const REFRESH_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
 
 interface SessionTokens {

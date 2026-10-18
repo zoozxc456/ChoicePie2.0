@@ -19,8 +19,10 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     }))
 
   if (response._data?.data) {
-    const { accessToken, refreshToken: newRefreshToken } = response._data.data
+    const { accessToken, refreshToken: newRefreshToken, adminUser } = response._data.data
     setAdminSession(event, { accessToken, refreshToken: newRefreshToken })
+    // token 只放在 httpOnly cookie，不回傳給瀏覽器端 JS（與會員的 refresh 一致）。
+    ;(response._data as { data: unknown }).data = adminUser
   } else if (response.status === 401) {
     clearAdminSession(event)
   }

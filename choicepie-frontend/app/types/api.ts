@@ -331,12 +331,6 @@ export interface AdminUserDto {
   createdAt: string
 }
 
-export interface AdminRefreshResultDto {
-  adminUser: AdminUserDto
-  accessToken: string
-  refreshToken: string
-}
-
 export interface AdminListQuizzesQuery {
   search?: string
   pageNumber?: number

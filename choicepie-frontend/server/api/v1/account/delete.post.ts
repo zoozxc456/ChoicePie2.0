@@ -1,7 +1,7 @@
 // 刪除帳號：轉成後端 DELETE /account（需要 request body），成功後清除 BFF 的 session cookie，
 // 並轉發後端的 Set-Cookie（清掉瀏覽器直連 SignalR 用的後端 cookie），行為與 logout 一致。
 export default defineEventHandler(async (event): Promise<unknown> => {
-  const accessToken = getHeader(event, 'x-fresh-access-token') ?? getMemberAccessToken(event)
+  const accessToken = getMemberAccessToken(event)
   const body = await readBody(event)
 
   const response = await backendFetch(event, '/api/v1/account', {
