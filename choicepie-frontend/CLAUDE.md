@@ -47,7 +47,13 @@ so keep those attributes when refactoring game-room components.
   `creator`, `favorites`, `following`, plus admin-side `adminAuth`, `adminDashboard`, `adminMember`,
   `adminMembershipTier`, `adminQuiz`, `adminQuizReport`
 - `composables/` — `useApi.ts` (REST), `useGameRoom.ts` (SignalR), `useGoogleIdentity.ts` (Google
-  Identity Services ID-token flow), `usePlayerSession.ts` (localStorage reconnect credential per room)
+  Identity Services ID-token flow), `usePlayerSession.ts` (localStorage reconnect credential per room),
+  `useQuestionDrafts.ts` (local question drafts for manual / AI quiz creation), `useDebouncedSearch.ts`
+  (admin list search boxes), `useCountdown.ts` (per-question timer on the solo attempt page),
+  `useModalTarget.ts` (admin "open a modal for item X" state), `useRequireLogin.ts`
+  (`ensureLoggedIn()` — redirect guests to `/login?redirect=…` before login-only actions),
+  `useAuthRedirect.ts` (shared by `login.vue` / `sign-in/index.vue`: sanitized `redirect`,
+  `redirectIfAuthenticated()` via `fetchMe`, `goToRedirect()`)
 - `services/{domain}/client.ts` — typed API-client layer between stores and `useApi()`
   (e.g. `services/quiz/client.ts`; domains: `account`, `creator`, `gameSession`, `quiz`,
   `quizAttempt`, `admin/*`; `services/auth.ts` is the flat auth client). Non-standard Nuxt
@@ -55,7 +61,13 @@ so keep those attributes when refactoring game-room components.
 - `types/` — `api.ts` (backend DTOs, `ApiEnvelope<T>`), `gameRoom.ts`, `other.ts` (SignalR
   payload types), `quiz.ts`, `user.ts`, `auth.ts`, `account.ts`, `adminAuth.ts`, `adminUser.ts`
 - `utils/` — `safeRedirect.ts` (`sanitizeRedirect`, same-site paths only), `absoluteUrl.ts`,
-  `apiErrorMessage.ts`, `createPagedList.ts` (paged-list state helper used by list stores)
+  `apiErrorMessage.ts` (`getApiErrorMessage` — use it instead of hand-rolled `instanceof ApiError`
+  checks), `createPagedList.ts` (paged-list state helper used by list stores), `pagination.ts`
+  (`totalPagesOf`, `buildPageItems`), `adminQuizStatus.ts` (admin quiz status style + i18n label key),
+  `quizCover.ts` (cover color/emoji options, `coverColorClass`, `createDefaultCover`), `imageFile.ts`
+  (`validateImageFile` for avatar / cover uploads), `passwordStrength.ts`, `shareUrl.ts`, `tags.ts`,
+  plus `formatDate.ts`, `statusTone.ts`, `podium.ts`, `aiSource.ts`. Keep pure logic here (unit-tested
+  under `tests/nuxt/unit/utils/`) rather than inline in components
 - `layouts/` — `default`, `content`, `admin`, `bigScreen`
 - `middleware/auth.ts` (member), `middleware/admin-auth.ts`, `plugins/auth.client.ts`
 - `assets/css/design-tokens.css`, `assets/css/main.css`

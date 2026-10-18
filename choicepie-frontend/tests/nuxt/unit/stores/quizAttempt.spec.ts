@@ -141,6 +141,59 @@ describe('useQuizAttemptStore', () => {
     })
   })
 
+  describe('resumeAttempt', () => {
+    const answer = (questionId: string, selectedOptionIndex: number | null) =>
+      ({ questionId, selectedOptionIndex }) as unknown as QuizAttemptResultDto['answers'][number]
+
+    it('已完成的作答直接回傳 null 並寫入 result，不重新開始', async () => {
+      fetchAttemptById.mockResolvedValue(attemptResult)
+      const store = useQuizAttemptStore()
+
+      const index = await store.resumeAttempt('attempt-1')
+
+      expect(index).toBeNull()
+      expect(startAttempt).not.toHaveBeenCalled()
+      expect(store.result).toEqual(attemptResult)
+    })
+
+    // 以 id 取得的作答中紀錄缺少選項資料，須用 startAttempt（後端會沿用同一筆作答）取回完整題目。
+    it('作答中時以 quizId 重新 startAttempt，並回傳下一題（已作答題數）的索引', async () => {
+      fetchAttemptById.mockResolvedValue({
+        ...attemptResult,
+        completedAt: null,
+        answers: [answer('q1', 0), answer('q2', 2), answer('q3', null), answer('q4', null)]
+      })
+      startAttempt.mockResolvedValue(startResult)
+      const store = useQuizAttemptStore()
+
+      const index = await store.resumeAttempt('attempt-1')
+
+      expect(startAttempt).toHaveBeenCalledWith('quiz-1')
+      expect(store.currentAttempt).toEqual(startResult)
+      expect(index).toBe(2)
+    })
+
+    it('全部題目都已作答但尚未完成時停在最後一題', async () => {
+      fetchAttemptById.mockResolvedValue({
+        ...attemptResult,
+        completedAt: null,
+        answers: [answer('q1', 0), answer('q2', 1)]
+      })
+      startAttempt.mockResolvedValue(startResult)
+      const store = useQuizAttemptStore()
+
+      expect(await store.resumeAttempt('attempt-1')).toBe(1)
+    })
+
+    it('取得作答失敗時拋出例外', async () => {
+      fetchAttemptById.mockRejectedValue(new Error('not found'))
+      const store = useQuizAttemptStore()
+
+      await expect(store.resumeAttempt('attempt-1')).rejects.toThrow('not found')
+      expect(startAttempt).not.toHaveBeenCalled()
+    })
+  })
+
   describe('fetchAttemptHistory', () => {
     const historyItems: QuizAttemptHistoryItemDto[] = [
       { id: 'attempt-1', score: 80, passed: true, startedAt: '2026-01-01T00:00:00Z', completedAt: '2026-01-01T00:05:00Z', durationMs: 12000 }

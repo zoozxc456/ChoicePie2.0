@@ -66,6 +66,18 @@ export const useQuizAttemptStore = defineStore('quizAttempt', () => {
     }
   }
 
+  /**
+   * 重新進入作答頁：已完成回傳 null（結果已寫入 result）；作答中則回傳應接續的題目索引。
+   * 以 id 取得的作答中紀錄缺少每題選項，須透過 startAttempt（後端沿用同一筆作答）取回完整題目。
+   */
+  const resumeAttempt = async (attemptId: string) => {
+    const attempt = await fetchAttemptById(attemptId)
+    if (attempt.completedAt) return null
+    await startAttempt(attempt.quizId)
+    const answeredCount = attempt.answers.filter(a => a.selectedOptionIndex !== null).length
+    return Math.min(answeredCount, attempt.answers.length - 1)
+  }
+
   const fetchAttemptHistory = async (quizId: string) => {
     isLoadingHistory.value = true
     try {
@@ -87,6 +99,6 @@ export const useQuizAttemptStore = defineStore('quizAttempt', () => {
 
   return {
     currentAttempt, result, history, isLoading, isLoadingHistory, error,
-    startAttempt, submitAnswer, completeAttempt, fetchAttemptById, fetchAttemptHistory, reset
+    startAttempt, submitAnswer, completeAttempt, fetchAttemptById, resumeAttempt, fetchAttemptHistory, reset
   }
 })

@@ -108,6 +108,7 @@
 import AdminListRow from '~/components/admin/AdminListRow.vue'
 import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import { useDebouncedSearch } from '~/composables/useDebouncedSearch'
+import { useModalTarget } from '~/composables/useModalTarget'
 import { totalPagesOf } from '~/utils/pagination'
 
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
@@ -115,8 +116,12 @@ definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
 const { t, locale } = useI18n()
 const adminMemberStore = useAdminMemberStore()
 
-const isModalOpen = ref(false)
-const targetMemberId = ref<string | null>(null)
+const {
+  isOpen: isModalOpen,
+  target: targetMemberId,
+  open: openSuspendModal,
+  close: closeSuspendModal
+} = useModalTarget<string>()
 
 const members = computed(() => adminMemberStore.members?.items ?? [])
 const pageNumber = computed(() => adminMemberStore.members?.pageNumber ?? 1)
@@ -132,16 +137,6 @@ const { search } = useDebouncedSearch((term) => {
 
 const handlePageChange = (page: number) => {
   adminMemberStore.fetchMembers({ search: search.value || undefined, pageNumber: page })
-}
-
-const openSuspendModal = (memberId: string) => {
-  targetMemberId.value = memberId
-  isModalOpen.value = true
-}
-
-const closeSuspendModal = () => {
-  isModalOpen.value = false
-  targetMemberId.value = null
 }
 
 const handleSuspend = async (reason: string, until: string | null) => {

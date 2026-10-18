@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { adminQuizStatusStyle } from '~/utils/adminQuizStatus'
+import { adminQuizStatusLabelKey, adminQuizStatusStyle } from '~/utils/adminQuizStatus'
 
 describe('adminQuizStatusStyle', () => {
   it.each([
@@ -19,5 +19,15 @@ describe('adminQuizStatusStyle', () => {
       bgClass: 'bg-neutral-100',
       textClass: 'text-neutral-600'
     })
+  })
+})
+
+describe('adminQuizStatusLabelKey', () => {
+  it.each(['draft', 'published', 'archived', 'deleted', 'takendown'])('%s 對應 adminQuizzes.status.* 的 i18n key', (status) => {
+    expect(adminQuizStatusLabelKey(status)).toBe(`adminQuizzes.status.${status}`)
+  })
+
+  it('未知狀態回傳 null（呼叫端直接顯示原始狀態）', () => {
+    expect(adminQuizStatusLabelKey('unknown')).toBeNull()
   })
 })

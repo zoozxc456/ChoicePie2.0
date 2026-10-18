@@ -52,6 +52,7 @@
 import AdminMembershipTierRow from '~/components/admin/AdminMembershipTierRow.vue'
 import MembershipTierFormModal from '~/components/admin/MembershipTierFormModal.vue'
 import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
+import { useModalTarget } from '~/composables/useModalTarget'
 import type { MembershipTierDto } from '~/types/api'
 
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
@@ -59,27 +60,15 @@ definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
 const { t } = useI18n()
 const adminMembershipTierStore = useAdminMembershipTierStore()
 
-const isModalOpen = ref(false)
-const editingTier = ref<MembershipTierDto | null>(null)
+const { isOpen: isModalOpen, target: editingTier, open, close: closeModal } = useModalTarget<MembershipTierDto>()
 
 const tiers = computed(() => adminMembershipTierStore.tiers)
 
 await adminMembershipTierStore.fetchTiers()
 
-const openCreateModal = () => {
-  editingTier.value = null
-  isModalOpen.value = true
-}
+const openCreateModal = () => open(null)
 
-const openEditModal = (tier: MembershipTierDto) => {
-  editingTier.value = tier
-  isModalOpen.value = true
-}
-
-const closeModal = () => {
-  isModalOpen.value = false
-  editingTier.value = null
-}
+const openEditModal = (tier: MembershipTierDto) => open(tier)
 
 const handleConfirm = async (name: string, dailyGenerationLimit: number, dailyTokenBudget: number) => {
   try {

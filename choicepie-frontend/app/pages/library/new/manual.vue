@@ -95,6 +95,7 @@ import ReadySummaryCard from '~/components/library/editor/ReadySummaryCard.vue'
 import { createBlankQuestion, useQuestionDrafts } from '~/composables/useQuestionDrafts'
 import { useQuizStore } from '~/stores/quiz'
 import type { QuizCoverInput } from '~/stores/quiz'
+import { createDefaultCover } from '~/utils/quizCover'
 
 definePageMeta({
   layout: 'default',
@@ -106,7 +107,7 @@ const quizStore = useQuizStore()
 
 const title = ref('')
 const titleTouched = ref(false)
-const cover = ref<QuizCoverInput>({ coverImageUrl: null, coverEmoji: '📝', coverGradient: 'primary' })
+const cover = ref<QuizCoverInput>(createDefaultCover())
 const isCreatingRoom = ref(false)
 const isPreviewOpen = ref(false)
 

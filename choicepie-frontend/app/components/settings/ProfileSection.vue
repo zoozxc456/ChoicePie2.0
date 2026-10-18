@@ -18,7 +18,7 @@
         <input
           ref="fileInputRef"
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          :accept="ALLOWED_IMAGE_TYPES.join(',')"
           class="hidden"
           @change="handleFileChange"
         >
@@ -98,9 +98,8 @@
 
 <script setup lang="ts">
 import SettingsSectionCard from '~/components/settings/SettingsSectionCard.vue'
+import { ALLOWED_IMAGE_TYPES, validateImageFile } from '~/utils/imageFile'
 
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const NAME_MIN = 2
 const NAME_MAX = 20
 
@@ -154,12 +153,9 @@ const handleFileChange = async (event: Event) => {
   if (!file) return
 
   avatarError.value = ''
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    avatarError.value = t('settings.profile.avatarInvalidType')
-    return
-  }
-  if (file.size > MAX_AVATAR_BYTES) {
-    avatarError.value = t('settings.profile.avatarTooLarge')
+  const invalid = validateImageFile(file)
+  if (invalid) {
+    avatarError.value = t(invalid === 'invalidType' ? 'settings.profile.avatarInvalidType' : 'settings.profile.avatarTooLarge')
     return
   }
 
