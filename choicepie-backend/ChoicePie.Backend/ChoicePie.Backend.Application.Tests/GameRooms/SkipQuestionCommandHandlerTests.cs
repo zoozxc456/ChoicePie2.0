@@ -73,6 +73,35 @@ public class SkipQuestionCommandHandlerTests
     }
 
     [Test]
+    public async Task Handle_GivenSessionAlreadyRecordedButRoomStillInReveal_WhenCalled_ThenDoesNotRecordAgainAndMarksRoomEnded()
+    {
+        var room = CreateRoom(1);
+        room.StartGame(_hostUserId, CreatedAtUtc.AddMinutes(1));
+        room.EndCurrentQuestion(_hostUserId, CreatedAtUtc.AddMinutes(1).AddSeconds(5));
+        _gameRoomRepository.GetByRoomCodeAsync("ABC123", Arg.Any<CancellationToken>()).Returns(room);
+        var alreadyRecorded = GameSessionAggregate.RecordFrom(CreateEndedCopyOf(room), CreatedAtUtc.AddMinutes(2));
+        _gameSessionRepository.GetByIdAsync(room.Id, Arg.Any<CancellationToken>()).Returns(alreadyRecorded);
+
+        var result = await _sut.Handle(new SkipQuestionCommand("ABC123", _hostUserId), CancellationToken.None);
+
+        Assert.That(result.Kind, Is.EqualTo(SkipQuestionOutcomeKind.GameEnded));
+        Assert.That(result.FinalRankings, Has.Count.EqualTo(1));
+        await _gameSessionRepository.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
+        await _unitOfWork.DidNotReceiveWithAnyArgs().SaveChangesAsync(default);
+        await _gameRoomRepository.Received(1).SaveAsync(
+            Arg.Is<Domain.Aggregates.GameRoom.GameRoom>(r => r.Phase == Domain.Aggregates.GameRoom.Enums.GamePhase.Ended),
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>模擬「上一次呼叫已寫入 Postgres」：從同一份 memento 還原出另一個實例推進到結束，不動到受測的 room。</summary>
+    private Domain.Aggregates.GameRoom.GameRoom CreateEndedCopyOf(Domain.Aggregates.GameRoom.GameRoom room)
+    {
+        var copy = Domain.Aggregates.GameRoom.GameRoom.Restore(room.ToMemento());
+        copy.AdvanceToNextQuestion(_hostUserId, CreatedAtUtc.AddMinutes(2));
+        return copy;
+    }
+
+    [Test]
     public void Handle_GivenCallerIsNotHost_WhenCalled_ThenThrowsRoomAccessDeniedException()
     {
         var room = CreateRoom(1);
