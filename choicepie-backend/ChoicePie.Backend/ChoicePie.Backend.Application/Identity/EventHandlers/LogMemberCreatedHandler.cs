@@ -11,9 +11,8 @@ public sealed class LogMemberCreatedHandler(ILogger<LogMemberCreatedHandler> log
     public Task Handle(DomainEventNotification<MemberCreatedDomainEvent> notification, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "New member created: {MemberId} ({Name})",
-            notification.DomainEvent.MemberId,
-            notification.DomainEvent.Name);
+            "New member created: {MemberId}",
+            notification.DomainEvent.MemberId);
 
         return Task.CompletedTask;
     }

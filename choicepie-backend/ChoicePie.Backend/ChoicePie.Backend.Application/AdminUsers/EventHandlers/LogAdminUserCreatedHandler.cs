@@ -11,9 +11,8 @@ public sealed class LogAdminUserCreatedHandler(ILogger<LogAdminUserCreatedHandle
     public Task Handle(DomainEventNotification<AdminUserCreatedDomainEvent> notification, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "New admin user created: {AdminUserId} ({Name}, {Role})",
+            "New admin user created: {AdminUserId} ({Role})",
             notification.DomainEvent.AdminUserId,
-            notification.DomainEvent.Name,
             notification.DomainEvent.Role);
 
         return Task.CompletedTask;
