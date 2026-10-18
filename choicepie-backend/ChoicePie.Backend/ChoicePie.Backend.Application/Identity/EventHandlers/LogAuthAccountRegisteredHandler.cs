@@ -11,10 +11,9 @@ public sealed class LogAuthAccountRegisteredHandler(ILogger<LogAuthAccountRegist
     public Task Handle(DomainEventNotification<AuthAccountRegisteredDomainEvent> notification, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "New auth account registered: {AuthAccountId} for member {MemberId} ({Email})",
+            "New auth account registered: {AuthAccountId} for member {MemberId}",
             notification.DomainEvent.AuthAccountId,
-            notification.DomainEvent.MemberId,
-            notification.DomainEvent.Email);
+            notification.DomainEvent.MemberId);
 
         return Task.CompletedTask;
     }
