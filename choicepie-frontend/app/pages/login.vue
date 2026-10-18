@@ -95,28 +95,21 @@ import GoogleAuthButton from '~/components/common/GoogleAuthButton.vue'
 import OrDivider from '~/components/common/OrDivider.vue'
 import PasswordInput from '~/components/common/PasswordInput.vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { ApiError } from '~/composables/useApi'
+import { useAuthRedirect } from '~/composables/useAuthRedirect'
 import { useLoginSchema, type LoginSchema } from '~/types/auth'
+import { getApiErrorMessage } from '~/utils/apiErrorMessage'
 
 definePageMeta({ layout: 'default' })
 
 const { t } = useI18n()
 const loginSchema = useLoginSchema()
 const auth = useAuthStore()
-const route = useRoute()
 
 const error = ref('')
 
-const redirect = computed(() => sanitizeRedirect(route.query.redirect))
+const { redirect, goToRedirect, redirectIfAuthenticated } = useAuthRedirect()
 
-// persisted 的 isLoggedIn 只代表「曾經登入過」，須用 fetchMe() 實際驗證 session 是否仍有效，
-// 避免 session 過期時在登入頁與受保護頁之間形成 redirect loop。
-if (auth.isLoggedIn) {
-  const verified = await auth.fetchMe()
-  if (verified) {
-    await navigateTo(redirect.value)
-  }
-}
+await redirectIfAuthenticated()
 
 const loginState = reactive<LoginSchema>({
   email: '',
@@ -128,9 +121,9 @@ const handleEmailLogin = async (event: FormSubmitEvent<LoginSchema>) => {
   if (event.data) {
     try {
       await auth.loginWithEmail(loginState)
-      await navigateTo(redirect.value)
+      await goToRedirect()
     } catch (e: unknown) {
-      error.value = e instanceof ApiError ? e.message : t('login.loginError')
+      error.value = getApiErrorMessage(e, t('login.loginError'))
     }
   }
 }
@@ -139,9 +132,9 @@ const handleGoogleLogin = async () => {
   error.value = ''
   try {
     await auth.loginWithGoogle()
-    await navigateTo(redirect.value)
+    await goToRedirect()
   } catch (e: unknown) {
-    error.value = e instanceof ApiError ? e.message : t('login.googleLoginError')
+    error.value = getApiErrorMessage(e, t('login.googleLoginError'))
   }
 }
 </script>

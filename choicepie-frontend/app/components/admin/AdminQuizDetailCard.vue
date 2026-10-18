@@ -89,11 +89,8 @@
 
     <AdminStatusStub
       size="lg"
-      :icon="statusIcon(quiz.status)"
+      v-bind="adminQuizStatusStyle(quiz.status)"
       :label="statusLabel(quiz.status)"
-      :border-class="statusBorderClass(quiz.status)"
-      :bg-class="statusStubBgClass(quiz.status)"
-      :text-class="statusTextClass(quiz.status)"
     >
       <template
         v-if="quiz.status === 'takendown'"
@@ -109,6 +106,7 @@
 
 <script setup lang="ts">
 import type { AdminQuizDetailDto } from '~/types/api'
+import { adminQuizStatusLabelKey, adminQuizStatusStyle } from '~/utils/adminQuizStatus'
 
 interface Props {
   quiz: AdminQuizDetailDto
@@ -124,45 +122,10 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const statusLabel = (status: string) => ({
-  draft: t('adminQuizzes.status.draft'),
-  published: t('adminQuizzes.status.published'),
-  archived: t('adminQuizzes.status.archived'),
-  deleted: t('adminQuizzes.status.deleted'),
-  takendown: t('adminQuizzes.status.takendown')
-}[status] ?? status)
-
-const statusIcon = (status: string) => ({
-  draft: 'i-lucide-file-edit',
-  published: 'i-lucide-check-circle-2',
-  archived: 'i-lucide-archive',
-  deleted: 'i-lucide-trash-2',
-  takendown: 'i-lucide-shield-off'
-}[status] ?? 'i-lucide-circle')
-
-const statusBorderClass = (status: string) => ({
-  draft: 'border-neutral-200',
-  published: 'border-success-200',
-  archived: 'border-warning-200',
-  deleted: 'border-neutral-200',
-  takendown: 'border-error-200'
-}[status] ?? 'border-neutral-200')
-
-const statusStubBgClass = (status: string) => ({
-  draft: 'bg-neutral-100',
-  published: 'bg-success-50',
-  archived: 'bg-warning-50',
-  deleted: 'bg-neutral-100',
-  takendown: 'bg-error-50'
-}[status] ?? 'bg-neutral-100')
-
-const statusTextClass = (status: string) => ({
-  draft: 'text-neutral-600',
-  published: 'text-success-700',
-  archived: 'text-warning-700',
-  deleted: 'text-neutral-600',
-  takendown: 'text-error-700'
-}[status] ?? 'text-neutral-600')
+const statusLabel = (status: string) => {
+  const key = adminQuizStatusLabelKey(status)
+  return key ? t(key) : status
+}
 </script>
 
 <script lang="ts">

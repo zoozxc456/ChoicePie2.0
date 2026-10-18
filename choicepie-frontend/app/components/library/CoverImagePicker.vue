@@ -38,18 +38,18 @@
         >
           <div class="flex gap-2">
             <button
-              v-for="color in COLOR_OPTIONS"
+              v-for="color in COVER_COLOR_OPTIONS"
               :key="color"
               type="button"
               class="w-8 h-8 rounded-full transition-transform"
-              :class="[COLOR_CLASS_MAP[color], modelValue.coverGradient === color ? 'ring-2 ring-offset-2 ring-secondary-800 scale-110' : '']"
+              :class="[coverColorClass(color), modelValue.coverGradient === color ? 'ring-2 ring-offset-2 ring-secondary-800 scale-110' : '']"
               :aria-label="color"
               @click="selectColor(color)"
             />
           </div>
           <div class="flex flex-wrap gap-2">
             <button
-              v-for="emoji in EMOJI_OPTIONS"
+              v-for="emoji in COVER_EMOJI_OPTIONS"
               :key="emoji"
               type="button"
               class="w-9 h-9 rounded-xl text-lg flex items-center justify-center"
@@ -65,7 +65,7 @@
           <input
             ref="fileInputRef"
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            :accept="ALLOWED_IMAGE_TYPES.join(',')"
             class="hidden"
             @change="handleFileChange"
           >
@@ -93,6 +93,8 @@
 import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
 import { useQuizStore } from '~/stores/quiz'
 import type { QuizCoverInput } from '~/stores/quiz'
+import { ALLOWED_IMAGE_TYPES, validateImageFile } from '~/utils/imageFile'
+import { COVER_COLOR_OPTIONS, COVER_EMOJI_OPTIONS, coverColorClass } from '~/utils/quizCover'
 
 interface Props {
   modelValue: QuizCoverInput
@@ -107,20 +109,6 @@ const emit = defineEmits<Emits>()
 
 const { t } = useI18n()
 const quizStore = useQuizStore()
-
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
-const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const COLOR_OPTIONS = ['primary', 'secondary', 'success', 'danger', 'warning', 'info'] as const
-const EMOJI_OPTIONS = ['📝', '🎯', '🧠', '🎲', '🏆', '📚', '⚡', '🎨']
-
-const COLOR_CLASS_MAP: Record<string, string> = {
-  primary: 'bg-cp-primary',
-  secondary: 'bg-cp-secondary',
-  success: 'bg-cp-success',
-  danger: 'bg-cp-danger',
-  warning: 'bg-cp-warning',
-  info: 'bg-cp-info'
-}
 
 const mode = ref<'color' | 'upload'>(props.modelValue.coverImageUrl ? 'upload' : 'color')
 const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -141,12 +129,9 @@ const handleFileChange = async (event: Event) => {
 
   uploadError.value = null
 
-  if (!ALLOWED_CONTENT_TYPES.includes(file.type)) {
-    uploadError.value = t('coverPicker.invalidFileType')
-    return
-  }
-  if (file.size > MAX_FILE_SIZE_BYTES) {
-    uploadError.value = t('coverPicker.fileTooLarge')
+  const invalid = validateImageFile(file)
+  if (invalid) {
+    uploadError.value = t(invalid === 'invalidType' ? 'coverPicker.invalidFileType' : 'coverPicker.fileTooLarge')
     return
   }
 

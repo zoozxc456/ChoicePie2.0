@@ -86,7 +86,8 @@
 import AdminListRow from '~/components/admin/AdminListRow.vue'
 import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import { useDebouncedSearch } from '~/composables/useDebouncedSearch'
-import { adminQuizStatusStyle } from '~/utils/adminQuizStatus'
+import { useModalTarget } from '~/composables/useModalTarget'
+import { adminQuizStatusLabelKey, adminQuizStatusStyle } from '~/utils/adminQuizStatus'
 import { totalPagesOf } from '~/utils/pagination'
 
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
@@ -94,8 +95,12 @@ definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
 const { t } = useI18n()
 const adminQuizStore = useAdminQuizStore()
 
-const isModalOpen = ref(false)
-const targetQuizId = ref<string | null>(null)
+const {
+  isOpen: isModalOpen,
+  target: targetQuizId,
+  open: openTakeDownModal,
+  close: closeTakeDownModal
+} = useModalTarget<string>()
 
 const quizzes = computed(() => adminQuizStore.quizzes?.items ?? [])
 const pageNumber = computed(() => adminQuizStore.quizzes?.pageNumber ?? 1)
@@ -111,22 +116,9 @@ const handlePageChange = (page: number) => {
   adminQuizStore.fetchQuizzes({ search: search.value || undefined, pageNumber: page })
 }
 
-const statusLabel = (status: string) => ({
-  draft: t('adminQuizzes.status.draft'),
-  published: t('adminQuizzes.status.published'),
-  archived: t('adminQuizzes.status.archived'),
-  deleted: t('adminQuizzes.status.deleted'),
-  takendown: t('adminQuizzes.status.takendown')
-}[status] ?? status)
-
-const openTakeDownModal = (quizId: string) => {
-  targetQuizId.value = quizId
-  isModalOpen.value = true
-}
-
-const closeTakeDownModal = () => {
-  isModalOpen.value = false
-  targetQuizId.value = null
+const statusLabel = (status: string) => {
+  const key = adminQuizStatusLabelKey(status)
+  return key ? t(key) : status
 }
 
 const handleTakeDown = async (reason: string) => {

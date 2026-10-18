@@ -81,6 +81,7 @@ import QuizDetailHero from '~/components/library/detail/QuizDetailHero.vue'
 import QuizQuestionList from '~/components/library/detail/QuizQuestionList.vue'
 import RelatedQuizList from '~/components/library/detail/RelatedQuizList.vue'
 import StartGameModal from '~/components/library/detail/StartGameModal.vue'
+import { useRequireLogin } from '~/composables/useRequireLogin'
 
 definePageMeta({ layout: 'content' })
 
@@ -125,16 +126,11 @@ useSeoMeta({
   twitterImage: () => ogImageUrl.value
 })
 
-// 需要登入的動作統一在這裡攔截：未登入者導向登入頁，登入後導回本題庫。
-const redirectToLogin = async () => {
-  await navigateTo(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
-}
+// 需要登入的動作（開房、單人練習、檢舉、收藏、追蹤）：未登入者導向登入頁，登入後導回本題庫。
+const { ensureLoggedIn } = useRequireLogin()
 
 const handleOpenStartModal = async () => {
-  if (!auth.isLoggedIn) {
-    await redirectToLogin()
-    return
-  }
+  if (!await ensureLoggedIn()) return
   isStartModalOpen.value = true
 }
 
@@ -176,10 +172,7 @@ const handleCreateRoom = async (timeLimit: number) => {
 
 const handleSoloPractice = async () => {
   if (!quiz.value) return
-  if (!auth.isLoggedIn) {
-    await redirectToLogin()
-    return
-  }
+  if (!await ensureLoggedIn()) return
   isStartingAttempt.value = true
   try {
     const result = await quizAttemptStore.startAttempt(quiz.value.id)
@@ -192,10 +185,7 @@ const handleSoloPractice = async () => {
 const isReportModalOpen = ref(false)
 
 const handleOpenReportModal = async () => {
-  if (!auth.isLoggedIn) {
-    await redirectToLogin()
-    return
-  }
+  if (!await ensureLoggedIn()) return
   isReportModalOpen.value = true
 }
 
@@ -211,10 +201,7 @@ const handleReport = async (reason: string, description?: string) => {
 
 const handleToggleFavorite = async () => {
   if (!quiz.value) return
-  if (!auth.isLoggedIn) {
-    await redirectToLogin()
-    return
-  }
+  if (!await ensureLoggedIn()) return
   try {
     await quizStore.toggleFavorite(quiz.value.id)
   } catch {
@@ -224,10 +211,7 @@ const handleToggleFavorite = async () => {
 
 const handleToggleFollow = async () => {
   if (!quiz.value) return
-  if (!auth.isLoggedIn) {
-    await redirectToLogin()
-    return
-  }
+  if (!await ensureLoggedIn()) return
   try {
     await creatorStore.toggleFollow(quiz.value.creatorId)
   } catch {

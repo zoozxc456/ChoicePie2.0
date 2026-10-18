@@ -65,6 +65,7 @@
 import AdminQuizReportCard from '~/components/admin/AdminQuizReportCard.vue'
 import ResolveQuizReportModal from '~/components/admin/ResolveQuizReportModal.vue'
 import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
+import { useModalTarget } from '~/composables/useModalTarget'
 import { totalPagesOf } from '~/utils/pagination'
 
 definePageMeta({ layout: 'admin', middleware: ['admin-auth'] })
@@ -73,9 +74,11 @@ const { t } = useI18n()
 const adminQuizReportStore = useAdminQuizReportStore()
 
 const statusFilter = ref('Pending')
-const isModalOpen = ref(false)
-const modalAction = ref<'resolve' | 'dismiss'>('resolve')
-const targetReportId = ref<string | null>(null)
+type ReportAction = 'resolve' | 'dismiss'
+
+const { isOpen: isModalOpen, target, open, close: closeModal } = useModalTarget<{ reportId: string, action: ReportAction }>()
+// modal 關閉時 target 清空，保留最後一次的 action 讓關閉動畫期間文案不跳動
+const modalAction = ref<ReportAction>('resolve')
 
 const reports = computed(() => adminQuizReportStore.reports?.items ?? [])
 const pageNumber = computed(() => adminQuizReportStore.reports?.pageNumber ?? 1)
@@ -91,24 +94,19 @@ const handlePageChange = (page: number) => {
   adminQuizReportStore.fetchReports({ status: statusFilter.value, pageNumber: page })
 }
 
-const openModal = (reportId: string, action: 'resolve' | 'dismiss') => {
-  targetReportId.value = reportId
+const openModal = (reportId: string, action: ReportAction) => {
   modalAction.value = action
-  isModalOpen.value = true
-}
-
-const closeModal = () => {
-  isModalOpen.value = false
-  targetReportId.value = null
+  open({ reportId, action })
 }
 
 const handleConfirm = async (note?: string) => {
-  if (!targetReportId.value) return
+  if (!target.value) return
+  const { reportId, action } = target.value
   try {
-    if (modalAction.value === 'resolve') {
-      await adminQuizReportStore.resolveReport(targetReportId.value, note)
+    if (action === 'resolve') {
+      await adminQuizReportStore.resolveReport(reportId, note)
     } else {
-      await adminQuizReportStore.dismissReport(targetReportId.value, note)
+      await adminQuizReportStore.dismissReport(reportId, note)
     }
     closeModal()
   } catch {

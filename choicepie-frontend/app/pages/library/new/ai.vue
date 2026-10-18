@@ -122,6 +122,7 @@ import { useQuizStore } from '~/stores/quiz'
 import type { QuizCoverInput } from '~/stores/quiz'
 import type { Difficulty } from '~/types/quiz'
 import { hasEnoughSource } from '~/utils/aiSource'
+import { createDefaultCover } from '~/utils/quizCover'
 
 definePageMeta({
   layout: 'default',
@@ -143,7 +144,7 @@ const difficultyOptions = computed(() => (['beginner', 'intermediate', 'expert']
   .map(d => ({ value: d, label: t(`hostNew.ai.difficulty.${d}`) })))
 
 const step = ref<'input' | 'preview'>('input')
-const cover = ref<QuizCoverInput>({ coverImageUrl: null, coverEmoji: '📝', coverGradient: 'primary' })
+const cover = ref<QuizCoverInput>(createDefaultCover())
 const isCreatingRoom = ref(false)
 const isPreviewOpen = ref(false)
 

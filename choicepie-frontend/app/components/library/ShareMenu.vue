@@ -19,6 +19,7 @@
 
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
+import { buildQuizShareUrl, buildSocialShareUrl, type SocialShareChannel } from '~/utils/shareUrl'
 
 interface Props {
   quizId: string
@@ -33,7 +34,7 @@ const quizStore = useQuizStore()
 const isCopied = ref(false)
 
 const buildShareUrl = (channel: string) =>
-  `${window.location.origin}/library/${props.quizId}?ref=${channel}`
+  buildQuizShareUrl(window.location.origin, props.quizId, channel)
 
 const recordShare = () => {
   quizStore.recordShare(props.quizId)
@@ -57,20 +58,8 @@ const openShareWindow = (url: string) => {
   recordShare()
 }
 
-const handleShareLine = () => {
-  const url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(buildShareUrl('line'))}`
-  openShareWindow(url)
-}
-
-const handleShareFacebook = () => {
-  const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(buildShareUrl('facebook'))}`
-  openShareWindow(url)
-}
-
-const handleShareX = () => {
-  const text = encodeURIComponent(props.quizTitle)
-  const url = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(buildShareUrl('x'))}`
-  openShareWindow(url)
+const shareTo = (channel: SocialShareChannel) => {
+  openShareWindow(buildSocialShareUrl(channel, buildShareUrl(channel), props.quizTitle))
 }
 
 const shareActions = computed<DropdownMenuItem[]>(() => [
@@ -82,17 +71,17 @@ const shareActions = computed<DropdownMenuItem[]>(() => [
   {
     label: t('libraryDetail.share.line'),
     icon: 'i-lucide-message-circle',
-    onSelect: handleShareLine
+    onSelect: () => shareTo('line')
   },
   {
     label: t('libraryDetail.share.facebook'),
     icon: 'i-lucide-thumbs-up',
-    onSelect: handleShareFacebook
+    onSelect: () => shareTo('facebook')
   },
   {
     label: t('libraryDetail.share.x'),
     icon: 'i-lucide-at-sign',
-    onSelect: handleShareX
+    onSelect: () => shareTo('x')
   }
 ])
 </script>

@@ -56,7 +56,7 @@
               v-for="i in 3"
               :key="i"
               class="h-1 flex-1 rounded-full transition-all"
-              :class="i <= (['weak', 'medium', 'strong'].indexOf(passwordStrength.level) + 1)
+              :class="i <= passwordStrength.bars
                 ? passwordStrength.barClass
                 : 'bg-neutral-200'"
             />
@@ -113,29 +113,23 @@ import AuthCardLayout from '~/components/common/AuthCardLayout.vue'
 import GoogleAuthButton from '~/components/common/GoogleAuthButton.vue'
 import OrDivider from '~/components/common/OrDivider.vue'
 import PasswordInput from '~/components/common/PasswordInput.vue'
-import { ApiError } from '~/composables/useApi'
+import { useAuthRedirect } from '~/composables/useAuthRedirect'
 import { useRegisterSchema, type RegisterSchema } from '~/types/auth'
+import { getApiErrorMessage } from '~/utils/apiErrorMessage'
+import { evaluatePasswordStrength, type PasswordStrength } from '~/utils/passwordStrength'
 
 definePageMeta({ layout: 'default' })
 
 const { t } = useI18n()
 const registerSchema = useRegisterSchema()
 const auth = useAuthStore()
-const route = useRoute()
 
 const error = ref('')
 const isLoading = ref(false)
 
-const redirect = computed(() => sanitizeRedirect(route.query.redirect))
+const { redirect, goToRedirect, redirectIfAuthenticated } = useAuthRedirect()
 
-// persisted 的 isLoggedIn 只代表「曾經登入過」，須用 fetchMe() 實際驗證 session 是否仍有效，
-// 避免 session 過期時在登入頁與受保護頁之間形成 redirect loop。
-if (auth.isLoggedIn) {
-  const verified = await auth.fetchMe()
-  if (verified) {
-    await navigateTo(redirect.value)
-  }
-}
+await redirectIfAuthenticated()
 
 const registerState = reactive<RegisterSchema>({
   name: '',
@@ -146,17 +140,17 @@ const registerState = reactive<RegisterSchema>({
 
 const isFormValid = computed(() => registerSchema.safeParse(registerState).success)
 
+const STRENGTH_DISPLAY: Record<PasswordStrength, { bars: number, barClass: string, textClass: string }> = {
+  tooShort: { bars: 1, barClass: 'bg-error-500', textClass: 'text-error-500' },
+  weak: { bars: 1, barClass: 'bg-error-500', textClass: 'text-error-500' },
+  medium: { bars: 2, barClass: 'bg-warning-500', textClass: 'text-warning-500' },
+  strong: { bars: 3, barClass: 'bg-success-500', textClass: 'text-success-500' }
+}
+
 const passwordStrength = computed(() => {
-  const p = registerState.password
-  if (p.length === 0) return null
-  if (p.length < 8) return { level: 'weak', label: t('signIn.strength.tooShort'), barClass: 'bg-error-500', textClass: 'text-error-500' }
-  const hasUpper = /[A-Z]/.test(p)
-  const hasNum = /[0-9]/.test(p)
-  const hasSymbol = /[^A-Za-z0-9]/.test(p)
-  const score = [hasUpper, hasNum, hasSymbol].filter(Boolean).length
-  if (score === 0) return { level: 'weak', label: t('signIn.strength.weak'), barClass: 'bg-error-500', textClass: 'text-error-500' }
-  if (score === 1) return { level: 'medium', label: t('signIn.strength.medium'), barClass: 'bg-warning-500', textClass: 'text-warning-500' }
-  return { level: 'strong', label: t('signIn.strength.strong'), barClass: 'bg-success-500', textClass: 'text-success-500' }
+  const strength = evaluatePasswordStrength(registerState.password)
+  if (!strength) return null
+  return { ...STRENGTH_DISPLAY[strength], label: t(`signIn.strength.${strength}`) }
 })
 
 const handleRegister = async () => {
@@ -169,9 +163,9 @@ const handleRegister = async () => {
       password: registerState.password,
       confirmPassword: registerState.confirmPassword
     })
-    await navigateTo(redirect.value)
+    await goToRedirect()
   } catch (e: unknown) {
-    error.value = e instanceof ApiError ? e.message : t('signIn.registerError')
+    error.value = getApiErrorMessage(e, t('signIn.registerError'))
   } finally {
     isLoading.value = false
   }
@@ -181,9 +175,9 @@ const handleGoogleLogin = async () => {
   error.value = ''
   try {
     await auth.loginWithGoogle()
-    await navigateTo(redirect.value)
+    await goToRedirect()
   } catch (e: unknown) {
-    error.value = e instanceof ApiError ? e.message : t('signIn.googleLoginError')
+    error.value = getApiErrorMessage(e, t('signIn.googleLoginError'))
   }
 }
 </script>

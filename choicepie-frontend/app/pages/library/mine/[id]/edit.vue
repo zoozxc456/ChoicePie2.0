@@ -98,6 +98,8 @@ import { createBlankQuestion } from '~/composables/useQuestionDrafts'
 import { useQuizStore } from '~/stores/quiz'
 import type { QuizCoverInput } from '~/stores/quiz'
 import type { Question } from '~/types/quiz'
+import { createDefaultCover } from '~/utils/quizCover'
+import { formatTags, parseTags } from '~/utils/tags'
 
 definePageMeta({ layout: 'default', middleware: ['auth'] })
 
@@ -112,7 +114,7 @@ const metaTitle = ref('')
 const metaDescription = ref('')
 const metaTagsInput = ref('')
 const isSavingMeta = ref(false)
-const cover = ref<QuizCoverInput>({ coverImageUrl: null, coverEmoji: '📝', coverGradient: 'primary' })
+const cover = ref<QuizCoverInput>(createDefaultCover())
 const isSavingCover = ref(false)
 const isAddingQuestion = ref(false)
 const savingQuestionId = ref<string | null>(null)
@@ -125,7 +127,7 @@ watch(quiz, (value) => {
   if (!value) return
   metaTitle.value = value.title
   metaDescription.value = value.description ?? ''
-  metaTagsInput.value = value.tags.join(', ')
+  metaTagsInput.value = formatTags(value.tags)
   cover.value = { coverImageUrl: value.coverImageUrl, coverEmoji: value.coverEmoji, coverGradient: value.coverGradient }
   drafts.value = value.questions.map(q => ({ ...q, options: [...q.options] }))
 }, { immediate: true })
@@ -133,11 +135,10 @@ watch(quiz, (value) => {
 const handleSaveMeta = async () => {
   isSavingMeta.value = true
   try {
-    const tags = metaTagsInput.value.split(',').map(tag => tag.trim()).filter(Boolean)
     await quizStore.updateQuiz(quizId, {
       title: metaTitle.value.trim(),
       description: metaDescription.value.trim() || null,
-      tags
+      tags: parseTags(metaTagsInput.value)
     })
   } finally {
     isSavingMeta.value = false
