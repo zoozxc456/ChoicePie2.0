@@ -5,6 +5,8 @@ using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Enums;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken.Enums;
 using ChoicePie.Backend.Shared.Application.Interfaces;
@@ -19,6 +21,7 @@ public sealed class GoogleLoginCommandHandler(
     IGoogleIdTokenVerifier googleIdTokenVerifier,
     IAuthAccountRepository authAccountRepository,
     IMemberRepository memberRepository,
+    IMembershipTierRepository membershipTierRepository,
     IRefreshTokenRepository refreshTokenRepository,
     ITokenService tokenService,
     IRefreshTokenGenerator refreshTokenGenerator,
@@ -57,6 +60,7 @@ public sealed class GoogleLoginCommandHandler(
             else
             {
                 member = Member.Create(ClampToPersonNameLength(googleIdentity.Name));
+                await AssignDefaultTierAsync(member, cancellationToken);
                 authAccount = AuthAccount.RegisterWithExternalLogin(
                     email, LoginProvider.Google, googleIdentity.ProviderUserId, member.Id);
 
@@ -79,6 +83,16 @@ public sealed class GoogleLoginCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new LoginResultDto(MemberDto.FromDomain(member, authAccount), accessToken, rawRefreshToken);
+    }
+
+    // 沒有預設方案時維持未指派，AI 出題額度視同為 0。
+    private async Task AssignDefaultTierAsync(Member member, CancellationToken ct)
+    {
+        var defaultTier = await membershipTierRepository.FirstOrDefaultAsync(new DefaultMembershipTierSpecification(), ct);
+        if (defaultTier is not null)
+        {
+            member.AssignTier(defaultTier.Id);
+        }
     }
 
     private static string ClampToPersonNameLength(string name)

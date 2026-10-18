@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
 using ChoicePie.Backend.Domain.Aggregates.Member;
-using ChoicePie.Backend.Domain.Aggregates.MembershipTier;
 using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Application.Contracts;
 using ChoicePie.Backend.Shared.Hosting.API.Response;
@@ -257,11 +256,9 @@ public sealed class QuizzesControllerTests
     }
 
     [Test]
-    public async Task GenerateQuestionsAsync_GivenMemberWithTier_WhenCalled_ThenReturnsPlaceholderQuestions()
+    public async Task GenerateQuestionsAsync_GivenNewlyRegisteredMember_WhenCalled_ThenUsesDefaultTierAndReturnsPlaceholderQuestions()
     {
-        var (client, _, email) = await GameHubTestClient.CreateAuthenticatedHostClientAsync(_factory);
-        using var _ = client;
-        await AssignNewTierAsync(email);
+        using var client = await CreateAuthenticatedClientAsync();
 
         var response = await PostGenerateQuestionsAsync(client);
 
@@ -273,7 +270,9 @@ public sealed class QuizzesControllerTests
     [Test]
     public async Task GenerateQuestionsAsync_GivenMemberWithoutTier_WhenCalled_ThenReturnsForbidden()
     {
-        using var client = await CreateAuthenticatedClientAsync();
+        var (client, _, email) = await GameHubTestClient.CreateAuthenticatedHostClientAsync(_factory);
+        using var _ = client;
+        await RemoveTierAsync(email);
 
         var response = await PostGenerateQuestionsAsync(client);
 
@@ -288,19 +287,16 @@ public sealed class QuizzesControllerTests
             Difficulty = "beginner"
         });
 
-    /// <summary>註冊流程不會指派方案（未指派 = AI 額度 0），所以直接透過 DbContext 建立方案並指派。</summary>
-    private async Task AssignNewTierAsync(string email)
+    /// <summary>註冊時會指派預設方案，所以直接透過 DbContext 拿掉，模擬未指派方案的會員。</summary>
+    private async Task RemoveTierAsync(string email)
     {
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
 
         var authAccount = await dbContext.Set<AuthAccount>().SingleAsync(a => a.Email == Email.Create(email));
-        var member = await dbContext.Set<Member>().SingleAsync(m => m.Id == authAccount.MemberId);
-        var tier = MembershipTier.Create($"Tier {Guid.NewGuid()}", dailyGenerationLimit: 10, dailyTokenBudget: 100_000);
-
-        dbContext.Add(tier);
-        member.AssignTier(tier.Id);
-        await dbContext.SaveChangesAsync();
+        await dbContext.Set<Member>()
+            .Where(m => m.Id == authAccount.MemberId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(m => m.TierId, (Guid?)null));
     }
 
     [Test]

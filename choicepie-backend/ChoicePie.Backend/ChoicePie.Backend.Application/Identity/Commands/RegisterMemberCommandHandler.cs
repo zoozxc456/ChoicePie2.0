@@ -4,6 +4,8 @@ using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.EmailVerificationToken;
 using ChoicePie.Backend.Domain.Aggregates.Member;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using ChoicePie.Backend.Shared.Kernel.Exceptions;
@@ -16,6 +18,7 @@ public sealed class RegisterMemberCommandHandler(
     IMemberRepository memberRepository,
     IAuthAccountRepository authAccountRepository,
     IEmailVerificationTokenRepository emailVerificationTokenRepository,
+    IMembershipTierRepository membershipTierRepository,
     IPasswordHasher passwordHasher,
     IRefreshTokenGenerator tokenGenerator,
     IUnitOfWork unitOfWork,
@@ -34,6 +37,7 @@ public sealed class RegisterMemberCommandHandler(
         }
 
         var member = Member.Create(request.Name);
+        await AssignDefaultTierAsync(member, cancellationToken);
         var hashedPassword = passwordHasher.Hash(request.Password);
         var authAccount = AuthAccount.Register(email, hashedPassword, member.Id);
 
@@ -55,5 +59,15 @@ public sealed class RegisterMemberCommandHandler(
         }
 
         return MemberDto.FromDomain(member, authAccount);
+    }
+
+    // 沒有預設方案時維持未指派，AI 出題額度視同為 0。
+    private async Task AssignDefaultTierAsync(Member member, CancellationToken ct)
+    {
+        var defaultTier = await membershipTierRepository.FirstOrDefaultAsync(new DefaultMembershipTierSpecification(), ct);
+        if (defaultTier is not null)
+        {
+            member.AssignTier(defaultTier.Id);
+        }
     }
 }

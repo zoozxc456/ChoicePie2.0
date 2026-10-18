@@ -5,6 +5,8 @@ using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Enums;
 using ChoicePie.Backend.Domain.Aggregates.AuthAccount.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.Member;
 using ChoicePie.Backend.Domain.Aggregates.Member.Exceptions;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier.Specifications;
 using ChoicePie.Backend.Domain.Aggregates.RefreshToken;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
@@ -20,6 +22,7 @@ public class GoogleLoginCommandHandlerTests
     private IGoogleIdTokenVerifier _googleIdTokenVerifier = null!;
     private IAuthAccountRepository _authAccountRepository = null!;
     private IMemberRepository _memberRepository = null!;
+    private IMembershipTierRepository _membershipTierRepository = null!;
     private IRefreshTokenRepository _refreshTokenRepository = null!;
     private ITokenService _tokenService = null!;
     private IRefreshTokenGenerator _refreshTokenGenerator = null!;
@@ -36,6 +39,7 @@ public class GoogleLoginCommandHandlerTests
         _googleIdTokenVerifier = Substitute.For<IGoogleIdTokenVerifier>();
         _authAccountRepository = Substitute.For<IAuthAccountRepository>();
         _memberRepository = Substitute.For<IMemberRepository>();
+        _membershipTierRepository = Substitute.For<IMembershipTierRepository>();
         _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
         _tokenService = Substitute.For<ITokenService>();
         _refreshTokenGenerator = Substitute.For<IRefreshTokenGenerator>();
@@ -43,6 +47,7 @@ public class GoogleLoginCommandHandlerTests
         _timeProvider = Substitute.For<TimeProvider>();
         _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
         _sut = new GoogleLoginCommandHandler(_googleIdTokenVerifier, _authAccountRepository, _memberRepository,
+            _membershipTierRepository,
             _refreshTokenRepository, _tokenService, _refreshTokenGenerator, _unitOfWork, _timeProvider);
 
         _googleIdTokenVerifier.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Identity);
@@ -80,6 +85,20 @@ public class GoogleLoginCommandHandlerTests
         await _authAccountRepository.Received(1).AddAsync(
             Arg.Is<AuthAccount>(a => a.LoginMethods.Single().Provider == LoginProvider.Google),
             Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_GivenNewGoogleUserAndDefaultTierExists_WhenCalled_ThenAssignsDefaultTier()
+    {
+        var defaultTier = MembershipTier.Create("Free", 3, 10_000, isDefault: true);
+        _membershipTierRepository
+            .FirstOrDefaultAsync(Arg.Any<DefaultMembershipTierSpecification>(), Arg.Any<CancellationToken>())
+            .Returns(defaultTier);
+
+        await _sut.Handle(ValidCommand(), CancellationToken.None);
+
+        await _memberRepository.Received(1).AddAsync(
+            Arg.Is<Member>(m => m.TierId == defaultTier.Id), Arg.Any<CancellationToken>());
     }
 
     [Test]
