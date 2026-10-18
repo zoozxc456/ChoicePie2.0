@@ -59,52 +59,25 @@ Scoring is computed on the backend and never trusts the client: 0–3 s = 1000, 
 
 ## Architecture
 
+> Full architecture write-up with diagrams (in Traditional Chinese): **[docs/architecture.md](docs/architecture.md)**. Known risks and doc/code gaps: [docs/known-risks.md](docs/known-risks.md).
+
 ```
  Browser ──REST (same-origin /api/v1/**)──▶ Nuxt server (Nitro BFF) ──Bearer──▶ .NET Web API ──▶ PostgreSQL
     │                                                                              │
-    └──────── SignalR WebSocket (/api/gamehub, direct to backend, cookie auth) ────┘──▶ Redis (GameRoom state / cache)
+    └──────── SignalR WebSocket (/api/gamehub, direct to backend, cookie auth) ────┴──▶ Redis
 ```
 
-- **All REST goes through the BFF.** The frontend's `useApi()` calls same-origin `/api/v1/**`, which `choicepie-frontend/server/api/v1/` forwards to the backend (a `[...path].ts` catch-all, plus dedicated routes for auth / account / uploads / admin that handle cookies and token refresh).
-- **SignalR connects directly to the backend.** `useGameRoom()` connects to `${NUXT_PUBLIC_API_BASE_URL}/api/gamehub` and authenticates with the `HttpOnly` auth cookie set by the backend.
-- **Live room state lives in Redis** (`GameRoom`). When a game ends it is persisted to PostgreSQL as a `GameSession` history record.
-- **The backend does not auto-advance question phases.** The host client's timers drive progress by calling `SkipQuestion`.
-- `GameRoomLock` is an in-process lock, so **only a single backend instance is supported** for now. Running multiple instances requires a distributed lock.
+- **All REST goes through the BFF.** `useApi()` calls same-origin `/api/v1/**`; `choicepie-frontend/server/api/v1/` forwards it to the backend as `Authorization: Bearer`.
+- **SignalR connects directly to the backend** (WebSockets only) and authenticates with the backend's own `HttpOnly` cookie.
+- **Live room state lives in Redis** (`GameRoom`) and is persisted to PostgreSQL as a `GameSession` when the game ends. The backend does not auto-advance questions; the host client drives `SkipQuestion`.
+- **The backend scales horizontally**: per-room Redis distributed lock, SignalR and FusionCache Redis backplanes, Redis rate limiting, shared Data Protection keys, and a transactional outbox claimed with `FOR UPDATE SKIP LOCKED`. `e2e/` runs a two-node stack to verify this.
 
-### Frontend (`choicepie-frontend`)
-
-| Concern | Tech |
+| Part | Stack |
 |---|---|
-| Framework | Nuxt 4 (`app/` directory), Vue 3 `<script setup lang="ts">` |
-| UI | @nuxt/ui, Tailwind CSS v4, `cp-*` design tokens (`app/assets/css/design-tokens.css`) |
-| State | Pinia (setup-store syntax) + pinia-plugin-persistedstate |
-| Real-time | @microsoft/signalr |
-| i18n | @nuxtjs/i18n, default `zh-TW`, plus `en` |
-| Other | zod, chart.js, gsap, @vueuse, @sentry/nuxt |
-| Tests | Vitest + @nuxt/test-utils (`tests/nuxt/unit/**/*.spec.ts`) |
+| Frontend (`choicepie-frontend`) | Nuxt 4, Vue 3, @nuxt/ui + Tailwind v4, Pinia, @microsoft/signalr, @nuxtjs/i18n (`zh-TW` default), Vitest |
+| Backend (`choicepie-backend/ChoicePie.Backend`) | .NET 10 / C# 14, Clean Architecture + DDD + CQRS (MediatR) + domain events + outbox, EF Core + PostgreSQL, FusionCache (HybridCache) + Redis, NUnit + Testcontainers |
 
-Key directories: `pages/` (file-based routing), `components/<feature>/`, `stores/`, `composables/` (`useApi`, `useGameRoom`, `useGoogleIdentity`, `usePlayerSession`), `services/<domain>/client.ts` (typed API clients), `types/`, `server/` (BFF).
-
-### Backend (`choicepie-backend/ChoicePie.Backend`)
-
-.NET 10 / C# 14, **Clean Architecture + DDD + CQRS (MediatR) + domain events**, EF Core + PostgreSQL, HybridCache (in-memory L1 + Redis L2).
-
-Dependency direction: `WebApi → Infrastructure → Application → Domain → Shared.Kernel`
-
-| Project | Responsibility |
-|---|---|
-| `Domain` | Aggregates: `Member`, `AuthAccount`, `AdminUser`, `Quiz`, `QuizAttempt`, `GameRoom`, `GameSession`, `MembershipTier`, `Comment`, `QuizReport`, and more |
-| `Application` | Feature slices with Commands / Queries / Contracts / Dtos (MediatR handlers) |
-| `Infrastructure` | EF Core persistence and migrations, Query Services, JWT, Anthropic AI quiz generation, web page fetching (with SSRF protection), Cloudflare R2 uploads |
-| `WebApi` | Controllers (`api/v{version}/...`), `Hubs/GameHub`, authentication and authorization setup |
-| `Shared.Kernel` | `AggregateRoot`, `ValueObject`, `Enumeration`, `Specification`, DI marker interfaces |
-| `Shared.Application` | MediatR contracts, paging, caching abstractions |
-| `Shared.Hosting` | `ApiResponse<T>` envelope, exception handling, rate limiting, health checks, Sentry, Scalar/OpenAPI |
-| `Shared.Infrastructure.*` | Persistence, Caching (Redis), Email (MailKit), Security (Argon2id, refresh tokens) |
-
-Every project has a matching `*.Tests` project (NUnit 4 + NSubstitute + ExpectedObjects). `WebApi.Tests` and `Shared.Infrastructure.Persistence.Tests` use Testcontainers to run integration tests against real PostgreSQL / Redis.
-
-Auth: a short-lived JWT access token plus a refresh token, both written as `HttpOnly` cookies. Authorization policies are `MemberOnly` (also checks the member isn't suspended or deleted) and `AdminOnly`.
+Backend dependency direction: `WebApi → Infrastructure → Application → Domain → Shared.Kernel`.
 
 ---
 
@@ -200,10 +173,12 @@ dotnet test ChoicePie.Backend.sln
 |---|---|
 | [choicepie-frontend/README.md](choicepie-frontend/README.md) | Frontend setup, scripts, and structure |
 | [choicepie-backend/README.md](choicepie-backend/README.md) | Backend setup, configuration, API overview, migrations |
+| [docs/architecture.md](docs/architecture.md) | System architecture, backend layering, key flows with Mermaid diagrams (Traditional Chinese) |
+| [docs/known-risks.md](docs/known-risks.md) | Known limitations, risks, and doc/code gaps (Traditional Chinese) |
 | [SECURITY.md](SECURITY.md) | How to report security vulnerabilities |
 | [choicepie-frontend/CLAUDE.md](choicepie-frontend/CLAUDE.md) | Frontend architecture, routing, state management, component conventions |
 | [choicepie-backend/ChoicePie.Backend/CLAUDE.md](choicepie-backend/ChoicePie.Backend/CLAUDE.md) | Backend architecture, configuration, auth flow, DDD / CQRS conventions |
-| [choicepie-backend/docs/backend-spec.md](choicepie-backend/docs/backend-spec.md) | Data models and API spec |
+| [choicepie-backend/docs/backend-spec.md](choicepie-backend/docs/backend-spec.md) | Original data model and API spec (pre-implementation; see architecture.md for current state) |
 | [choicepie-frontend/docs/todo.md](choicepie-frontend/docs/todo.md) | Feature history and open items |
 | [choicepie-frontend/docs/unconnected-apis.md](choicepie-frontend/docs/unconnected-apis.md) | Backend APIs not yet wired to the frontend |
 
