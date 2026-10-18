@@ -35,30 +35,22 @@ public sealed class CreateRoomCommandHandler(
             .Select(q => new GameQuestionSnapshot(q.Id, q.Text, q.Options, q.AnswerIndex, q.Explanation))
             .ToList();
 
-        var roomCode = await GenerateUniqueRoomCodeAsync(cancellationToken);
+        var createdAtUtc = timeProvider.GetUtcNow().UtcDateTime;
 
-        var room = GameRoom.Create(
-            request.HostUserId, roomCode, quiz.Id, quiz.Title, quiz.Cover.ImageUrl, quiz.Cover.Emoji,
-            quiz.Cover.Gradient, questions, request.TimeLimitSeconds, timeProvider.GetUtcNow().UtcDateTime);
-
-        if (request.HostConnectionId is not null)
-        {
-            room.AttachHostConnection(request.HostUserId, request.HostConnectionId);
-        }
-
-        await gameRoomRepository.SaveAsync(room, cancellationToken);
-
-        return new CreateRoomResultDto(roomCode);
-    }
-
-    private async Task<string> GenerateUniqueRoomCodeAsync(CancellationToken ct)
-    {
-        string roomCode;
+        // 房號的唯一性由 TryAddAsync 原子保證：撞號時換一個房號重試，不會覆蓋別人的房間。
+        GameRoom room;
         do
         {
-            roomCode = RoomCodeGenerator.Generate();
-        } while (await gameRoomRepository.RoomCodeExistsAsync(roomCode, ct));
+            room = GameRoom.Create(
+                request.HostUserId, RoomCodeGenerator.Generate(), quiz.Id, quiz.Title, quiz.Cover.ImageUrl,
+                quiz.Cover.Emoji, quiz.Cover.Gradient, questions, request.TimeLimitSeconds, createdAtUtc);
 
-        return roomCode;
+            if (request.HostConnectionId is not null)
+            {
+                room.AttachHostConnection(request.HostUserId, request.HostConnectionId);
+            }
+        } while (!await gameRoomRepository.TryAddAsync(room, cancellationToken));
+
+        return new CreateRoomResultDto(room.RoomCode);
     }
 }

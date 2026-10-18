@@ -106,17 +106,30 @@ public class RedisGameRoomRepositoryTests
     }
 
     [Test]
-    public async Task RoomCodeExistsAsync_GivenSavedRoom_WhenCalled_ThenReturnsTrue()
+    public async Task TryAddAsync_GivenUnusedRoomCode_WhenCalled_ThenStoresRoomWith48HourExpiryAndReturnsTrue()
     {
         var roomCode = NewRoomCode();
-        await _nodeA.SaveAsync(BuildRoom(roomCode));
 
-        Assert.That(await _nodeB.RoomCodeExistsAsync(roomCode), Is.True);
+        var added = await _nodeA.TryAddAsync(BuildRoom(roomCode));
+
+        Assert.That(added, Is.True);
+        Assert.That(await _nodeB.GetByRoomCodeAsync(roomCode), Is.Not.Null);
+        var ttl = await _nodeAConnection.GetDatabase().KeyTimeToLiveAsync($"ChoicePie:GameRoom:{roomCode}");
+        Assert.That(ttl, Is.EqualTo(TimeSpan.FromHours(48)).Within(TimeSpan.FromMinutes(1)));
     }
 
     [Test]
-    public async Task RoomCodeExistsAsync_GivenNoRoom_WhenCalled_ThenReturnsFalse()
+    public async Task TryAddAsync_GivenRoomCodeTakenByOtherNode_WhenCalled_ThenReturnsFalseAndKeepsExistingRoom()
     {
-        Assert.That(await _nodeA.RoomCodeExistsAsync(NewRoomCode()), Is.False);
+        var roomCode = NewRoomCode();
+        var existing = BuildRoom(roomCode);
+        existing.Join("小明", "conn-1", CreatedAtUtc.AddSeconds(1));
+        await _nodeA.TryAddAsync(existing);
+
+        var added = await _nodeB.TryAddAsync(BuildRoom(roomCode));
+
+        Assert.That(added, Is.False);
+        var stored = await _nodeA.GetByRoomCodeAsync(roomCode);
+        Assert.That(stored!.Players.Select(p => p.Nickname), Is.EqualTo(new[] { "小明" }));
     }
 }

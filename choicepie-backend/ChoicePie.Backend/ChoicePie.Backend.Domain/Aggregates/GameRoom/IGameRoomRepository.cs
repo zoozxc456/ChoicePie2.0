@@ -10,5 +10,8 @@ public interface IGameRoomRepository
 
     Task SaveAsync(GameRoom room, CancellationToken ct = default);
 
-    Task<bool> RoomCodeExistsAsync(string roomCode, CancellationToken ct = default);
+    /// <summary>
+    /// 只在房號尚未被使用時寫入新房間（原子操作），房號已存在時回傳 false 且不覆蓋既有房間。
+    /// </summary>
+    Task<bool> TryAddAsync(GameRoom room, CancellationToken ct = default);
 }
