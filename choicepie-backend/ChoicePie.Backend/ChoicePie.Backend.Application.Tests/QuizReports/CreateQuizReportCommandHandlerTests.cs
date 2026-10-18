@@ -8,6 +8,8 @@ using ChoicePie.Backend.Domain.Aggregates.QuizReport.Exceptions;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.QuizReports;
 
@@ -82,5 +84,15 @@ public class CreateQuizReportCommandHandlerTests
 
         Assert.ThrowsAsync<InvalidQuizReportException>(() =>
             _sut.Handle(new CreateQuizReportCommand(_quiz.Id, "Spam", null), CancellationToken.None));
+    }
+
+    // 連點檢舉：兩邊都通過了「是否已檢舉」的檢查，由部分唯一索引擋下後回「已檢舉過」。
+    [Test]
+    public void Handle_GivenSameReportCreatedConcurrently_WhenSaving_ThenThrowsAlreadyReported()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new UniqueConstraintViolationException("ix"));
+
+        Assert.ThrowsAsync<InvalidQuizReportException>(() =>
+            _sut.Handle(new CreateQuizReportCommand(_quiz.Id, "Spam", "spam desc"), CancellationToken.None));
     }
 }

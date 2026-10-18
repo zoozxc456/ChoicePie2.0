@@ -8,12 +8,12 @@ using MediatR;
 namespace ChoicePie.Backend.Application.Quizzes.EventHandlers;
 
 // 使用者關閉帳號後，其已發布的題庫不應繼續出現在公開列表：封存它們。
-// EfUnitOfWork 在 commit 之後才派送事件，這裡是 at-least-once；規格只挑仍為 Published 的題庫，重送是冪等的。
+// 經 Outbox 派送：帳號關閉一旦 commit，封存一定會執行（失敗會重試）。at-least-once；規格只挑仍為 Published 的題庫，重送是冪等的。
 public sealed class ArchivePublishedQuizzesOnAccountClosedHandler(IQuizRepository quizRepository, IUnitOfWork unitOfWork)
-    : INotificationHandler<DomainEventNotification<MemberAccountClosedDomainEvent>>
+    : INotificationHandler<ReliableDomainEventNotification<MemberAccountClosedDomainEvent>>
 {
     public async Task Handle(
-        DomainEventNotification<MemberAccountClosedDomainEvent> notification, CancellationToken cancellationToken)
+        ReliableDomainEventNotification<MemberAccountClosedDomainEvent> notification, CancellationToken cancellationToken)
     {
         var quizzes = await quizRepository.ListAsync(
             new PublishedQuizzesByCreatorSpecification(notification.DomainEvent.MemberId), cancellationToken);

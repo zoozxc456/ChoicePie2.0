@@ -1,6 +1,8 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Outbox;
+using Microsoft.AspNetCore.DataProtection;
 using Testcontainers.PostgreSql;
 
 namespace ChoicePie.Backend.Shared.Infrastructure.Persistence.Tests.TestSupport;
@@ -35,8 +37,14 @@ public sealed class PersistenceTestFixture : IAsyncDisposable
         return new TestDbContext(options);
     }
 
+    public OutboxSerializer OutboxSerializer { get; } = new(new EphemeralDataProtectionProvider());
+
+    public OutboxEventRegistry OutboxEventRegistry { get; } =
+        OutboxEventRegistry.FromAssemblies(typeof(PersistenceTestFixture).Assembly);
+
     public EfUnitOfWork<TestDbContext> CreateUnitOfWork(TestDbContext context, MediatR.IPublisher publisher) =>
-        new(context, publisher, NSubstitute.Substitute.For<IServiceScopeFactory>());
+        new(context, publisher, new OutboxMessageFactory(OutboxSerializer, OutboxEventRegistry),
+            NullLogger<EfUnitOfWork<TestDbContext>>.Instance);
 
     public async ValueTask DisposeAsync() => await _postgres.DisposeAsync();
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 
 namespace ChoicePie.Backend.Shared.Hosting.RateLimiting;
 
@@ -31,18 +32,18 @@ public static class RateLimitingExtensions
                 };
 
                 options.AddPolicy(RateLimitPolicyNames.Auth,
-                    context => FixedWindow(RateLimitPolicyNames.Auth, RateLimitPartitionKeyResolver.ResolveIp(context), settings.Auth));
+                    context => FixedWindow(context, RateLimitPolicyNames.Auth, RateLimitPartitionKeyResolver.ResolveIp(context), settings.Auth));
                 options.AddPolicy(RateLimitPolicyNames.Email,
-                    context => FixedWindow(RateLimitPolicyNames.Email, RateLimitPartitionKeyResolver.Resolve(context), settings.Email));
+                    context => FixedWindow(context, RateLimitPolicyNames.Email, RateLimitPartitionKeyResolver.Resolve(context), settings.Email));
                 options.AddPolicy(RateLimitPolicyNames.Ai,
-                    context => FixedWindow(RateLimitPolicyNames.Ai, RateLimitPartitionKeyResolver.Resolve(context), settings.Ai));
+                    context => FixedWindow(context, RateLimitPolicyNames.Ai, RateLimitPartitionKeyResolver.Resolve(context), settings.Ai));
                 options.AddPolicy(RateLimitPolicyNames.Write,
-                    context => FixedWindow(RateLimitPolicyNames.Write, RateLimitPartitionKeyResolver.Resolve(context), settings.Write));
+                    context => FixedWindow(context, RateLimitPolicyNames.Write, RateLimitPartitionKeyResolver.Resolve(context), settings.Write));
 
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
                     context.Request.Path.StartsWithSegments(HealthPathPrefix)
                         ? RateLimitPartition.GetNoLimiter("health")
-                        : FixedWindow("global", RateLimitPartitionKeyResolver.Resolve(context), settings.Global));
+                        : FixedWindow(context, "global", RateLimitPartitionKeyResolver.Resolve(context), settings.Global));
             });
 
             return services;
@@ -50,12 +51,11 @@ public static class RateLimitingExtensions
     }
 
     // partition key 帶上 policy 名稱，避免不同 policy 共用同一個計數器。
-    private static RateLimitPartition<string> FixedWindow(string policyName, string key, RateLimitRule rule)
-        => RateLimitPartition.GetFixedWindowLimiter($"{policyName}:{key}", _ => new FixedWindowRateLimiterOptions
-        {
-            PermitLimit = rule.PermitLimit,
-            Window = TimeSpan.FromSeconds(rule.WindowSeconds),
-            QueueLimit = 0,
-            AutoReplenishment = true
-        });
+    // 計數存在 Redis，多台後端共用同一份限制（見 RedisFixedWindowRateLimiter）。
+    private static RateLimitPartition<string> FixedWindow(HttpContext context, string policyName, string key, RateLimitRule rule)
+    {
+        var redis = context.RequestServices.GetRequiredService<IConnectionMultiplexer>();
+        return RateLimitPartition.Get($"{policyName}:{key}",
+            partitionKey => new RedisFixedWindowRateLimiter(partitionKey, rule, redis));
+    }
 }

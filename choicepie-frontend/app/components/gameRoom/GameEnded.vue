@@ -4,7 +4,10 @@
       name="i-lucide-trophy"
       class="text-5xl mb-3 text-cp-primary"
     />
-    <h1 class="text-2xl font-bold mb-1">
+    <h1
+      data-testid="game-ended-title"
+      class="text-2xl font-bold mb-1"
+    >
       {{ t('room.ended.title') }}
     </h1>
   </div>

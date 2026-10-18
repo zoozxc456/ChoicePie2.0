@@ -4,19 +4,12 @@
       {{ t('library.title') }}
     </h1>
 
-    <div class="inline-flex gap-1 p-1 mb-7 rounded-full bg-cp-surface-muted">
-      <button
-        v-for="tab in visibleTabs"
-        :key="tab"
-        class="px-5 py-2.5 text-sm font-bold rounded-full transition-colors"
-        :class="activeTab === tab
-          ? 'bg-cp-surface text-cp-primary shadow-cp-sm'
-          : 'text-cp-text-secondary'"
-        @click="activeTab = tab"
-      >
-        {{ t(`library.tabs.${tab}`) }}
-      </button>
-    </div>
+    <SegmentedControl
+      v-model="activeTab"
+      :options="tabOptions"
+      shape="pill"
+      class="mb-7"
+    />
 
     <AllQuizzesTab v-if="activeTab === 'all'" />
     <MyQuizzesTab v-else-if="activeTab === 'mine' && auth.isLoggedIn" />
@@ -32,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import SegmentedControl from '~/components/common/SegmentedControl.vue'
 import AllQuizzesTab from '~/components/library/AllQuizzesTab.vue'
 import FavoritesTab from '~/components/library/FavoritesTab.vue'
 import FollowingTab from '~/components/library/FollowingTab.vue'
@@ -50,6 +44,8 @@ type LibraryTab = 'all' | 'mine' | 'favorites' | 'following'
 const MEMBER_TABS: LibraryTab[] = ['mine', 'favorites', 'following']
 
 const visibleTabs = computed<LibraryTab[]>(() => (auth.isLoggedIn ? ['all', ...MEMBER_TABS] : ['all']))
+
+const tabOptions = computed(() => visibleTabs.value.map(tab => ({ value: tab, label: t(`library.tabs.${tab}`) })))
 
 const resolveTab = (): LibraryTab => {
   const tab = route.query.tab as LibraryTab

@@ -1,9 +1,7 @@
 using ChoicePie.Backend.Application.Quizzes.EventHandlers;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
-using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Events;
 using ChoicePie.Backend.Shared.Application.Events;
-using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
 
 namespace ChoicePie.Backend.Application.Tests.Quizzes;
@@ -12,37 +10,26 @@ namespace ChoicePie.Backend.Application.Tests.Quizzes;
 public class RecordChallengeOutcomeHandlerTests
 {
     private IQuizRepository _quizRepository = null!;
-    private IUnitOfWork _unitOfWork = null!;
     private RecordChallengeOutcomeHandler _sut = null!;
-    private Quiz _quiz = null!;
 
     [SetUp]
     public void SetUp()
     {
         _quizRepository = Substitute.For<IQuizRepository>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new RecordChallengeOutcomeHandler(_quizRepository, _unitOfWork);
-
-        _quiz = Quiz.Create(Guid.NewGuid(), "Title", null, null, "⚓", "primary", Difficulty.Beginner, []);
-        _quizRepository.GetByIdAsync(_quiz.Id, Arg.Any<CancellationToken>()).Returns(_quiz);
+        _sut = new RecordChallengeOutcomeHandler(_quizRepository);
     }
 
-    [TearDown]
-    public void TearDown() => _unitOfWork.Dispose();
-
-    [Test]
-    public async Task Handle_GivenPassedAttempt_WhenCalled_ThenRecordsOutcomeAndPersists()
+    // 很多人同時完成同一份題庫的挑戰時不能少算：交給 repository 用單一 UPDATE 原子更新次數與通過率。
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task Handle_GivenCompletedAttempt_WhenCalled_ThenRecordsOutcomeAtomically(bool passed)
     {
-        var notification = new DomainEventNotification<QuizAttemptCompletedDomainEvent>(
-            new QuizAttemptCompletedDomainEvent(Guid.NewGuid(), _quiz.Id, Guid.NewGuid(), 100m, true));
+        var quizId = Guid.NewGuid();
+        var notification = new ReliableDomainEventNotification<QuizAttemptCompletedDomainEvent>(
+            new QuizAttemptCompletedDomainEvent(Guid.NewGuid(), quizId, Guid.NewGuid(), passed ? 100m : 0m, passed));
 
         await _sut.Handle(notification, CancellationToken.None);
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(_quiz.ChallengeCount, Is.EqualTo(1));
-            Assert.That(_quiz.PassRate, Is.EqualTo(100m));
-        });
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _quizRepository.Received(1).RecordChallengeOutcomeAsync(quizId, passed, Arg.Any<CancellationToken>());
     }
 }

@@ -16,6 +16,8 @@ class HttpError extends Error {
 
 const LogLevel = { Warning: 2 }
 
+const HttpTransportType = { WebSockets: 1 }
+
 const hubConnectionMock = vi.hoisted(() => ({
   state: 'Disconnected' as string,
   handlers: new Map<string, (...args: unknown[]) => void>(),
@@ -64,6 +66,7 @@ vi.mock('@microsoft/signalr', () => ({
   }),
   HubConnectionState,
   HttpError,
+  HttpTransportType,
   LogLevel
 }))
 

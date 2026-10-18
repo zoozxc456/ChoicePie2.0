@@ -11,10 +11,9 @@ public sealed class LogAdminAuthAccountCreatedHandler(ILogger<LogAdminAuthAccoun
     public Task Handle(DomainEventNotification<AdminAuthAccountCreatedDomainEvent> notification, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "New admin auth account created: {AdminAuthAccountId} for admin user {AdminUserId} ({Email})",
+            "New admin auth account created: {AdminAuthAccountId} for admin user {AdminUserId}",
             notification.DomainEvent.AdminAuthAccountId,
-            notification.DomainEvent.AdminUserId,
-            notification.DomainEvent.Email);
+            notification.DomainEvent.AdminUserId);
 
         return Task.CompletedTask;
     }

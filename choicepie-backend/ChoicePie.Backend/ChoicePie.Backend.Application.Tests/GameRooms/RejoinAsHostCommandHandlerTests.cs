@@ -21,7 +21,7 @@ public class RejoinAsHostCommandHandlerTests
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
         var timeProvider = Substitute.For<TimeProvider>();
         timeProvider.GetUtcNow().Returns(new DateTimeOffset(CreatedAtUtc.AddMinutes(1).AddSeconds(5)));
-        _sut = new RejoinAsHostCommandHandler(_gameRoomRepository, new GameRoomLock(), timeProvider);
+        _sut = new RejoinAsHostCommandHandler(_gameRoomRepository, timeProvider);
     }
 
     private Domain.Aggregates.GameRoom.GameRoom CreateRoom(int questionCount = 1)

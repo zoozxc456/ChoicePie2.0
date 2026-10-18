@@ -144,7 +144,7 @@
     },
     "ended": {
       "title": "Final Rankings",
-      "rankSuffix": ""
+      "place": "#{rank}"
     },
     "unavailable": "This room cannot be displayed. It may have ended or the code is wrong."
   },

@@ -1,0 +1,9 @@
+# 本機的 bin/obj 帶有 macOS 路徑的 restore 結果，複製進 image 會蓋掉容器內 restore 的產物。
+**/bin/
+**/obj/
+**/TestResults/
+**/.vs/
+**/.idea/
+**/*.user
+.claude/
+.tdd-cycle-results/

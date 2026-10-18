@@ -1,95 +1,43 @@
 <template>
   <div class="max-w-3xl mx-auto px-6 py-8">
-    <NuxtLink
+    <BackLink
       to="/library/new"
-      class="text-[13px] text-neutral-600 mb-4 inline-block"
-    >
-      ← {{ t('hostNew.backToChoice') }}
-    </NuxtLink>
+      :label="t('hostNew.backToChoice')"
+      class="mb-4"
+    />
 
     <h1 class="text-2xl font-extrabold mb-6">
       {{ t('hostNew.ai.title') }}
     </h1>
 
-    <!-- ── Quota locked ── -->
-    <div
-      v-if="step === 'input' && !quizStore.canUseAiToday"
-      class="bg-white border border-neutral-200 rounded-2xl px-7 py-10 flex flex-col items-center text-center gap-3"
-    >
-      <UIcon
-        name="i-lucide-hourglass"
-        class="text-4xl text-neutral-400"
-      />
-      <p class="text-lg font-bold">
-        {{ t('hostNew.ai.locked.title') }}
-      </p>
-      <p class="text-[13px] text-neutral-600 leading-relaxed whitespace-pre-line">
-        {{ t('hostNew.ai.locked.desc') }}
-      </p>
-      <NuxtLink
-        to="/library/new/manual"
-        class="mt-2 h-12 px-6 rounded-2xl bg-primary-500 text-white font-bold text-sm flex items-center whitespace-nowrap"
-      >
-        {{ t('hostNew.ai.locked.switchToManual') }}
-      </NuxtLink>
-    </div>
+    <AiQuotaLocked v-if="step === 'input' && !quizStore.canUseAiToday" />
 
     <!-- ── Input + settings ── -->
     <template v-else-if="step === 'input'">
-      <div class="bg-white border border-neutral-200 rounded-2xl p-5 flex flex-col gap-2 mb-5">
-        <textarea
-          v-model="content"
-          rows="7"
-          class="w-full rounded-xl p-3.5 text-sm resize-none outline-none bg-neutral-100 border-[1.5px] transition-colors"
-          :class="content ? 'border-primary-500' : 'border-neutral-200'"
-          :placeholder="t('hostNew.ai.contentPlaceholder')"
-        />
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-neutral-400">
-            <template v-if="isUrlInput">{{ t('hostNew.ai.urlHint') }}</template>
-            <template v-else>{{ t('hostNew.ai.charCount', { count: content.length }) }}</template>
-          </span>
-          <span
-            v-if="content.length > 0 && content.length < 30 && !isUrlInput"
-            class="text-xs text-warning-500"
-          >
-            {{ t('hostNew.ai.minCharsHint') }}
-          </span>
-        </div>
-      </div>
+      <AiSourceInput
+        v-model="content"
+        class="mb-5"
+      />
 
       <div class="bg-white border border-neutral-200 rounded-2xl p-5 grid grid-cols-2 gap-5 mb-5">
         <div>
           <p class="text-[13px] font-bold mb-2.5">
             {{ t('hostNew.ai.questionCountLabel') }}
           </p>
-          <div class="flex gap-2">
-            <button
-              v-for="n in questionCountOptions"
-              :key="n"
-              class="flex-1 text-center py-2.5 rounded-full text-sm font-bold"
-              :class="questionCount === n ? 'bg-primary-500 text-white' : 'bg-neutral-100 text-neutral-600'"
-              @click="questionCount = n"
-            >
-              {{ t('hostNew.ai.questionCountUnit', { count: n }) }}
-            </button>
-          </div>
+          <ChipPicker
+            v-model="questionCount"
+            :options="questionCountOptions"
+          />
         </div>
         <div>
           <p class="text-[13px] font-bold mb-2.5">
             {{ t('hostNew.ai.difficultyLabel') }}
           </p>
-          <div class="flex gap-2">
-            <button
-              v-for="d in difficultyOptions"
-              :key="d"
-              class="flex-1 text-center py-2.5 rounded-full text-[13px] font-bold"
-              :class="difficulty === d ? 'bg-secondary-800 text-white' : 'bg-neutral-100 text-neutral-600'"
-              @click="difficulty = d"
-            >
-              {{ t(`hostNew.ai.difficulty.${d}`) }}
-            </button>
-          </div>
+          <ChipPicker
+            v-model="difficulty"
+            :options="difficultyOptions"
+            tone="secondary"
+          />
         </div>
       </div>
 
@@ -103,7 +51,6 @@
       >
         {{ quizStore.isGenerating ? t('hostNew.ai.generatingBtn') : t('hostNew.ai.generateBtn') }}
       </UButton>
-
       <p
         v-if="quizStore.error"
         class="text-sm mt-3 text-center text-error-500"
@@ -121,11 +68,11 @@
           :question="q"
           :index="qi"
           :expanded="editingIndex === qi"
-          @toggle="editingIndex = editingIndex === qi ? null : qi"
+          @toggle="toggleEditing(qi)"
           @set-answer="(oi) => setCorrectAnswer(qi, oi)"
-          @update:text="(val) => updateQuestion(qi, 'text', val)"
+          @update:text="(val) => updateText(qi, val)"
           @update:option="(oi, val) => updateOption(qi, oi, val)"
-          @update:explanation="(val) => updateQuestion(qi, 'explanation', val)"
+          @update:explanation="(val) => updateExplanation(qi, val)"
         />
       </div>
 
@@ -134,19 +81,12 @@
         class="mb-4"
       />
 
-      <div class="bg-white border border-neutral-200 rounded-2xl p-6 flex items-center justify-between gap-5 flex-wrap mb-4">
-        <div>
-          <p class="font-semibold text-sm mb-0.5">
-            {{ t('hostNew.ai.readyTitle') }}
-          </p>
-          <p class="text-[13px] text-neutral-600">
-            {{ t('hostNew.ai.readySubtitle') }}
-          </p>
-        </div>
-        <p class="text-4xl font-extrabold text-primary-500">
-          {{ t('hostNew.ai.questionCount', { count: questions.length }) }}
-        </p>
-      </div>
+      <ReadySummaryCard
+        class="mb-4"
+        :title="t('hostNew.ai.readyTitle')"
+        :subtitle="t('hostNew.ai.readySubtitle')"
+        :count-label="t('hostNew.ai.questionCount', { count: questions.length })"
+      />
 
       <UButton
         block
@@ -169,12 +109,20 @@
 </template>
 
 <script setup lang="ts">
+import BackLink from '~/components/common/BackLink.vue'
+import ChipPicker from '~/components/common/ChipPicker.vue'
 import HostQuestionEditor from '~/components/host/QuestionEditor.vue'
 import HostPreviewQuizModal from '~/components/host/PreviewQuizModal.vue'
 import CoverImagePicker from '~/components/library/CoverImagePicker.vue'
+import AiQuotaLocked from '~/components/library/editor/AiQuotaLocked.vue'
+import AiSourceInput from '~/components/library/editor/AiSourceInput.vue'
+import ReadySummaryCard from '~/components/library/editor/ReadySummaryCard.vue'
+import { useQuestionDrafts } from '~/composables/useQuestionDrafts'
 import { useQuizStore } from '~/stores/quiz'
 import type { QuizCoverInput } from '~/stores/quiz'
-import type { Difficulty, Question } from '~/types/quiz'
+import type { Difficulty } from '~/types/quiz'
+import { hasEnoughSource } from '~/utils/aiSource'
+import { createDefaultCover } from '~/utils/quizCover'
 
 definePageMeta({
   layout: 'default',
@@ -184,52 +132,43 @@ definePageMeta({
 const { t } = useI18n()
 const quizStore = useQuizStore()
 
+type QuestionCount = 3 | 5 | 10
+
 const content = ref('')
-const questionCount = ref<3 | 5 | 10>(5)
+const questionCount = ref<QuestionCount>(5)
 const difficulty = ref<Difficulty>('intermediate')
 
-const questionCountOptions: (3 | 5 | 10)[] = [3, 5, 10]
-const difficultyOptions: Difficulty[] = ['beginner', 'intermediate', 'expert']
+const questionCountOptions = computed(() => ([3, 5, 10] as QuestionCount[])
+  .map(n => ({ value: n, label: t('hostNew.ai.questionCountUnit', { count: n }) })))
+const difficultyOptions = computed(() => (['beginner', 'intermediate', 'expert'] as Difficulty[])
+  .map(d => ({ value: d, label: t(`hostNew.ai.difficulty.${d}`) })))
 
 const step = ref<'input' | 'preview'>('input')
-const questions = ref<Question[]>([])
-const cover = ref<QuizCoverInput>({ coverImageUrl: null, coverEmoji: '📝', coverGradient: 'primary' })
-const editingIndex = ref<number | null>(null)
+const cover = ref<QuizCoverInput>(createDefaultCover())
 const isCreatingRoom = ref(false)
 const isPreviewOpen = ref(false)
 
-const isUrlInput = computed(() => {
-  const v = content.value.trim()
-  // 與後端一致：單一、不含空白的 http(s) 網址才會被當成要抓取的網頁
-  return /^https?:\/\/\S+$/i.test(v)
-})
+const {
+  questions,
+  editingIndex,
+  replaceAll,
+  toggleEditing,
+  updateText,
+  updateExplanation,
+  updateOption,
+  setCorrectAnswer
+} = useQuestionDrafts()
 
-const canGenerate = computed(() =>
-  (isUrlInput.value || content.value.trim().length >= 30) && quizStore.canUseAiToday
-)
+const canGenerate = computed(() => hasEnoughSource(content.value) && quizStore.canUseAiToday)
 
 const handleGenerate = async () => {
   try {
     await quizStore.generateQuestions(content.value, questionCount.value, difficulty.value)
-    questions.value = quizStore.generatedQuestions.map(q => ({ ...q }))
+    replaceAll(quizStore.generatedQuestions)
     step.value = 'preview'
   } catch {
     // error 由 store 管理
   }
-}
-
-const updateQuestion = (index: number, field: keyof Question, value: string | string[] | number) => {
-  questions.value[index] = { ...questions.value[index], [field]: value } as Question
-}
-
-const updateOption = (qIndex: number, optIndex: number, value: string) => {
-  const opts = [...(questions.value[qIndex]?.options ?? [])]
-  opts[optIndex] = value
-  updateQuestion(qIndex, 'options', opts)
-}
-
-const setCorrectAnswer = (qIndex: number, optIndex: number) => {
-  updateQuestion(qIndex, 'answerIndex', optIndex)
 }
 
 const handleSaveQuiz = async () => {

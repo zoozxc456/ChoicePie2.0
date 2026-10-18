@@ -4,6 +4,7 @@ using ChoicePie.Backend.Domain.Aggregates.PasswordResetToken.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.PasswordResetToken.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using MediatR;
 
 namespace ChoicePie.Backend.Application.Identity.Commands;
@@ -35,6 +36,14 @@ public sealed class ResetPasswordCommandHandler(
 
         await authAccountRepository.UpdateAsync(authAccount, cancellationToken);
         await passwordResetTokenRepository.UpdateAsync(resetToken, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            // 同一顆 token 同時被另一個請求用掉：一次性 token 只能成功一次。
+            throw new InvalidPasswordResetTokenException();
+        }
     }
 }

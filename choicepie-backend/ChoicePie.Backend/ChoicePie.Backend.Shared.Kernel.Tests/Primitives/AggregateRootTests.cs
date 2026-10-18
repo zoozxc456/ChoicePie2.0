@@ -24,8 +24,8 @@ public class AggregateRootTests
     {
         var aggregate = TestAggregate.Create();
 
-        // BaseDomainEvent 帶了一個建構當下的時間戳記，即使 Message 相同，兩個個別建構的事件實例
-        // 也永遠不會被判定相等（record 的結構相等會比較這個內部時間戳記），所以這裡改成比對
+        // BaseDomainEvent 帶了建構當下產生的 EventId 與時間戳記，即使 Message 相同，兩個個別建構的事件實例
+        // 也永遠不會被判定相等（record 的結構相等會比較這兩個信封欄位），所以這裡改成比對
         // Message 本身，而不是整個事件物件的相等性。
         Assert.That(aggregate.DomainEvents, Has.Count.EqualTo(1));
         Assert.That(aggregate.DomainEvents.Single(), Is.InstanceOf<TestDomainEvent>());

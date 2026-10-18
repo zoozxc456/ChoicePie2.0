@@ -1,15 +1,9 @@
 <template>
   <div class="max-w-2xl mx-auto px-4 py-8">
     <!-- Loading -->
-    <div
+    <LoadingSpinner
       v-if="isChecking || (isLoading && !quiz)"
-      class="flex justify-center py-20"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-primary-500"
-      />
-    </div>
+    />
 
     <template v-else-if="quiz && currentQuestion">
       <!-- Progress -->
@@ -94,8 +88,10 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import QuizOption from '~/components/gameRoom/QuizOption.vue'
 import AttemptResult from '~/components/attempt/AttemptResult.vue'
+import { useCountdown } from '~/composables/useCountdown'
 
 definePageMeta({ layout: 'content', middleware: ['auth'] })
 
@@ -120,38 +116,18 @@ const currentQuestion = computed(() => quiz.value?.questions[questionIndex.value
 const isLastQuestion = computed(() => !!quiz.value && questionIndex.value === quiz.value.questions.length - 1)
 
 // ── Timer (client-side only, no server-side time limit or scoring impact) ──
-const timeLeft = ref(QUESTION_TIME_LIMIT_SECONDS)
-let timerInterval: ReturnType<typeof setInterval> | null = null
-
-const isTimerUrgent = computed(() => timeLeft.value <= 5 && timeLeft.value > 0)
-const timerPercent = computed(() => (timeLeft.value / QUESTION_TIME_LIMIT_SECONDS) * 100)
-
-const stopTimer = () => {
-  if (timerInterval !== null) {
-    clearInterval(timerInterval)
-    timerInterval = null
-  }
-}
-
-const startTimer = () => {
-  stopTimer()
-  timeLeft.value = QUESTION_TIME_LIMIT_SECONDS
-  timerInterval = setInterval(() => {
-    if (timeLeft.value > 0) {
-      timeLeft.value--
-    } else {
-      stopTimer()
-      handleNext()
-    }
-  }, 1000)
-}
+const {
+  timeLeft,
+  isUrgent: isTimerUrgent,
+  percent: timerPercent,
+  start: startTimer,
+  stop: stopTimer
+} = useCountdown(QUESTION_TIME_LIMIT_SECONDS, () => handleNext())
 
 watch(currentQuestion, (question) => {
   if (question) startTimer()
   else stopTimer()
 })
-
-onUnmounted(stopTimer)
 
 const selectOption = (index: number) => {
   if (isSubmitting.value) return
@@ -185,14 +161,9 @@ onMounted(async () => {
   }
   quizAttemptStore.reset()
   try {
-    const attempt = await quizAttemptStore.fetchAttemptById(attemptId)
-    if (!attempt.completedAt) {
-      // In-progress attempt fetched by id lacks per-question options needed to render
-      // the question UI — resume it via startAttempt, which reuses the same attempt
-      // and returns the full quiz payload.
-      await quizAttemptStore.startAttempt(attempt.quizId)
-      const answeredCount = attempt.answers.filter(a => a.selectedOptionIndex !== null).length
-      questionIndex.value = Math.min(answeredCount, attempt.answers.length - 1)
+    const resumeIndex = await quizAttemptStore.resumeAttempt(attemptId)
+    if (resumeIndex !== null) {
+      questionIndex.value = resumeIndex
       startTimer()
     }
   } catch {

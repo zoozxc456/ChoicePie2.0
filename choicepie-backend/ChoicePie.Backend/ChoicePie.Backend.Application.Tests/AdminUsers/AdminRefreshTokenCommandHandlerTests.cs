@@ -13,6 +13,8 @@ using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using ChoicePie.Backend.Shared.Kernel.ValueObjects;
 using NSubstitute;
 using RefreshTokenAggregate = ChoicePie.Backend.Domain.Aggregates.RefreshToken.RefreshToken;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.AdminUsers;
 
@@ -126,6 +128,14 @@ public class AdminRefreshTokenCommandHandlerTests
         _refreshTokenRepository
             .FirstOrDefaultAsync(Arg.Any<RefreshTokenByTokenHashSpecification>(), Arg.Any<CancellationToken>())
             .Returns(memberOwnedToken);
+
+        Assert.ThrowsAsync<InvalidRefreshTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+    }
+
+    [Test]
+    public void Handle_GivenTokenRotatedConcurrentlyByAnotherRequest_WhenSaving_ThenThrowsInvalidRefreshToken()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new ConcurrencyConflictException());
 
         Assert.ThrowsAsync<InvalidRefreshTokenException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }

@@ -13,4 +13,7 @@ public sealed class RefreshTokenRepository(ChoicePieDbContext context)
 {
     public override Task<RefreshTokenAggregate?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         context.Set<RefreshTokenAggregate>().FirstOrDefaultAsync(t => t.Id == id, ct);
+
+    public Task ReloadAsync(RefreshTokenAggregate token, CancellationToken ct = default) =>
+        context.Entry(token).ReloadAsync(ct);
 }

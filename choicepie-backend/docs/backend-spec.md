@@ -1,7 +1,8 @@
 # ChoicePie 後端規格文件
 
-> 依據 `choicepie-frontend` 現有頁面、Pinia store、型別定義與 mock 資料反推出的後端資料模型與 API 規格。
-> 前端目前所有資料皆為 mock（`app/mocks/*.ts`）或直接寫死在頁面上，尚未串接真實後端；本文件目的是把「前端已經預期會有」的資料形狀與行為整理成後端可以直接對齊的規格。
+> **⚠️ 文件狀態：早期設計規格，僅供參考。**
+> 本文件撰寫於後端尚未實作、前端仍使用 mock 資料（`app/mocks/*.ts`）的階段，依據前端頁面、Pinia store 與型別定義反推出後端應有的資料模型與 API。
+> 之後後端已完整實作、前端也已全部串接真實 API（見 `choicepie-frontend/docs/todo.md`、`choicepie-frontend/docs/unconnected-apis.md`）。實際的路由（`api/v1/...`）、DTO、驗證流程（BFF + HttpOnly cookie）與部署方式可能與下文不同，**一律以程式碼與 `choicepie-backend/ChoicePie.Backend/CLAUDE.md` 為準**。
 
 ## 0. 產品概觀
 

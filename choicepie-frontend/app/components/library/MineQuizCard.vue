@@ -12,12 +12,12 @@
           {{ quiz.title }}
         </p>
       </div>
-      <span
-        class="text-[11px] px-2 py-1 rounded-full font-semibold whitespace-nowrap shrink-0"
-        :class="statusBadgeClass"
+      <StatusBadge
+        :tone="quizStatusTone(quiz.status)"
+        class="shrink-0"
       >
         {{ statusLabel }}
-      </span>
+      </StatusBadge>
     </div>
 
     <div class="flex justify-end">
@@ -40,6 +40,7 @@
 
 <script lang="ts" setup>
 import type { DropdownMenuItem } from '@nuxt/ui'
+import StatusBadge from '~/components/common/StatusBadge.vue'
 import QuizCoverThumbnail from '~/components/library/QuizCoverThumbnail.vue'
 import type { Quiz } from '~/types/quiz'
 
@@ -63,13 +64,6 @@ const statusLabel = computed(() => ({
   archived: t('myQuizzes.status.archived'),
   takendown: t('myQuizzes.status.takenDown')
 }[props.quiz.status] ?? props.quiz.status))
-
-const statusBadgeClass = computed(() => ({
-  published: 'bg-success-100 text-success-800',
-  draft: 'bg-neutral-100 text-neutral-600',
-  archived: 'bg-warning-100 text-warning-800',
-  takendown: 'bg-error-100 text-error-800'
-}[props.quiz.status] ?? 'bg-neutral-100 text-neutral-600'))
 
 const cardActions = (quiz: Quiz): DropdownMenuItem[] => ([
   {

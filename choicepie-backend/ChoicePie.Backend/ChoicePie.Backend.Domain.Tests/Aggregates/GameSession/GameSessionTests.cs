@@ -31,6 +31,18 @@ public class GameSessionTests
     }
 
     [Test]
+    public void RecordFrom_GivenEndedGameRoom_WhenCalledTwice_ThenBothRecordsShareTheRoomIdAsIdentity()
+    {
+        var room = BuildPlayedRoom();
+
+        var first = Domain.Aggregates.GameSession.GameSession.RecordFrom(room, CreatedAtUtc.AddMinutes(2));
+        var second = Domain.Aggregates.GameSession.GameSession.RecordFrom(room, CreatedAtUtc.AddMinutes(3));
+
+        Assert.That(first.Id, Is.EqualTo(room.Id));
+        Assert.That(second.Id, Is.EqualTo(first.Id));
+    }
+
+    [Test]
     public void RecordFrom_GivenEndedGameRoom_WhenCalled_ThenMapsRoomCodeHostAndQuestions()
     {
         var room = BuildPlayedRoom();

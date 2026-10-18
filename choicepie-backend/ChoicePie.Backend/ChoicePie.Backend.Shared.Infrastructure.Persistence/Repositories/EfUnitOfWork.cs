@@ -1,15 +1,22 @@
 using System.Data;
 using ChoicePie.Backend.Shared.Application.Events;
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Outbox;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using Npgsql;
 
 namespace ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 
-public class EfUnitOfWork<TContext>(TContext context, IPublisher mediator, IServiceScopeFactory scopeFactory)
+public class EfUnitOfWork<TContext>(
+    TContext context,
+    IPublisher mediator,
+    OutboxMessageFactory outboxMessageFactory,
+    ILogger<EfUnitOfWork<TContext>> logger)
     : IUnitOfWork where TContext : DbContext
 {
     private IDbContextTransaction? _transaction;
@@ -19,7 +26,25 @@ public class EfUnitOfWork<TContext>(TContext context, IPublisher mediator, IServ
         var domainEvents = GetAndClearDomainEvents();
         FixPhantomModifiedOwnedEntities();
 
-        var result = await context.SaveChangesAsync(ct);
+        // 有可靠 handler 的事件跟業務資料同一個交易寫進 outbox：commit 成功事件就不會丟，失敗就一起回滾。
+        context.Set<OutboxMessage>().AddRange(outboxMessageFactory.CreateFor(domainEvents));
+
+        int result;
+        try
+        {
+            result = await context.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new ConcurrencyConflictException(ex);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+                                           {
+                                               SqlState: PostgresErrorCodes.UniqueViolation
+                                           } postgresException)
+        {
+            throw new UniqueConstraintViolationException(postgresException.ConstraintName, ex);
+        }
 
         await DispatchDomainEventsAsync(domainEvents, ct);
         return result;
@@ -136,15 +161,29 @@ public class EfUnitOfWork<TContext>(TContext context, IPublisher mediator, IServ
         return domainEvents;
     }
 
+    /// <summary>
+    /// 資料已經 commit，這裡的 in-process handler（例如清快取）都是 best-effort：失敗只記錄、繼續派送下一個事件，
+    /// 不讓例外把已經成功的請求變成錯誤回應（用戶端會因此重送）。需要保證送達的事件走 outbox，不在這裡。
+    /// </summary>
     private async Task DispatchDomainEventsAsync(IEnumerable<BaseDomainEvent> events, CancellationToken ct)
     {
         foreach (var @event in events)
         {
             var notification = CreateNotification((dynamic)@event);
 
-            if (notification is not null)
+            if (notification is null)
+            {
+                continue;
+            }
+
+            try
             {
                 await mediator.Publish(notification, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "In-process handler for domain event {DomainEventType} failed after commit",
+                    @event.GetType().Name);
             }
         }
     }

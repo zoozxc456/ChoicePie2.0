@@ -9,6 +9,7 @@ using ChoicePie.Backend.Domain.Aggregates.QuizAttempt;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using MediatR;
 using QuizAttemptAggregate = ChoicePie.Backend.Domain.Aggregates.QuizAttempt.QuizAttempt;
 
@@ -43,7 +44,18 @@ public sealed class StartQuizAttemptCommandHandler(
             existingAttempt = QuizAttemptAggregate.Start(quiz.Id, memberId, questionIds, timeProvider.GetUtcNow().UtcDateTime);
 
             await quizAttemptRepository.AddAsync(existingAttempt, cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            catch (UniqueConstraintViolationException)
+            {
+                // 連點「開始挑戰」時另一個請求已經建立了進行中的作答（部分唯一索引只允許一筆）：改用那一筆。
+                existingAttempt = await quizAttemptRepository.FirstOrDefaultAsync(
+                                      new QuizAttemptInProgressByQuizAndMemberSpecification(quiz.Id, memberId),
+                                      cancellationToken)
+                                  ?? throw new InvalidOperationException("唯一索引擋下了重複的作答，卻查不到既有的進行中作答。");
+            }
         }
 
         var attempt = existingAttempt;

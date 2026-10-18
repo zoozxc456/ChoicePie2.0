@@ -54,6 +54,8 @@
 </template>
 
 <script setup lang="ts">
+import { buildPageItems } from '~/utils/pagination'
+
 interface Props {
   pageNumber: number
   totalPages: number
@@ -67,33 +69,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-type PageItem = number | 'ellipsis'
-
-// 頁數多時只顯示目前頁附近 ± 1 頁、首尾頁，其餘用刪節號收合，避免頁碼過多擠爆版面。
-const pageItems = computed<PageItem[]>(() => {
-  const { pageNumber: current, totalPages: total } = props
-  const items: PageItem[] = []
-  const siblings = 1
-
-  const rangeStart = Math.max(2, current - siblings)
-  const rangeEnd = Math.min(total - 1, current + siblings)
-
-  items.push(1)
-  if (rangeStart > 2) {
-    items.push('ellipsis')
-  }
-  for (let page = rangeStart; page <= rangeEnd; page++) {
-    items.push(page)
-  }
-  if (rangeEnd < total - 1) {
-    items.push('ellipsis')
-  }
-  if (total > 1) {
-    items.push(total)
-  }
-
-  return items
-})
+const pageItems = computed(() => buildPageItems(props.pageNumber, props.totalPages))
 </script>
 
 <script lang="ts">

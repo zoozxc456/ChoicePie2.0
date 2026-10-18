@@ -4,6 +4,7 @@ using ChoicePie.Backend.Domain.Aggregates.EmailVerificationToken.Exceptions;
 using ChoicePie.Backend.Domain.Aggregates.EmailVerificationToken.Specifications;
 using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
 using MediatR;
 
 namespace ChoicePie.Backend.Application.Identity.Commands;
@@ -34,6 +35,14 @@ public sealed class VerifyEmailCommandHandler(
 
         await authAccountRepository.UpdateAsync(authAccount, cancellationToken);
         await emailVerificationTokenRepository.UpdateAsync(verificationToken, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (ConcurrencyConflictException)
+        {
+            // 同一顆 token 同時被另一個請求用掉：一次性 token 只能成功一次。
+            throw new InvalidEmailVerificationTokenException();
+        }
     }
 }

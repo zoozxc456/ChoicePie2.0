@@ -30,6 +30,7 @@ public class GenerateQuizQuestionsCommandHandlerTests
     private IWebPageContentFetcher _webPageContentFetcher = null!;
     private IOptions<AiQuizGenerationSettings> _aiSettings = null!;
     private IUnitOfWork _unitOfWork = null!;
+    private IDistributedLock _distributedLock = null!;
     private TimeProvider _timeProvider = null!;
     private GenerateQuizQuestionsCommandHandler _sut = null!;
     private Member _member = null!;
@@ -50,11 +51,15 @@ public class GenerateQuizQuestionsCommandHandlerTests
             Provider = "Anthropic", ApiKey = "test-key", Model = "claude-sonnet-5"
         });
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _distributedLock = Substitute.For<IDistributedLock>();
+        _distributedLock.TryAcquireAsync(Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Substitute.For<IAsyncDisposable>());
         _timeProvider = Substitute.For<TimeProvider>();
         _timeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
         _sut = new GenerateQuizQuestionsCommandHandler(
             _memberRepository, _membershipTierRepository, _aiUsageLogRepository, _aiUsageLogQueryService,
-            _currentUserService, _generationService, _webPageContentFetcher, _aiSettings, _unitOfWork, _timeProvider);
+            _currentUserService, _generationService, _webPageContentFetcher, _aiSettings, _unitOfWork, _distributedLock,
+            _timeProvider);
 
         _member = Member.Create("Host Name");
         _tier = MembershipTier.Create("Free", dailyGenerationLimit: 3, dailyTokenBudget: 10_000, isDefault: true);
@@ -140,18 +145,16 @@ public class GenerateQuizQuestionsCommandHandlerTests
     }
 
     [Test]
-    public async Task Handle_GivenMemberWithNoTierAssigned_WhenCalled_ThenSkipsQuotaCheckAndGenerates()
+    public void Handle_GivenMemberWithNoTierAssigned_WhenCalled_ThenThrowsAiGenerationNotAvailableWithoutGenerating()
     {
         var memberWithoutTier = Member.Create("No Tier Member");
         _currentUserService.UserId.Returns(memberWithoutTier.Id);
         _memberRepository.GetByIdAsync(memberWithoutTier.Id, Arg.Any<CancellationToken>()).Returns(memberWithoutTier);
-        _generationService.GenerateAsync(Arg.Any<string>(), 5, Difficulty.Beginner, Arg.Any<CancellationToken>(), Arg.Any<WebPageSource?>())
-            .Returns(new GeneratedQuestionsResult(
-                [new GeneratedQuestion("Q1?", ["A", "B", "C", "D"], 0, "because")], 10));
 
-        var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
+        Assert.ThrowsAsync<AiGenerationNotAvailableException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
 
-        Assert.That(result.TokensUsed, Is.EqualTo(10));
+        _generationService.DidNotReceiveWithAnyArgs().GenerateAsync(default!, default, default!, default);
+        _aiUsageLogRepository.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     [TestCase(1)]
@@ -293,5 +296,30 @@ public class GenerateQuizQuestionsCommandHandlerTests
         _unitOfWork.DidNotReceiveWithAnyArgs().SaveChangesAsync(default);
         _aiUsageLogRepository.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
         _generationService.DidNotReceiveWithAnyArgs().GenerateAsync(default!, default, default!, default);
+    }
+
+    // 額度是「先檢查、AI 回來後才記錄」：同一位會員的並行請求會一起通過檢查而超用，所以同時只放行一個。
+    [Test]
+    public void Handle_GivenAnotherGenerationInFlightForSameMember_WhenCalled_ThenRejectsWithoutCallingAi()
+    {
+        _distributedLock.TryAcquireAsync($"AiGeneration:{_member.Id}", Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+            .Returns((IAsyncDisposable?)null);
+
+        Assert.ThrowsAsync<AiGenerationInProgressException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+        _generationService.DidNotReceiveWithAnyArgs().GenerateAsync(default!, default, default!, default);
+    }
+
+    [Test]
+    public async Task Handle_GivenGenerationFinished_WhenCalled_ThenReleasesInFlightGuard()
+    {
+        var inFlightLease = Substitute.For<IAsyncDisposable>();
+        _distributedLock.TryAcquireAsync($"AiGeneration:{_member.Id}", Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+            .Returns(inFlightLease);
+        _generationService.GenerateAsync(Arg.Any<string>(), 5, Difficulty.Beginner, Arg.Any<CancellationToken>(), Arg.Any<WebPageSource?>())
+            .Returns(new GeneratedQuestionsResult([new GeneratedQuestion("Q1?", ["A", "B", "C", "D"], 0, "because")], 42));
+
+        await _sut.Handle(ValidCommand(), CancellationToken.None);
+
+        await inFlightLease.Received(1).DisposeAsync();
     }
 }

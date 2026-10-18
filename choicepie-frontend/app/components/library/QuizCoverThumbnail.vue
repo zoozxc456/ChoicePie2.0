@@ -17,6 +17,8 @@
 </template>
 
 <script setup lang="ts">
+import { coverColorClass } from '~/utils/quizCover'
+
 interface Props {
   coverImageUrl?: string | null
   coverEmoji: string
@@ -27,15 +29,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { coverImageUrl: null, size: 'md', rounded: 'xl' })
 
-const COLOR_CLASS_MAP: Record<string, string> = {
-  primary: 'bg-cp-primary',
-  secondary: 'bg-cp-secondary',
-  success: 'bg-cp-success',
-  danger: 'bg-cp-danger',
-  warning: 'bg-cp-warning',
-  info: 'bg-cp-info'
-}
-const colorClass = computed(() => COLOR_CLASS_MAP[props.coverGradient] ?? 'bg-cp-secondary')
+const colorClass = computed(() => coverColorClass(props.coverGradient))
 
 const SIZE_CLASS_MAP: Record<NonNullable<Props['size']>, string> = {
   xs: 'w-9 h-9',

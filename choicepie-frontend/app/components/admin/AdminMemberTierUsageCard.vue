@@ -27,15 +27,10 @@
       </select>
     </div>
 
-    <div
+    <LoadingSpinner
       v-if="isLoadingUsage"
-      class="flex justify-center py-8"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-2xl text-primary-500"
-      />
-    </div>
+      size="sm"
+    />
 
     <dl
       v-else-if="currentTier"
@@ -91,6 +86,7 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import type { AdminMemberAiUsageDto, AdminMemberDetailDto, MembershipTierDto } from '~/types/api'
 
 interface Props {

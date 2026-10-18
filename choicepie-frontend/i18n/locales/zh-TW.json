@@ -144,7 +144,7 @@
     },
     "ended": {
       "title": "最終排名",
-      "rankSuffix": "名"
+      "place": "第 {rank} 名"
     },
     "unavailable": "無法顯示此房間，房間可能已結束或代碼有誤"
   },

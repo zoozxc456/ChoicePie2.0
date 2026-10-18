@@ -161,4 +161,26 @@ public class MemberTests
 
         Assert.That(member.IsCurrentlySuspended(now.AddDays(8)), Is.False);
     }
+
+    [Test]
+    public void Rename_GivenValidName_WhenCalled_ThenRaisesMemberProfileChangedDomainEvent()
+    {
+        var member = MemberAggregate.Create("Host Name");
+        member.ClearDomainEvents();
+
+        member.Rename("New Name");
+
+        Assert.That(member.DomainEvents.OfType<MemberProfileChangedDomainEvent>().Single().MemberId, Is.EqualTo(member.Id));
+    }
+
+    [Test]
+    public void ChangeAvatar_GivenValidUrl_WhenCalled_ThenRaisesMemberProfileChangedDomainEvent()
+    {
+        var member = MemberAggregate.Create("Host Name");
+        member.ClearDomainEvents();
+
+        member.ChangeAvatar("https://cdn.example.com/avatar.png");
+
+        Assert.That(member.DomainEvents.OfType<MemberProfileChangedDomainEvent>().Single().MemberId, Is.EqualTo(member.Id));
+    }
 }

@@ -5,26 +5,13 @@
     </h1>
 
     <!-- Google Register -->
-    <UButton
-      block
-      size="lg"
-      color="neutral"
-      variant="outline"
-      class="font-bold h-12 rounded-2xl"
+    <GoogleAuthButton
+      :label="t('signIn.googleRegister')"
       :loading="auth.isLoading"
       @click="handleGoogleLogin"
-    >
-      <template #leading>
-        <span class="font-extrabold text-[#4285F4]">G</span>
-      </template>
-      {{ t('signIn.googleRegister') }}
-    </UButton>
+    />
 
-    <div class="flex items-center gap-3 text-xs text-neutral-400">
-      <hr class="flex-1 border-neutral-200">
-      {{ t('signIn.orDivider') }}
-      <hr class="flex-1 border-neutral-200">
-    </div>
+    <OrDivider :label="t('signIn.orDivider')" />
 
     <!-- Form -->
     <UForm
@@ -56,25 +43,10 @@
       </UFormField>
 
       <UFormField name="password">
-        <UInput
+        <PasswordInput
           v-model="registerState.password"
-          :type="showPassword ? 'text' : 'password'"
           :placeholder="t('signIn.passwordPlaceholder')"
-          size="lg"
-          class="w-full"
-          :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-        >
-          <template #trailing>
-            <UButton
-              color="neutral"
-              variant="link"
-              size="sm"
-              :padded="false"
-              :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-              @click="onToggleShowPassword"
-            />
-          </template>
-        </UInput>
+        />
         <div
           v-if="passwordStrength"
           class="flex items-center gap-2 mt-1.5"
@@ -84,7 +56,7 @@
               v-for="i in 3"
               :key="i"
               class="h-1 flex-1 rounded-full transition-all"
-              :class="i <= (['weak', 'medium', 'strong'].indexOf(passwordStrength.level) + 1)
+              :class="i <= passwordStrength.bars
                 ? passwordStrength.barClass
                 : 'bg-neutral-200'"
             />
@@ -99,25 +71,10 @@
       </UFormField>
 
       <UFormField name="confirmPassword">
-        <UInput
+        <PasswordInput
           v-model="registerState.confirmPassword"
-          :type="showConfirmPassword ? 'text' : 'password'"
           :placeholder="t('signIn.confirmPasswordPlaceholder')"
-          size="lg"
-          class="w-full"
-          :ui="{ base: 'bg-neutral-100 h-12 text-sm px-4' }"
-        >
-          <template #trailing>
-            <UButton
-              color="neutral"
-              variant="link"
-              size="sm"
-              :padded="false"
-              :icon="showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-              @click="onToggleShowConfirmPassword"
-            />
-          </template>
-        </UInput>
+        />
       </UFormField>
 
       <p
@@ -152,31 +109,27 @@
 </template>
 
 <script setup lang="ts">
-import { ApiError } from '~/composables/useApi'
+import AuthCardLayout from '~/components/common/AuthCardLayout.vue'
+import GoogleAuthButton from '~/components/common/GoogleAuthButton.vue'
+import OrDivider from '~/components/common/OrDivider.vue'
+import PasswordInput from '~/components/common/PasswordInput.vue'
+import { useAuthRedirect } from '~/composables/useAuthRedirect'
 import { useRegisterSchema, type RegisterSchema } from '~/types/auth'
+import { getApiErrorMessage } from '~/utils/apiErrorMessage'
+import { evaluatePasswordStrength, type PasswordStrength } from '~/utils/passwordStrength'
 
 definePageMeta({ layout: 'default' })
 
 const { t } = useI18n()
 const registerSchema = useRegisterSchema()
 const auth = useAuthStore()
-const route = useRoute()
 
 const error = ref('')
 const isLoading = ref(false)
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
 
-const redirect = computed(() => sanitizeRedirect(route.query.redirect))
+const { redirect, goToRedirect, redirectIfAuthenticated } = useAuthRedirect()
 
-// persisted 的 isLoggedIn 只代表「曾經登入過」，須用 fetchMe() 實際驗證 session 是否仍有效，
-// 避免 session 過期時在登入頁與受保護頁之間形成 redirect loop。
-if (auth.isLoggedIn) {
-  const verified = await auth.fetchMe()
-  if (verified) {
-    await navigateTo(redirect.value)
-  }
-}
+await redirectIfAuthenticated()
 
 const registerState = reactive<RegisterSchema>({
   name: '',
@@ -187,17 +140,17 @@ const registerState = reactive<RegisterSchema>({
 
 const isFormValid = computed(() => registerSchema.safeParse(registerState).success)
 
+const STRENGTH_DISPLAY: Record<PasswordStrength, { bars: number, barClass: string, textClass: string }> = {
+  tooShort: { bars: 1, barClass: 'bg-error-500', textClass: 'text-error-500' },
+  weak: { bars: 1, barClass: 'bg-error-500', textClass: 'text-error-500' },
+  medium: { bars: 2, barClass: 'bg-warning-500', textClass: 'text-warning-500' },
+  strong: { bars: 3, barClass: 'bg-success-500', textClass: 'text-success-500' }
+}
+
 const passwordStrength = computed(() => {
-  const p = registerState.password
-  if (p.length === 0) return null
-  if (p.length < 8) return { level: 'weak', label: t('signIn.strength.tooShort'), barClass: 'bg-error-500', textClass: 'text-error-500' }
-  const hasUpper = /[A-Z]/.test(p)
-  const hasNum = /[0-9]/.test(p)
-  const hasSymbol = /[^A-Za-z0-9]/.test(p)
-  const score = [hasUpper, hasNum, hasSymbol].filter(Boolean).length
-  if (score === 0) return { level: 'weak', label: t('signIn.strength.weak'), barClass: 'bg-error-500', textClass: 'text-error-500' }
-  if (score === 1) return { level: 'medium', label: t('signIn.strength.medium'), barClass: 'bg-warning-500', textClass: 'text-warning-500' }
-  return { level: 'strong', label: t('signIn.strength.strong'), barClass: 'bg-success-500', textClass: 'text-success-500' }
+  const strength = evaluatePasswordStrength(registerState.password)
+  if (!strength) return null
+  return { ...STRENGTH_DISPLAY[strength], label: t(`signIn.strength.${strength}`) }
 })
 
 const handleRegister = async () => {
@@ -210,29 +163,21 @@ const handleRegister = async () => {
       password: registerState.password,
       confirmPassword: registerState.confirmPassword
     })
-    await navigateTo(redirect.value)
+    await goToRedirect()
   } catch (e: unknown) {
-    error.value = e instanceof ApiError ? e.message : t('signIn.registerError')
+    error.value = getApiErrorMessage(e, t('signIn.registerError'))
   } finally {
     isLoading.value = false
   }
-}
-
-const onToggleShowPassword = () => {
-  showPassword.value = !showPassword.value
-}
-
-const onToggleShowConfirmPassword = () => {
-  showConfirmPassword.value = !showConfirmPassword.value
 }
 
 const handleGoogleLogin = async () => {
   error.value = ''
   try {
     await auth.loginWithGoogle()
-    await navigateTo(redirect.value)
+    await goToRedirect()
   } catch (e: unknown) {
-    error.value = e instanceof ApiError ? e.message : t('signIn.googleLoginError')
+    error.value = getApiErrorMessage(e, t('signIn.googleLoginError'))
   }
 }
 </script>

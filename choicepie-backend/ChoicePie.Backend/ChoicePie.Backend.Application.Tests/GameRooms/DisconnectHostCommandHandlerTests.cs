@@ -22,7 +22,7 @@ public class DisconnectHostCommandHandlerTests
         _gameRoomRepository = Substitute.For<IGameRoomRepository>();
         var timeProvider = Substitute.For<TimeProvider>();
         timeProvider.GetUtcNow().Returns(new DateTimeOffset(StartedAtUtc.AddSeconds(4)));
-        _sut = new DisconnectHostCommandHandler(_gameRoomRepository, new GameRoomLock(), timeProvider);
+        _sut = new DisconnectHostCommandHandler(_gameRoomRepository, timeProvider);
     }
 
     private Domain.Aggregates.GameRoom.GameRoom CreateRoom(bool started)

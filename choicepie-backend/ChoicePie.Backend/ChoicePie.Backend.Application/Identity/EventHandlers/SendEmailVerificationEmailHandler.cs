@@ -6,9 +6,9 @@ using MediatR;
 namespace ChoicePie.Backend.Application.Identity.EventHandlers;
 
 public sealed class SendEmailVerificationEmailHandler(IEmailSender emailSender, IFrontendUrlProvider frontendUrlProvider)
-    : INotificationHandler<DomainEventNotification<EmailVerificationRequestedDomainEvent>>
+    : INotificationHandler<ReliableDomainEventNotification<EmailVerificationRequestedDomainEvent>>
 {
-    public Task Handle(DomainEventNotification<EmailVerificationRequestedDomainEvent> notification, CancellationToken cancellationToken)
+    public Task Handle(ReliableDomainEventNotification<EmailVerificationRequestedDomainEvent> notification, CancellationToken cancellationToken)
     {
         var domainEvent = notification.DomainEvent;
         var verifyLink = $"{frontendUrlProvider.BaseUrl}/verify-email?token={Uri.EscapeDataString(domainEvent.RawToken)}";

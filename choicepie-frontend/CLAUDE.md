@@ -33,6 +33,10 @@ npx vitest run              # run unit tests (tests/nuxt/unit/**/*.spec.ts)
 
 **Do not run `nuxi build` / `nuxi dev` to verify changes** — use typecheck + lint only.
 
+End-to-end tests live in `../e2e` (Playwright against a multi-node Docker Compose stack; the Nuxt
+build there runs only inside Docker — see `../e2e/README.md`). They select elements by `data-testid`,
+so keep those attributes when refactoring game-room components.
+
 ## Directory structure (`app/`)
 
 - `pages/` — file-based routing (see Routing below)
@@ -43,7 +47,13 @@ npx vitest run              # run unit tests (tests/nuxt/unit/**/*.spec.ts)
   `creator`, `favorites`, `following`, plus admin-side `adminAuth`, `adminDashboard`, `adminMember`,
   `adminMembershipTier`, `adminQuiz`, `adminQuizReport`
 - `composables/` — `useApi.ts` (REST), `useGameRoom.ts` (SignalR), `useGoogleIdentity.ts` (Google
-  Identity Services ID-token flow), `usePlayerSession.ts` (localStorage reconnect credential per room)
+  Identity Services ID-token flow), `usePlayerSession.ts` (localStorage reconnect credential per room),
+  `useQuestionDrafts.ts` (local question drafts for manual / AI quiz creation), `useDebouncedSearch.ts`
+  (admin list search boxes), `useCountdown.ts` (per-question timer on the solo attempt page),
+  `useModalTarget.ts` (admin "open a modal for item X" state), `useRequireLogin.ts`
+  (`ensureLoggedIn()` — redirect guests to `/login?redirect=…` before login-only actions),
+  `useAuthRedirect.ts` (shared by `login.vue` / `sign-in/index.vue`: sanitized `redirect`,
+  `redirectIfAuthenticated()` via `fetchMe`, `goToRedirect()`)
 - `services/{domain}/client.ts` — typed API-client layer between stores and `useApi()`
   (e.g. `services/quiz/client.ts`; domains: `account`, `creator`, `gameSession`, `quiz`,
   `quizAttempt`, `admin/*`; `services/auth.ts` is the flat auth client). Non-standard Nuxt
@@ -51,7 +61,13 @@ npx vitest run              # run unit tests (tests/nuxt/unit/**/*.spec.ts)
 - `types/` — `api.ts` (backend DTOs, `ApiEnvelope<T>`), `gameRoom.ts`, `other.ts` (SignalR
   payload types), `quiz.ts`, `user.ts`, `auth.ts`, `account.ts`, `adminAuth.ts`, `adminUser.ts`
 - `utils/` — `safeRedirect.ts` (`sanitizeRedirect`, same-site paths only), `absoluteUrl.ts`,
-  `apiErrorMessage.ts`, `createPagedList.ts` (paged-list state helper used by list stores)
+  `apiErrorMessage.ts` (`getApiErrorMessage` — use it instead of hand-rolled `instanceof ApiError`
+  checks), `createPagedList.ts` (paged-list state helper used by list stores), `pagination.ts`
+  (`totalPagesOf`, `buildPageItems`), `adminQuizStatus.ts` (admin quiz status style + i18n label key),
+  `quizCover.ts` (cover color/emoji options, `coverColorClass`, `createDefaultCover`), `imageFile.ts`
+  (`validateImageFile` for avatar / cover uploads), `passwordStrength.ts`, `shareUrl.ts`, `tags.ts`,
+  plus `formatDate.ts`, `statusTone.ts`, `podium.ts`, `aiSource.ts`. Keep pure logic here (unit-tested
+  under `tests/nuxt/unit/utils/`) rather than inline in components
 - `layouts/` — `default`, `content`, `admin`, `bigScreen`
 - `middleware/auth.ts` (member), `middleware/admin-auth.ts`, `plugins/auth.client.ts`
 - `assets/css/design-tokens.css`, `assets/css/main.css`
@@ -83,8 +99,12 @@ through `sanitizeRedirect`.
 (`app/composables/useApi.ts`) calls same-origin `/api/v1/**` with `useRequestFetch()` (so SSR
 forwards the incoming cookies), unwraps `ApiEnvelope<T>` so callers get `T` directly, maps 429 to a
 friendly message, and on 401 dedupes a single in-flight refresh (`useAuthStore().fetchMe()` for
-members, `useAdminAuthStore().fetchMe()` for `/api/v1/admin/*`) and retries once, passing the fresh
-token via the `x-fresh-access-token` header. Store code should go through
+members, `useAdminAuthStore().fetchMe()` for `/api/v1/admin/*`) and retries once. In-flight
+refreshes are scoped per Nuxt app / pinia, never module-level — on the server a module is shared by
+every incoming request. During SSR, `useApi` copies each sub-response's `Set-Cookie` to the outer
+response (so the browser gets rotated tokens) and into the outer request's `Cookie` header (so the
+retry and later SSR sub-requests send the fresh token). Tokens never reach browser JS: the BFF
+refresh routes return only the member / admin user. Store code should go through
 `app/services/{domain}/client.ts` wrappers, not call `useApi()` directly.
 
 BFF (`server/`): `server/api/v1/[...path].ts` is a catch-all proxy that reads the httpOnly session
@@ -100,7 +120,7 @@ catch-all.
 
 **WebSocket (game)** — `useGameRoom()` (`app/composables/useGameRoom.ts`) wraps a SignalR
 `HubConnection` to `${apiBaseUrl}/api/gamehub` — SignalR still connects **directly** to the
-backend (browser WebSocket, `withCredentials`, authenticated by the backend's own auth cookie,
+backend (WebSockets only with `skipNegotiation` so multi-node backends need no sticky sessions, `withCredentials`, authenticated by the backend's own auth cookie,
 which the BFF forwards from auth responses via `forwardSetCookie`); `NUXT_PUBLIC_API_BASE_URL` is
 only used for this. Server→client events (`RoomCreated`, `PlayerJoined`, `PlayerDisconnected`,
 `PlayerReconnected`, `PauseStateChanged`, `HostConnectionChanged`, `QuestionStart`, `AnswerResult`,

@@ -1,4 +1,6 @@
+using System.Reflection;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.AppSettings;
+using ChoicePie.Backend.Shared.Infrastructure.Persistence.Outbox;
 using ChoicePie.Backend.Shared.Infrastructure.Persistence.Repositories;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +13,23 @@ public static class PersistenceServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddSharedPersistence<TContext>()
+        /// <summary>
+        /// UnitOfWork 連同 Outbox 一起註冊：UnitOfWork 寫 outbox，processor 派送。
+        /// <paramref name="reliableHandlerAssemblies"/> 是放 <c>ReliableDomainEventNotification</c> handler 的組件，
+        /// 用來決定哪些事件要進 outbox。需要宿主另外註冊 Data Protection（多台時金鑰必須共用）。
+        /// </summary>
+        public IServiceCollection AddSharedPersistence<TContext>(params Assembly[] reliableHandlerAssemblies)
             where TContext : DbContext
         {
             services.AddScoped<IUnitOfWork, EfUnitOfWork<TContext>>();
+
+            services.AddSingleton(OutboxEventRegistry.FromAssemblies(reliableHandlerAssemblies));
+            services.AddSingleton<OutboxSerializer>();
+            services.AddSingleton<OutboxMessageFactory>();
+            services.AddSingleton<OutboxDispatcher>();
+            services.AddScoped(sp => new OutboxStore(sp.GetRequiredService<TContext>(), sp.GetRequiredService<TimeProvider>()));
+            services.AddSingleton<OutboxProcessor>();
+            services.AddHostedService(sp => sp.GetRequiredService<OutboxProcessor>());
             return services;
         }
 

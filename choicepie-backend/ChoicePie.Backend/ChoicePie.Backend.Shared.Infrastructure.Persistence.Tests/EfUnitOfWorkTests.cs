@@ -50,6 +50,36 @@ public sealed class EfUnitOfWorkTests
     }
 
     [Test]
+    public async Task SaveChangesAsync_GivenInProcessHandlerThrowsAfterCommit_WhenCalled_ThenDoesNotThrowAndKeepsCommittedData()
+    {
+        await using var context = _fixture.CreateContext();
+        var publisher = Substitute.For<IPublisher>();
+        publisher.Publish(Arg.Any<DomainEventNotification<TestWidgetCreatedDomainEvent>>(), Arg.Any<CancellationToken>())
+            .Returns<Task>(_ => throw new InvalidOperationException("cache unavailable"));
+        var unitOfWork = _fixture.CreateUnitOfWork(context, publisher);
+        var widget = TestWidget.Create("Widget Handler Fails");
+        await context.AddAsync(widget);
+
+        Assert.DoesNotThrowAsync(() => unitOfWork.SaveChangesAsync());
+
+        await using var verifyContext = _fixture.CreateContext();
+        Assert.That(await new TestWidgetRepository(verifyContext).GetByIdAsync(widget.Id), Is.Not.Null);
+    }
+
+    [Test]
+    public async Task SaveChangesAsync_GivenHandlerCancelledAfterCommit_WhenCalled_ThenPropagatesCancellation()
+    {
+        await using var context = _fixture.CreateContext();
+        var publisher = Substitute.For<IPublisher>();
+        publisher.Publish(Arg.Any<DomainEventNotification<TestWidgetCreatedDomainEvent>>(), Arg.Any<CancellationToken>())
+            .Returns<Task>(_ => throw new OperationCanceledException());
+        var unitOfWork = _fixture.CreateUnitOfWork(context, publisher);
+        await context.AddAsync(TestWidget.Create("Widget Handler Cancelled"));
+
+        Assert.CatchAsync<OperationCanceledException>(() => unitOfWork.SaveChangesAsync());
+    }
+
+    [Test]
     public async Task SaveChangesAsync_GivenTrackedAggregateMutatedThenReloaded_WhenCalledThroughUnitOfWork_ThenPersistsTheChange()
     {
         await using var writeContext = _fixture.CreateContext();

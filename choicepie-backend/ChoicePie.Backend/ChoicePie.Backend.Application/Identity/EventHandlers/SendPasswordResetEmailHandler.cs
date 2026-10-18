@@ -6,9 +6,9 @@ using MediatR;
 namespace ChoicePie.Backend.Application.Identity.EventHandlers;
 
 public sealed class SendPasswordResetEmailHandler(IEmailSender emailSender, IFrontendUrlProvider frontendUrlProvider)
-    : INotificationHandler<DomainEventNotification<PasswordResetRequestedDomainEvent>>
+    : INotificationHandler<ReliableDomainEventNotification<PasswordResetRequestedDomainEvent>>
 {
-    public Task Handle(DomainEventNotification<PasswordResetRequestedDomainEvent> notification, CancellationToken cancellationToken)
+    public Task Handle(ReliableDomainEventNotification<PasswordResetRequestedDomainEvent> notification, CancellationToken cancellationToken)
     {
         var domainEvent = notification.DomainEvent;
         var resetLink = $"{frontendUrlProvider.BaseUrl}/reset-password?token={Uri.EscapeDataString(domainEvent.RawToken)}";

@@ -9,6 +9,8 @@ using ChoicePie.Backend.Shared.Application.Interfaces;
 using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using NSubstitute;
 using QuizAttemptAggregate = ChoicePie.Backend.Domain.Aggregates.QuizAttempt.QuizAttempt;
+using ChoicePie.Backend.Shared.Kernel.Exceptions;
+using NSubstitute.ExceptionExtensions;
 
 namespace ChoicePie.Backend.Application.Tests.QuizAttempts;
 
@@ -86,5 +88,15 @@ public class CompleteQuizAttemptCommandHandlerTests
 
         Assert.ThrowsAsync<QuizAttemptNotFoundException>(() =>
             _sut.Handle(new CompleteQuizAttemptCommand(missingId), CancellationToken.None));
+    }
+
+    // 連點「繳交」：另一個請求已經完成這次作答，這次要回「已結束」而不是重複計算挑戰次數。
+    [Test]
+    public void Handle_GivenAttemptCompletedConcurrentlyByAnotherRequest_WhenSaving_ThenThrowsInvalidState()
+    {
+        _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new ConcurrencyConflictException());
+
+        Assert.ThrowsAsync<InvalidQuizAttemptStateException>(() =>
+            _sut.Handle(new CompleteQuizAttemptCommand(_attempt.Id), CancellationToken.None));
     }
 }

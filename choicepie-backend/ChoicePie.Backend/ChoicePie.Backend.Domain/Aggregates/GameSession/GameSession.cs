@@ -24,11 +24,14 @@ public sealed class GameSession : AggregateRoot<Guid>
     {
     }
 
+    /// <summary>
+    /// 一個房間只會玩一局，所以直接沿用房間的 Id 當作紀錄的 Id：同一局重複記錄會撞主鍵，而不是多出一筆歷史。
+    /// </summary>
     public static GameSession RecordFrom(GameRoom.GameRoom room, DateTime utcNow)
     {
         var session = new GameSession
         {
-            Id = Guid.NewGuid(),
+            Id = room.Id,
             RoomCode = room.RoomCode,
             HostUserId = room.HostUserId,
             QuizId = room.QuizId,

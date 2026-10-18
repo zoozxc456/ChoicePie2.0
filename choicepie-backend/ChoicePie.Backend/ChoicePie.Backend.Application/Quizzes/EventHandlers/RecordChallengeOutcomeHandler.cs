@@ -1,28 +1,19 @@
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
 using ChoicePie.Backend.Domain.Aggregates.QuizAttempt.Events;
 using ChoicePie.Backend.Shared.Application.Events;
-using ChoicePie.Backend.Shared.Kernel.Abstractions.Data;
 using MediatR;
 
 namespace ChoicePie.Backend.Application.Quizzes.EventHandlers;
 
-// EfUnitOfWork dispatches domain events after commit, outside any transaction, so delivery is
-// at-least-once, not exactly-once - this handler is not deduplicated (best effort).
-public sealed class RecordChallengeOutcomeHandler(IQuizRepository quizRepository, IUnitOfWork unitOfWork)
-    : INotificationHandler<DomainEventNotification<QuizAttemptCompletedDomainEvent>>
+// Delivered through the outbox, so the outcome is recorded even if the node dies right after the
+// attempt commits. Delivery is at-least-once: a crash between this UPDATE and the outbox marking the
+// handler completed can count one attempt twice - acceptable for a statistic, so it is not deduplicated.
+// The repository applies the outcome as one atomic UPDATE so concurrent completions are never lost.
+public sealed class RecordChallengeOutcomeHandler(IQuizRepository quizRepository)
+    : INotificationHandler<ReliableDomainEventNotification<QuizAttemptCompletedDomainEvent>>
 {
-    public async Task Handle(
-        DomainEventNotification<QuizAttemptCompletedDomainEvent> notification, CancellationToken cancellationToken)
-    {
-        var quiz = await quizRepository.GetByIdAsync(notification.DomainEvent.QuizId, cancellationToken);
-        if (quiz is null)
-        {
-            return;
-        }
-
-        quiz.RecordChallengeOutcome(notification.DomainEvent.Passed);
-
-        await quizRepository.UpdateAsync(quiz, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-    }
+    public Task Handle(
+        ReliableDomainEventNotification<QuizAttemptCompletedDomainEvent> notification, CancellationToken cancellationToken) =>
+        quizRepository.RecordChallengeOutcomeAsync(
+            notification.DomainEvent.QuizId, notification.DomainEvent.Passed, cancellationToken);
 }

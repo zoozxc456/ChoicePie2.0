@@ -1,29 +1,15 @@
 <template>
   <div>
-    <div
+    <LoadingSpinner
       v-if="followingStore.isLoadingCreators || followingStore.isLoadingFeed"
-      class="flex justify-center py-20"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-4xl text-cp-primary"
-      />
-    </div>
+    />
 
-    <div
+    <EmptyState
       v-else-if="!followingStore.creators.length"
-      class="text-center py-20"
+      :title="t('library.following.empty')"
+      :description="t('library.following.emptyDesc')"
+      icon="i-lucide-users"
     >
-      <UIcon
-        name="i-lucide-users"
-        class="text-5xl mb-4 text-cp-text-muted"
-      />
-      <p class="font-bold text-base mb-1.5 text-cp-text-primary">
-        {{ t('library.following.empty') }}
-      </p>
-      <p class="text-sm text-cp-text-secondary mb-6">
-        {{ t('library.following.emptyDesc') }}
-      </p>
       <UButton
         color="primary"
         size="lg"
@@ -32,7 +18,7 @@
       >
         {{ t('library.following.emptyCta') }}
       </UButton>
-    </div>
+    </EmptyState>
 
     <template v-else>
       <!-- Followed creators -->
@@ -111,6 +97,8 @@
 </template>
 
 <script setup lang="ts">
+import EmptyState from '~/components/common/EmptyState.vue'
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
 import CreatorAvatar from '~/components/creator/CreatorAvatar.vue'
 import QuizCard from '~/components/library/QuizCard.vue'
 import { useFollowingStore } from '~/stores/following'

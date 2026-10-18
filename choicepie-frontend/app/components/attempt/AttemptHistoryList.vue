@@ -7,15 +7,10 @@
       {{ t('attempt.history.title') }}
     </h2>
 
-    <div
+    <LoadingSpinner
       v-if="quizAttemptStore.isLoadingHistory"
-      class="flex justify-center py-6"
-    >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="animate-spin text-2xl text-primary-500"
-      />
-    </div>
+      size="sm"
+    />
 
     <p
       v-else-if="quizAttemptStore.history.length === 0"
@@ -53,6 +48,8 @@
 </template>
 
 <script setup lang="ts">
+import LoadingSpinner from '~/components/common/LoadingSpinner.vue'
+
 interface Props {
   quizId: string
 }
@@ -63,7 +60,7 @@ const { t, locale } = useI18n()
 const auth = useAuthStore()
 const quizAttemptStore = useQuizAttemptStore()
 
-const formatDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value)
+const formatDate = (iso: string) => formatLocaleDate(iso, locale.value)
 
 watch(() => props.quizId, (quizId) => {
   if (auth.isLoggedIn) {
