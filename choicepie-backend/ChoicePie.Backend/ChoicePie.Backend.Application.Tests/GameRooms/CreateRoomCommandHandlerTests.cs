@@ -85,6 +85,73 @@ public class CreateRoomCommandHandlerTests
         Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
     }
 
+    private Quiz CreateQuizOwnedBy(Guid ownerId)
+    {
+        var quiz = Quiz.Create(ownerId, "Someone else's quiz", null, null, "⚓", "primary", Difficulty.Beginner, []);
+        quiz.AddQuestion(Question.Create("Q", ["1", "2", "3", "4"], 1, "explanation"));
+        return quiz;
+    }
+
+    [Test]
+    public void Handle_GivenOtherMembersDraftQuiz_WhenCalled_ThenThrowsQuizNotFoundAndSavesNoRoom()
+    {
+        _quizRepository.GetByIdAsync(_quizId, Arg.Any<CancellationToken>()).Returns(CreateQuizOwnedBy(Guid.NewGuid()));
+
+        Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+
+        _gameRoomRepository.DidNotReceiveWithAnyArgs().SaveAsync(default!, default);
+    }
+
+    [Test]
+    public async Task Handle_GivenOtherMembersPublishedQuiz_WhenCalled_ThenSavesRoom()
+    {
+        var quiz = CreateQuizOwnedBy(Guid.NewGuid());
+        quiz.Publish();
+        _quizRepository.GetByIdAsync(_quizId, Arg.Any<CancellationToken>()).Returns(quiz);
+
+        await _sut.Handle(ValidCommand(), CancellationToken.None);
+
+        await _gameRoomRepository.ReceivedWithAnyArgs(1).SaveAsync(default!, default);
+    }
+
+    [Test]
+    public void Handle_GivenOtherMembersTakenDownQuiz_WhenCalled_ThenThrowsQuizNotFoundAndSavesNoRoom()
+    {
+        var quiz = CreateQuizOwnedBy(Guid.NewGuid());
+        quiz.Publish();
+        quiz.TakeDown(Guid.NewGuid(), "violation", DateTime.UtcNow);
+        _quizRepository.GetByIdAsync(_quizId, Arg.Any<CancellationToken>()).Returns(quiz);
+
+        Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+
+        _gameRoomRepository.DidNotReceiveWithAnyArgs().SaveAsync(default!, default);
+    }
+
+    [Test]
+    public void Handle_GivenOwnQuizTakenDown_WhenCalled_ThenThrowsQuizNotFoundAndSavesNoRoom()
+    {
+        var quiz = CreateQuizWithQuestions(1);
+        quiz.Publish();
+        quiz.TakeDown(Guid.NewGuid(), "violation", DateTime.UtcNow);
+        _quizRepository.GetByIdAsync(_quizId, Arg.Any<CancellationToken>()).Returns(quiz);
+
+        Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+
+        _gameRoomRepository.DidNotReceiveWithAnyArgs().SaveAsync(default!, default);
+    }
+
+    [Test]
+    public void Handle_GivenOwnQuizArchived_WhenCalled_ThenThrowsQuizNotFoundAndSavesNoRoom()
+    {
+        var quiz = CreateQuizWithQuestions(1);
+        quiz.Archive();
+        _quizRepository.GetByIdAsync(_quizId, Arg.Any<CancellationToken>()).Returns(quiz);
+
+        Assert.ThrowsAsync<QuizNotFoundException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
+
+        _gameRoomRepository.DidNotReceiveWithAnyArgs().SaveAsync(default!, default);
+    }
+
     [Test]
     public async Task Handle_GivenHostConnectionId_WhenCalled_ThenSavedRoomTracksHostConnectionAsOnline()
     {

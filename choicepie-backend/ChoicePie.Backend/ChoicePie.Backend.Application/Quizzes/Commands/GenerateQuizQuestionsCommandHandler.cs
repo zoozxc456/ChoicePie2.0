@@ -57,26 +57,22 @@ public sealed class GenerateQuizQuestionsCommandHandler(
         var member = await memberRepository.GetByIdAsync(memberId, cancellationToken)
                      ?? throw new MemberNotFoundException(memberId);
 
-        var tier = member.TierId is { } tierId
-            ? await membershipTierRepository.GetByIdAsync(tierId, cancellationToken)
-              ?? throw new MembershipTierNotFoundException(tierId)
-            : null;
+        // 未指派方案視同額度為 0。
+        var tierId = member.TierId ?? throw new AiGenerationNotAvailableException(memberId);
+        var tier = await membershipTierRepository.GetByIdAsync(tierId, cancellationToken)
+                   ?? throw new MembershipTierNotFoundException(tierId);
 
         var now = timeProvider.GetUtcNow().UtcDateTime;
+        var todayUsage = await aiUsageLogQueryService.GetTodayUsageAsync(memberId, now, cancellationToken);
 
-        if (tier is not null)
+        if (todayUsage.GenerationCount >= tier.DailyGenerationLimit)
         {
-            var todayUsage = await aiUsageLogQueryService.GetTodayUsageAsync(memberId, now, cancellationToken);
+            throw new AiGenerationQuotaExceededException(memberId);
+        }
 
-            if (todayUsage.GenerationCount >= tier.DailyGenerationLimit)
-            {
-                throw new AiGenerationQuotaExceededException(memberId);
-            }
-
-            if (todayUsage.TokensUsed >= tier.DailyTokenBudget)
-            {
-                throw new AiTokenBudgetExceededException(memberId);
-            }
+        if (todayUsage.TokensUsed >= tier.DailyTokenBudget)
+        {
+            throw new AiTokenBudgetExceededException(memberId);
         }
 
         // 先抓取網頁，失敗就直接丟出例外：此時尚未記錄任何用量，不會消耗額度。

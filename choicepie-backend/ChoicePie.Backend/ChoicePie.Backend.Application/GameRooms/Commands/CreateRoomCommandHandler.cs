@@ -1,6 +1,7 @@
 using ChoicePie.Backend.Domain.Aggregates.GameRoom;
 using ChoicePie.Backend.Domain.Aggregates.GameRoom.ValueObjects;
 using ChoicePie.Backend.Domain.Aggregates.Quiz;
+using ChoicePie.Backend.Domain.Aggregates.Quiz.Enums;
 using ChoicePie.Backend.Domain.Aggregates.Quiz.Exceptions;
 using MediatR;
 
@@ -16,6 +17,15 @@ public sealed class CreateRoomCommandHandler(
     {
         var quiz = await quizRepository.GetByIdAsync(request.QuizId, cancellationToken)
                    ?? throw new QuizNotFoundException(request.QuizId);
+
+        // 已發布的題庫任何人都能開房；草稿只有擁有者能開（試玩）。其餘狀態（封存、下架）一律視為不存在，
+        // 與 GetQuizByIdQueryHandler 一致，避免透過 QuestionStart/QuestionEnd 洩漏題目與答案。
+        var isOwner = quiz.OwnerId == request.HostUserId;
+        var isHostable = quiz.Status == QuizStatus.Published || (isOwner && quiz.Status == QuizStatus.Draft);
+        if (!isHostable)
+        {
+            throw new QuizNotFoundException(request.QuizId);
+        }
 
         var selectedQuestions = request.QuestionIds.Count == 0
             ? quiz.Questions

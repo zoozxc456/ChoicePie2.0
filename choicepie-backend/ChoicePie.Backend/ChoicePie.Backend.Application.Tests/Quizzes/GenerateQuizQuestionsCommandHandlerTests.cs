@@ -145,18 +145,16 @@ public class GenerateQuizQuestionsCommandHandlerTests
     }
 
     [Test]
-    public async Task Handle_GivenMemberWithNoTierAssigned_WhenCalled_ThenSkipsQuotaCheckAndGenerates()
+    public void Handle_GivenMemberWithNoTierAssigned_WhenCalled_ThenThrowsAiGenerationNotAvailableWithoutGenerating()
     {
         var memberWithoutTier = Member.Create("No Tier Member");
         _currentUserService.UserId.Returns(memberWithoutTier.Id);
         _memberRepository.GetByIdAsync(memberWithoutTier.Id, Arg.Any<CancellationToken>()).Returns(memberWithoutTier);
-        _generationService.GenerateAsync(Arg.Any<string>(), 5, Difficulty.Beginner, Arg.Any<CancellationToken>(), Arg.Any<WebPageSource?>())
-            .Returns(new GeneratedQuestionsResult(
-                [new GeneratedQuestion("Q1?", ["A", "B", "C", "D"], 0, "because")], 10));
 
-        var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
+        Assert.ThrowsAsync<AiGenerationNotAvailableException>(() => _sut.Handle(ValidCommand(), CancellationToken.None));
 
-        Assert.That(result.TokensUsed, Is.EqualTo(10));
+        _generationService.DidNotReceiveWithAnyArgs().GenerateAsync(default!, default, default!, default);
+        _aiUsageLogRepository.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     [TestCase(1)]

@@ -1,8 +1,15 @@
 using System.Net;
 using System.Net.Http.Json;
 using ChoicePie.Backend.Application.Quizzes.Dtos;
+using ChoicePie.Backend.Domain.Aggregates.AuthAccount;
+using ChoicePie.Backend.Domain.Aggregates.Member;
+using ChoicePie.Backend.Domain.Aggregates.MembershipTier;
+using ChoicePie.Backend.Infrastructure.Persistence.Contexts;
 using ChoicePie.Backend.Shared.Application.Contracts;
 using ChoicePie.Backend.Shared.Hosting.API.Response;
+using ChoicePie.Backend.Shared.Kernel.ValueObjects;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChoicePie.Backend.WebApi.Tests;
 
@@ -250,20 +257,50 @@ public sealed class QuizzesControllerTests
     }
 
     [Test]
-    public async Task GenerateQuestionsAsync_GivenValidContent_WhenCalled_ThenReturnsPlaceholderQuestions()
+    public async Task GenerateQuestionsAsync_GivenMemberWithTier_WhenCalled_ThenReturnsPlaceholderQuestions()
+    {
+        var (client, _, email) = await GameHubTestClient.CreateAuthenticatedHostClientAsync(_factory);
+        using var _ = client;
+        await AssignNewTierAsync(email);
+
+        var response = await PostGenerateQuestionsAsync(client);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var body = await response.Content.ReadFromJsonAsync<ApiResponse<GenerateQuestionsResultDto>>();
+        Assert.That(body!.Data!.Questions, Has.Count.EqualTo(3));
+    }
+
+    [Test]
+    public async Task GenerateQuestionsAsync_GivenMemberWithoutTier_WhenCalled_ThenReturnsForbidden()
     {
         using var client = await CreateAuthenticatedClientAsync();
 
-        var response = await client.PostAsJsonAsync("/api/v1/quizzes/generate-questions", new
+        var response = await PostGenerateQuestionsAsync(client);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
+
+    private static Task<HttpResponseMessage> PostGenerateQuestionsAsync(HttpClient client) =>
+        client.PostAsJsonAsync("/api/v1/quizzes/generate-questions", new
         {
             Content = new string('x', 40),
             QuestionCount = 3,
             Difficulty = "beginner"
         });
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var body = await response.Content.ReadFromJsonAsync<ApiResponse<GenerateQuestionsResultDto>>();
-        Assert.That(body!.Data!.Questions, Has.Count.EqualTo(3));
+    /// <summary>註冊流程不會指派方案（未指派 = AI 額度 0），所以直接透過 DbContext 建立方案並指派。</summary>
+    private async Task AssignNewTierAsync(string email)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ChoicePieDbContext>();
+
+        var authAccount = await dbContext.Set<AuthAccount>().SingleAsync(a => a.Email == Email.Create(email));
+        var member = await dbContext.Set<Member>().SingleAsync(m => m.Id == authAccount.MemberId);
+        var tier = MembershipTier.Create($"Tier {Guid.NewGuid()}", dailyGenerationLimit: 10, dailyTokenBudget: 100_000);
+
+        dbContext.Add(tier);
+        member.AssignTier(tier.Id);
+        await dbContext.SaveChangesAsync();
     }
 
     [Test]
