@@ -1,5 +1,7 @@
+import { appendResponseHeader } from 'h3'
+import type { NuxtApp } from '#app'
 import type { ApiEnvelope } from '~/types/api'
-import type { FetchMeResult } from '~/stores/adminAuth'
+import { applySetCookiesToCookieHeader } from '~/utils/cookieHeader'
 
 export class ApiError extends Error {
   code: string
@@ -27,8 +29,13 @@ const ADMIN_PATH_PREFIX = '/api/v1/admin/'
 
 // 401 時先嘗試 refresh 一次，多個請求同時 401 只會觸發一次 refresh。
 // admin 與會員各自獨立的 in-flight refresh，避免兩邊 session 互相干擾。
-let refreshPromise: Promise<boolean> | null = null
-let adminRefreshPromise: Promise<FetchMeResult> | null = null
+// 以 Nuxt app 為 key 而不是放在 module 層級：server 端的 module 是所有 incoming request 共用的，
+// 放在 module 層級會讓不同使用者同時進行的 SSR 等到別人的 refresh 結果。
+interface InFlightRefresh {
+  member?: Promise<boolean>
+  admin?: Promise<boolean>
+}
+const inFlightRefreshes = new WeakMap<NuxtApp, InFlightRefresh>()
 
 /**
  * 呼叫本站 Nuxt server（server/api/**）而非直接打後端 —— 後端呼叫改由 Nitro 以
@@ -46,6 +53,22 @@ export const useApi = () => {
   // 等同全域 $fetch，行為不變。
   const requestFetch = useRequestFetch()
 
+  // SSR 時 useRequestFetch() 打本站 server route 是 sub-request：它的 Set-Cookie 不會自己傳回瀏覽器，
+  // 之後的 sub-request 也只會複製這次 incoming request 的 Cookie header（h3 getProxyRequestHeaders）。
+  // 所以 refresh 換到新 token 後，要把 Set-Cookie 轉到最外層 response 讓瀏覽器拿到，
+  // 並改寫 incoming request 的 Cookie header，讓 retry 與這次 render 內之後的請求都帶上新 token。
+  const ssrEvent = import.meta.server ? useRequestEvent() : undefined
+  const forwardSetCookiesToSsrResponse = ({ response }: { response: Response }) => {
+    if (!ssrEvent) return
+    const setCookies = response.headers.getSetCookie()
+    if (setCookies.length === 0) return
+
+    for (const setCookie of setCookies) {
+      appendResponseHeader(ssrEvent, 'set-cookie', setCookie)
+    }
+    ssrEvent.node.req.headers.cookie = applySetCookiesToCookieHeader(ssrEvent.node.req.headers.cookie, setCookies)
+  }
+
   const toApiError = (e: unknown) => {
     const fetchError = e as { data?: ApiEnvelope<unknown>, status?: number, message?: string }
     // 429 可能不是後端 envelope（例如被反向代理直接擋下），此時改用固定的友善訊息而非 "Too Many Requests"。
@@ -60,14 +83,23 @@ export const useApi = () => {
   const fetchEnvelope = <T>(path: string, options: Parameters<typeof $fetch>[1] = {}) =>
     requestFetch<ApiEnvelope<T>>(path, {
       credentials: 'include',
-      ...options
+      ...options,
+      ...(ssrEvent && { onResponse: forwardSetCookiesToSsrResponse })
     })
 
-  const request = async <T>(path: string, options: Parameters<typeof $fetch>[1] = {}, isRetry = false, freshAccessToken?: string): Promise<T> => {
-    if (freshAccessToken) {
-      options = { ...options, headers: { ...options.headers, 'x-fresh-access-token': freshAccessToken } }
+  const refreshOnce = (kind: keyof InFlightRefresh, fetchMe: () => Promise<boolean>) => {
+    let inFlight = inFlightRefreshes.get(nuxtApp)
+    if (!inFlight) {
+      inFlight = {}
+      inFlightRefreshes.set(nuxtApp, inFlight)
     }
+    inFlight[kind] ??= fetchMe().finally(() => {
+      inFlight[kind] = undefined
+    })
+    return inFlight[kind]
+  }
 
+  const request = async <T>(path: string, options: Parameters<typeof $fetch>[1] = {}, isRetry = false): Promise<T> => {
     try {
       const envelope = await fetchEnvelope<T>(path, options)
       return envelope.data as T
@@ -86,15 +118,10 @@ export const useApi = () => {
 
       if (apiError.status === 401 && !isRetry && !isAuthEndpoint) {
         if (isAdminPath) {
-          adminRefreshPromise ??= useAdminAuthStore().fetchMe().finally(() => {
-            adminRefreshPromise = null
-          })
-          const { success: refreshed, accessToken: freshToken } = await adminRefreshPromise
+          const refreshed = await refreshOnce('admin', () => useAdminAuthStore().fetchMe())
 
           if (refreshed) {
-            // SSR 時這次 retry 是全新的 sub-request，讀不到剛才 refresh 寫入的 cookie
-            // （見 [...path].ts 的 x-fresh-access-token 處理），故顯式帶上新 token。
-            return request<T>(path, options, true, freshToken)
+            return request<T>(path, options, true)
           }
 
           useAdminAuthStore().clearSession()
@@ -104,10 +131,7 @@ export const useApi = () => {
           return await nuxtApp.runWithContext(() =>
             navigateTo(`/admin/login?redirect=${encodeURIComponent(nuxtApp.$router.currentRoute.value.fullPath)}`)) as T
         } else {
-          refreshPromise ??= useAuthStore().fetchMe().finally(() => {
-            refreshPromise = null
-          })
-          const refreshed = await refreshPromise
+          const refreshed = await refreshOnce('member', () => useAuthStore().fetchMe())
 
           if (refreshed) {
             return request<T>(path, options, true)

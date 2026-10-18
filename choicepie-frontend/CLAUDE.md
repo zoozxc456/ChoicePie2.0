@@ -99,8 +99,12 @@ through `sanitizeRedirect`.
 (`app/composables/useApi.ts`) calls same-origin `/api/v1/**` with `useRequestFetch()` (so SSR
 forwards the incoming cookies), unwraps `ApiEnvelope<T>` so callers get `T` directly, maps 429 to a
 friendly message, and on 401 dedupes a single in-flight refresh (`useAuthStore().fetchMe()` for
-members, `useAdminAuthStore().fetchMe()` for `/api/v1/admin/*`) and retries once, passing the fresh
-token via the `x-fresh-access-token` header. Store code should go through
+members, `useAdminAuthStore().fetchMe()` for `/api/v1/admin/*`) and retries once. In-flight
+refreshes are scoped per Nuxt app / pinia, never module-level — on the server a module is shared by
+every incoming request. During SSR, `useApi` copies each sub-response's `Set-Cookie` to the outer
+response (so the browser gets rotated tokens) and into the outer request's `Cookie` header (so the
+retry and later SSR sub-requests send the fresh token). Tokens never reach browser JS: the BFF
+refresh routes return only the member / admin user. Store code should go through
 `app/services/{domain}/client.ts` wrappers, not call `useApi()` directly.
 
 BFF (`server/`): `server/api/v1/[...path].ts` is a catch-all proxy that reads the httpOnly session

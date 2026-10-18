@@ -182,6 +182,29 @@ describe('useAuthStore', () => {
       expect(result).toBe(false)
       expect(store.user).toBeNull()
     })
+
+    it('同一個 store 併發呼叫時共用同一次 refresh', async () => {
+      refresh.mockResolvedValue(member)
+      const store = useAuthStore()
+
+      await Promise.all([store.fetchMe(), store.fetchMe()])
+
+      expect(refresh).toHaveBeenCalledTimes(1)
+    })
+
+    // SSR 時每個 incoming request 有自己的 pinia；共用 in-flight refresh 會讓別人的請求拿到這次的結果。
+    it('不同 pinia（SSR 時的不同請求）各自 refresh，不共用 in-flight 結果', async () => {
+      refresh.mockResolvedValueOnce(member).mockRejectedValueOnce(new Error('unauthorized'))
+      const storeOfRequestA = useAuthStore()
+      setActivePinia(createPinia())
+      const storeOfRequestB = useAuthStore()
+
+      const [resultA, resultB] = await Promise.all([storeOfRequestA.fetchMe(), storeOfRequestB.fetchMe()])
+
+      expect(refresh).toHaveBeenCalledTimes(2)
+      expect(resultA).toBe(true)
+      expect(resultB).toBe(false)
+    })
   })
 
   describe('forgotPassword', () => {

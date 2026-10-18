@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { ApiEnvelope } from '~/types/api'
-import { fetchMock, useAuthStoreMock, useAdminAuthStoreMock } from './mocks/useApi.mock'
+import { fetchMock, useAuthStoreMock, useAdminAuthStoreMock, nuxtAppState, createNuxtAppMock } from './mocks/useApi.mock'
 
 const importUseApi = async () => {
   vi.resetModules()
@@ -223,11 +223,45 @@ describe('useApi', () => {
       expect(resultB).toEqual({ id: 'b' })
       expect(fetchMe).toHaveBeenCalledTimes(1)
     })
+    it('不同 Nuxt app（SSR 時的不同請求）各自 refresh，不共用 in-flight 結果', async () => {
+      const fetchMe = vi.fn().mockResolvedValue(true)
+      useAuthStoreMock.mockReturnValue({ fetchMe, logout: vi.fn() })
+      fetchMock
+        .mockRejectedValueOnce(fetchError(401))
+        .mockRejectedValueOnce(fetchError(401))
+        .mockResolvedValueOnce(envelope({ id: 'a' }))
+        .mockResolvedValueOnce(envelope({ id: 'b' }))
+      const { useApi } = await importUseApi()
+      nuxtAppState.current = createNuxtAppMock()
+      const apiOfRequestA = useApi()
+      nuxtAppState.current = createNuxtAppMock()
+      const apiOfRequestB = useApi()
+
+      await Promise.all([
+        apiOfRequestA.get('/api/v1/a'),
+        apiOfRequestB.get('/api/v1/b')
+      ])
+
+      expect(fetchMe).toHaveBeenCalledTimes(2)
+    })
+
+    it('retry 不再另外帶 x-fresh-access-token header', async () => {
+      useAuthStoreMock.mockReturnValue({ fetchMe: vi.fn().mockResolvedValue(true), logout: vi.fn() })
+      fetchMock
+        .mockRejectedValueOnce(fetchError(401))
+        .mockResolvedValueOnce(envelope({ id: '1' }))
+      const { useApi } = await importUseApi()
+
+      await useApi().get('/api/v1/quizzes/1')
+
+      const retryOptions = fetchMock.mock.calls[1]![1] as { headers?: Record<string, string> }
+      expect(retryOptions.headers?.['x-fresh-access-token']).toBeUndefined()
+    })
   })
 
   describe('admin 401 refresh 流程', () => {
     it('admin 路徑 401 時使用 useAdminAuthStore 而非 useAuthStore', async () => {
-      const fetchMe = vi.fn().mockResolvedValue({ success: true })
+      const fetchMe = vi.fn().mockResolvedValue(true)
       const memberFetchMe = vi.fn()
       useAdminAuthStoreMock.mockReturnValue({ fetchMe, logout: vi.fn() })
       useAuthStoreMock.mockReturnValue({ fetchMe: memberFetchMe, logout: vi.fn() })
@@ -245,7 +279,7 @@ describe('useApi', () => {
     })
 
     it('admin refresh 失敗時清除 admin session，不拋出錯誤', async () => {
-      const fetchMe = vi.fn().mockResolvedValue({ success: false })
+      const fetchMe = vi.fn().mockResolvedValue(false)
       const clearSession = vi.fn()
       useAdminAuthStoreMock.mockReturnValue({ fetchMe, clearSession, logout: vi.fn() })
       fetchMock.mockRejectedValue(fetchError(401))
